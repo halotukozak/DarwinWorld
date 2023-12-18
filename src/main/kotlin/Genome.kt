@@ -1,6 +1,15 @@
-class Genome(genes: List<Int>) : Iterable<Int> {
+import kotlin.random.Random
 
-  override fun iterator(): Iterator<Int> = TODO()
-  fun nextGene(): Int = iterator().next()
 
+class Genome(private val genes: List<Gen>) : Iterator<Gen> {
+
+  private var curr = Random.nextInt(genes.size)
+
+  override fun hasNext(): Boolean = true
+
+  override fun next(): Gen = genes[(curr++) % genes.size]
+}
+
+enum class Gen {
+  SHH, DmNotch, MDM2, zCycD1, Frp, NAC, sdf
 }
