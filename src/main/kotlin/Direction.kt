@@ -1,5 +1,3 @@
-package org.oolab
-
 import map.Vector
 
 enum class Direction(val vector: Vector) {
@@ -13,5 +11,11 @@ enum class Direction(val vector: Vector) {
   NW(-1, -1);
 
   constructor(x: Int, y: Int) : this(Vector(x, y))
+
+  operator fun plus(next: Gen): Direction = this + next.ordinal
+  operator fun minus(next: Gen): Direction = this - next.ordinal
+  operator fun plus(i: Int): Direction = entries[(this.ordinal + i) % entries.size]
+  operator fun minus(i: Int): Direction = entries[(this.ordinal - i) % entries.size]
+
 
 }

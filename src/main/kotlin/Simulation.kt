@@ -6,8 +6,8 @@ import map.JungleMap
 class Simulation(config: Config) : Runnable {
 
     private val map = when (config.plantGrowthVariant) {
-        PlantGrowthVariant.equator -> EquatorMap(config.mapWidth, config.mapHeight)
-        PlantGrowthVariant.jungle -> JungleMap(config.mapWidth, config.mapHeight)
+        PlantGrowthVariant.EQUATOR -> EquatorMap(config.mapWidth, config.mapHeight)
+        PlantGrowthVariant.JUNGLE -> JungleMap(config.mapWidth, config.mapHeight)
     }
 
     private fun nextDay() {
