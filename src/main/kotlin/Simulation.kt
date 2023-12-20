@@ -3,20 +3,21 @@ import config.PlantGrowthVariant
 import map.EquatorMap
 import map.JungleMap
 
-class Simulation(config: Config) : Runnable {
+class Simulation(private val config: Config) : Runnable {
 
     private val map = when (config.plantGrowthVariant) {
-        PlantGrowthVariant.EQUATOR -> EquatorMap(config.mapWidth, config.mapHeight)
-        PlantGrowthVariant.JUNGLE -> JungleMap(config.mapWidth, config.mapHeight)
+        PlantGrowthVariant.EQUATOR -> EquatorMap(config)
+        PlantGrowthVariant.JUNGLE -> JungleMap(config)
     }
 
     private fun nextDay() {
+        map.growAnimals()
         map.removeDeadAnimals()
         map.rotateAnimals()
         map.moveAnimals()
         map.consumePlants()
-        map.cimririmcim()
-        map.growPlants()
+        map.breedAnimals()
+        map.growPlants(config.plantsPerDay)
     }
 
     override fun run() {

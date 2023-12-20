@@ -1,4 +1,5 @@
 import map.Vector
+import kotlin.random.Random
 
 enum class Direction(val vector: Vector) {
   N(0, -1),
@@ -17,5 +18,11 @@ enum class Direction(val vector: Vector) {
   operator fun plus(i: Int): Direction = entries[(this.ordinal + i) % entries.size]
   operator fun minus(i: Int): Direction = entries[(this.ordinal - i) % entries.size]
 
+  companion object {
+    fun random(): Direction = entries.random()
+  }
+
 
 }
+
+fun Enum<*>.random() = this.coentries[Random.nextInt(entries.size)] //todo
