@@ -1,5 +1,4 @@
 import map.Vector
-import kotlin.enums.enumEntries
 
 enum class Direction(val vector: Vector) {
   N(0, -1),

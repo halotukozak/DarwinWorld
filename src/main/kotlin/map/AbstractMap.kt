@@ -30,7 +30,7 @@ abstract class AbstractMap(protected val config: Config) {
           Animal(
             config.initialAnimalEnergy,
             Genome.random(config.genomeLength),
-            Direction.random()
+            Direction.random(),
           )
         )
       }

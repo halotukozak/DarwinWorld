@@ -1,4 +1,3 @@
-package map;
+package map
 
-public interface MapElement {
-}
+interface MapElement
