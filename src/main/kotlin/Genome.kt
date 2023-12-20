@@ -9,8 +9,14 @@ class Genome(private val genes: List<Gen>) : Iterator<Gen> {
 
   override fun next(): Gen = genes[(curr++) % genes.size]
 
+  fun take(numberOfGenes: Int) = this.genes.take(numberOfGenes)
+  fun takeLast(numberOfGenes: Int) = this.genes.takeLast(numberOfGenes)
+  fun drop(numberOfGenes: Int) = this.genes.drop(numberOfGenes)
+  fun dropLast(numberOfGenes: Int) = this.genes.dropLast(numberOfGenes)
+
+
   companion object {
-    fun random(len: Int): Genome = Genome(List(len) { Gen.random() })
+    fun random(size: Int): Genome = Genome(List(size) { Gen.random() })
   }
 }
 
@@ -18,6 +24,6 @@ enum class Gen {
   SHH, DmNotch, MDM2, zCycD1, Frp, NAC, sdf;
 
   companion object {
-    fun random(): Gen = entries.random()
+    fun random() = entries.random()
   }
 }

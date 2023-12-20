@@ -8,40 +8,37 @@ import kotlin.math.min
 
 class EquatorMap(config: Config) : AbstractMap(config) {
 
+  private fun IntRange.emptyFields(x: Int) =
+    fold(emptyList<Vector>()) { acc, y ->
+      if (elements[Vector(x, y)]!!.contains(Plant)) acc else acc + Vector(x, y)
+    }
+
   private val equator = (config.mapHeight.toDouble() / 5).roundToInt()
     .let { equatorHeight -> ((config.mapHeight - equatorHeight) / 2)..((config.mapHeight + equatorHeight) / 2) }
 
   override fun growPlants(plantsCount: Int) {
-    val emptyFieldsOnEquator = (0..config.mapWidth).flatMap { x ->
-      equator.mapNotNull { y ->
-        if(elements[Vector(x, y)]!!.firstOrNull { it is Plant } == null) Vector(x, y) else null
-      }
+    val addPlantsRandomly = { emptyFields: List<Vector>, numberOfPlants: Int ->
+      emptyFields
+        .takeRandom(numberOfPlants)
+        .forEach { elements[it]!!.add(Plant) }
     }
 
+    val emptyFieldsOnEquator = (0..config.mapWidth).flatMap { equator.emptyFields(it) }
     val plantsOnEquator = min(emptyFieldsOnEquator.size, (plantsCount * 0.8).roundToInt())
-
-    emptyFieldsOnEquator.random(plantsOnEquator).forEach {
-      elements[it]!!.add(Plant())
-    }
+    addPlantsRandomly(emptyFieldsOnEquator, plantsOnEquator)
 
     val emptyFieldsBesideEquator = (0..config.mapWidth).flatMap { x ->
-      (0..<equator.first).mapNotNull { y ->
-        if(elements[Vector(x, y)]!!.firstOrNull { it is Plant } == null) Vector(x, y) else null
-      } + (equator.last + 1..config.mapHeight).map { y ->
-        if(elements[Vector(x, y)]!!.firstOrNull { it is Plant } == null) Vector(x, y) else null
-      }
+      (0..<equator.first).emptyFields(x) + (equator.last + 1..config.mapHeight).emptyFields(x)
     }
-
     val plantsBesideEquator = min(emptyFieldsBesideEquator.size, plantsCount - plantsOnEquator)
-
-    emptyFieldsBesideEquator.random(plantsBesideEquator).forEach {
-      elements[it]!!.add(Plant())
-    }
+    addPlantsRandomly(emptyFieldsBesideEquator, plantsBesideEquator)
   }
 }
 
-
-fun <T> List<T>.random(n: Int = 1) = generateSequence {
-  this[Random.nextInt(size)]
-}.distinct().take(n)
+fun <T> List<T>.takeRandom(n: Int = 1) =
+  generateSequence {
+    this[Random.nextInt(size)]
+  }
+    .distinct()
+    .take(n)
 

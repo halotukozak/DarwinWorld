@@ -1,4 +1,3 @@
 import map.MapElement
 
-class Plant : MapElement {
-}
+data object Plant : MapElement

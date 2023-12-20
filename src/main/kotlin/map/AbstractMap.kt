@@ -1,6 +1,7 @@
 package map
 
 import Animal
+import Direction
 import GenMutator
 import Plant
 import config.Config
@@ -21,17 +22,20 @@ abstract class AbstractMap(protected val config: Config) {
   init {
     generateSequence {
       Vector(Random.nextInt(config.mapWidth), Random.nextInt(config.mapHeight))
-    }.distinct().take(config.initialAnimals).forEach { position ->
-      elements[position]!!.add(
-        Animal(
-          config.initialAnimalEnergy,
-          Genome.random(config.genomeLength),
-          Direction.random()
-        )
-      )
     }
+      .distinct()
+      .take(config.initialAnimals)
+      .forEach { position ->
+        elements[position]!!.add(
+          Animal(
+            config.initialAnimalEnergy,
+            Genome.random(config.genomeLength),
+            Direction.random()
+          )
+        )
+      }
 
-    growPlants(config.initialPlants)
+    this.growPlants(config.initialPlants)
   }
 
   fun growAnimals() = elements.forEach { (_, set) ->

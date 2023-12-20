@@ -23,7 +23,7 @@ data class Animal(var energy: Int, val genome: Genome, val direction: Direction)
     return Animal(
       energyLoss1 + energyLoss2,
       mutator.combine(this.genome, other.genome, energyLoss1.toDouble() / (energyLoss1 + energyLoss2)),
-      Direction.random(),
+      Direction.entries.random(),
     ).also {
       this.children.add(it)
       other.children.add(it)

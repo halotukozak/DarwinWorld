@@ -1,27 +1,21 @@
 import config.Config
-import java.util.*
 import kotlin.random.Random
 
-class GenMutator(val config: Config) {
+class GenMutator(private val config: Config) {
   fun combine(genome1: Genome, genome2: Genome, ratio: Double): Genome {
     val numberOfGenes = (ratio * config.genomeLength).toInt()
 
-    val newGen = if (Random.nextBoolean()) {
-      genome1.take(numberOfGenes) + genome2.drop(numberOfGenes)
-    } else {
-      genome2.dropLast(numberOfGenes) + genome1.takeLast(numberOfGenes)
-    }
+    val newGenes = (
+            if (Random.nextBoolean()) genome1.take(numberOfGenes) + genome2.drop(numberOfGenes)
+            else genome2.dropLast(numberOfGenes) + genome1.takeLast(numberOfGenes)
+            ).toMutableList()
 
-    generateSequence {
-      Random.nextInt(config.genomeLength)
-    }
+    generateSequence { Random.nextInt(config.genomeLength) }
       .distinct()
       .take(Random.nextInt(config.minMutations, config.maxMutations + 1))
-      .forEach {
-        newGen[it] = Gen.random()
-      }
+      .forEach { newGenes[it] = Gen.random() }
 
-    return newGen
+    return Genome(newGenes)
   }
 }
 
