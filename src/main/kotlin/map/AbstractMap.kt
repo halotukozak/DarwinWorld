@@ -17,7 +17,8 @@ abstract class AbstractMap(protected val config: Config) {
         Vector(x, y) to mutableSetOf<MapElement>()
       }
     }
-    .toMap().toMutableMap()
+    .toMap()
+    .toMutableMap()
 
   init {
     generateSequence {
@@ -34,8 +35,6 @@ abstract class AbstractMap(protected val config: Config) {
           )
         )
       }
-
-    this.growPlants(config.initialPlants)
   }
 
   fun growAnimals() = elements.forEach { (_, set) ->
@@ -72,7 +71,7 @@ abstract class AbstractMap(protected val config: Config) {
 
   fun consumePlants() = elements.forEach { (_, set) ->
     set.firstOrNull { it is Plant }?.let { plant ->
-      set.filterIsInstance<Animal>().max().eat(config.nutritionScore)
+      set.filterIsInstance<Animal>().maxOrNull()?.eat(config.nutritionScore)
       set.remove(plant)
     }
   }
