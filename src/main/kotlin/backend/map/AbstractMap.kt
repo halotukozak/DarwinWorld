@@ -1,10 +1,11 @@
-package map
+package backend.map
 
-import Animal
-import Direction
-import GenMutator
-import Plant
-import config.Config
+import backend.Animal
+import backend.Direction
+import backend.GenMutator
+import backend.Genome
+import backend.Plant
+import backend.config.Config
 import kotlin.random.Random
 
 abstract class AbstractMap(protected val config: Config) {

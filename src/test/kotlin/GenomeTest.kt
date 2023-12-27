@@ -1,4 +1,5 @@
-import Gen.*
+import backend.Gen.*
+import backend.Genome
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.shouldBe

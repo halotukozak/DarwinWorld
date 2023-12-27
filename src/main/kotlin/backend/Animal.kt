@@ -1,4 +1,6 @@
-import map.MapElement
+package backend
+
+import backend.map.MapElement
 
 data class Animal(var energy: Int, val genome: Genome, val direction: Direction) : MapElement, Comparable<Animal> {
 

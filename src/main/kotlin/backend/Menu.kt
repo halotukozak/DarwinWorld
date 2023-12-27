@@ -1,4 +1,6 @@
-import config.Config
+package backend
+
+import backend.config.Config
 
 fun main(args: Array<String>) {
 

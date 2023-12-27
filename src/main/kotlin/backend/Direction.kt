@@ -1,4 +1,6 @@
-import map.Vector
+package backend
+
+import backend.map.Vector
 
 enum class Direction(val vector: Vector) {
   N(0, -1),

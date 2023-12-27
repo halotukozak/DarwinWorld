@@ -1,6 +1,6 @@
-package config
+package backend.config
 
-import config.PlantGrowthVariant.EQUATOR
+import backend.config.PlantGrowthVariant.EQUATOR
 
 data class Config(
   val mapWidth: Int = 100,

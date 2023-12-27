@@ -1,7 +1,9 @@
-import config.Config
-import config.PlantGrowthVariant
-import map.EquatorMap
-import map.JungleMap
+package backend
+
+import backend.config.Config
+import backend.config.PlantGrowthVariant
+import backend.map.EquatorMap
+import backend.map.JungleMap
 
 class Simulation(private val config: Config) : Runnable {
 

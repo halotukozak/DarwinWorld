@@ -1,4 +1,6 @@
-import config.Config
+package backend
+
+import backend.config.Config
 import kotlin.random.Random
 
 class GenMutator(private val config: Config) {

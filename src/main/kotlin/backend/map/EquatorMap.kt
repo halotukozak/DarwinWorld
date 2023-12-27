@@ -1,7 +1,7 @@
-package map
+package backend.map
 
-import Plant
-import config.Config
+import backend.Plant
+import backend.config.Config
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.math.min

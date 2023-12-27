@@ -1,6 +1,6 @@
-package map
+package backend.map
 
-import config.Config
+import backend.config.Config
 
 class JungleMap(config: Config) : AbstractMap(config) {
     override fun growPlants(plantsCount: Int) {
