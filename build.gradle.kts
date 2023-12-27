@@ -1,6 +1,11 @@
 plugins {
   kotlin("jvm") version "1.9.21"
-//    id("org.openjfx.javafxplugin") version "0.1.0"
+  id("org.openjfx.javafxplugin") version "0.1.0"
+  id("application")
+}
+
+application {
+  mainClass = "frontend.DarwinWorldApp"
 }
 
 group = "org.oolab"
@@ -10,14 +15,15 @@ repositories {
   mavenCentral()
 }
 
-//javafx {
-//    modules("javafx.controls", "javafx.fxml")
-//}
+javafx {
+  version = "21"
+  modules("javafx.controls", "javafx.graphics")
+}
 
 val kotestVersion = "5.8.0"
 
 dependencies {
-//    implementation ("no.tornado:tornadofx")
+  implementation("no.tornado:tornadofx:1.7.20")
 //  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0-RC2")
 
   testImplementation("org.jetbrains.kotlin:kotlin-test")

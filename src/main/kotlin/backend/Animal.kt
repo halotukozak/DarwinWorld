@@ -5,10 +5,8 @@ import backend.map.MapElement
 data class Animal(var energy: Int, val genome: Genome, val direction: Direction) : MapElement, Comparable<Animal> {
 
   private var age = 0
-
   private var children = mutableSetOf<Animal>()
-
-  val isDead = { energy <= 0 }
+  val isDead = { energy <= 0 } //TODO (can be changed?)
 
   fun rotate() = direction + genome.next()
   fun turnBack() = direction + 4
