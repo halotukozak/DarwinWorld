@@ -4,79 +4,103 @@ import backend.config.*
 import backend.config.AnimalField.*
 import backend.config.ConfigField.Companion.description
 import backend.config.ConfigField.Companion.errorMessage
+import backend.config.ConfigField.Companion.isValid
 import backend.config.ConfigField.Companion.label
 import backend.config.ConfigField.Companion.propertyName
-import backend.config.ConfigField.Companion.validate
 import backend.config.GenomeField.*
 import backend.config.MapField.MapHeight
 import backend.config.MapField.MapWidth
 import backend.config.PlantField.*
-import javafx.beans.property.Property
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.beans.property.SimpleIntegerProperty
-import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.*
 import javafx.event.EventTarget
 import javafx.scene.Node
 import javafx.scene.control.TextField
 import tornadofx.*
 
-class ConfigModal(currentConfig: Config) : ViewModel() {
+class ConfigModel(currentConfig: Config) : ViewModel() {
   val mapWidthProperty = SimpleIntegerProperty(this, propertyName<MapWidth>(), currentConfig.mapWidth)
-  var mapHeightProperty = SimpleIntegerProperty(this, propertyName<MapHeight>(), currentConfig.mapHeight)
-  var initialPlantsProperty = SimpleIntegerProperty(this, propertyName<InitialPlants>(), currentConfig.initialPlants)
-  var nutritionScoreProperty = SimpleIntegerProperty(this, propertyName<NutritionScore>(), currentConfig.nutritionScore)
-  var plantsPerDayProperty = SimpleIntegerProperty(this, propertyName<PlantsPerDay>(), currentConfig.plantsPerDay)
-  var plantGrowthVariantProperty =
+  val mapHeightProperty = SimpleIntegerProperty(this, propertyName<MapHeight>(), currentConfig.mapHeight)
+  val initialPlantsProperty = SimpleIntegerProperty(this, propertyName<InitialPlants>(), currentConfig.initialPlants)
+  val nutritionScoreProperty = SimpleIntegerProperty(this, propertyName<NutritionScore>(), currentConfig.nutritionScore)
+  val plantsPerDayProperty = SimpleIntegerProperty(this, propertyName<PlantsPerDay>(), currentConfig.plantsPerDay)
+  val plantGrowthVariantProperty =
     SimpleObjectProperty(this, propertyName<PlantGrowthVariantField>(), currentConfig.plantGrowthVariant)
-  var initialAnimalsProperty = SimpleIntegerProperty(this, propertyName<InitialAnimals>(), currentConfig.initialAnimals)
-  var initialAnimalEnergyProperty =
+  val initialAnimalsProperty = SimpleIntegerProperty(this, propertyName<InitialAnimals>(), currentConfig.initialAnimals)
+  val initialAnimalEnergyProperty =
     SimpleIntegerProperty(this, propertyName<InitialAnimalEnergy>(), currentConfig.initialAnimalEnergy)
-  var satietyEnergyProperty = SimpleIntegerProperty(this, propertyName<SatietyEnergy>(), currentConfig.satietyEnergy)
-  var reproductionEnergyRatioProperty =
+  val satietyEnergyProperty = SimpleIntegerProperty(this, propertyName<SatietyEnergy>(), currentConfig.satietyEnergy)
+  val reproductionEnergyRatioProperty =
     SimpleDoubleProperty(this, propertyName<ReproductionEnergyRatio>(), currentConfig.reproductionEnergyRatio)
-  var minMutationsProperty = SimpleIntegerProperty(this, propertyName<MinMutations>(), currentConfig.minMutations)
-  var maxMutationsProperty = SimpleIntegerProperty(this, propertyName<MaxMutations>(), currentConfig.maxMutations)
-  var mutationVariantProperty =
+  val minMutationsProperty = SimpleIntegerProperty(this, propertyName<MinMutations>(), currentConfig.minMutations)
+  val maxMutationsProperty = SimpleIntegerProperty(this, propertyName<MaxMutations>(), currentConfig.maxMutations)
+  val mutationVariantProperty =
     SimpleDoubleProperty(this, propertyName<MutationVariant>(), currentConfig.mutationVariant)
-  var genomeLengthProperty = SimpleIntegerProperty(this, propertyName<GenomeLength>(), currentConfig.genomeLength)
+  val genomeLengthProperty = SimpleIntegerProperty(this, propertyName<GenomeLength>(), currentConfig.genomeLength)
 
-  fun toConfig(): Config = Config(
-    MapField(
-      MapWidth(mapWidthProperty.value),
-      MapHeight(mapHeightProperty.value),
-    ),
-    PlantField(
-      InitialPlants(initialPlantsProperty.value),
-      NutritionScore(nutritionScoreProperty.value),
-      PlantsPerDay(plantsPerDayProperty.value),
-      PlantGrowthVariantField(plantGrowthVariantProperty.value)
-    ),
-    AnimalField(
-      InitialAnimals(initialAnimalsProperty.value),
-      InitialAnimalEnergy(initialAnimalEnergyProperty.value),
-      SatietyEnergy(satietyEnergyProperty.value),
-    ),
-    GenomeField(
-      GenomeLength(genomeLengthProperty.value),
-      MutationVariant(mutationVariantProperty.value),
-      MinMutations(minMutationsProperty.value),
-      MaxMutations(maxMutationsProperty.value),
-      ReproductionEnergyRatio(reproductionEnergyRatioProperty.value),
-    ),
-  )
+  val errorProperty = SimpleStringProperty(this, "errors", "")
+
+  fun createConfig(): Config? {
+    fun <T> safeInit(block: () -> T): T? = try {
+      block()
+    } catch (e: Exception) {
+      errorProperty.set(e.message)
+      null
+    }
+
+    return safeInit {
+      MapField(
+        MapWidth(mapWidthProperty.value),
+        MapHeight(mapHeightProperty.value),
+      )
+    }?.let { mapField ->
+      safeInit {
+        PlantField(
+          InitialPlants(initialPlantsProperty.value),
+          NutritionScore(nutritionScoreProperty.value),
+          PlantsPerDay(plantsPerDayProperty.value),
+          PlantGrowthVariantField(plantGrowthVariantProperty.value)
+        )
+      }?.let { plantField ->
+        safeInit {
+          AnimalField(
+            InitialAnimals(initialAnimalsProperty.value),
+            InitialAnimalEnergy(initialAnimalEnergyProperty.value),
+            SatietyEnergy(satietyEnergyProperty.value),
+          )
+        }?.let { animalField ->
+          safeInit {
+            GenomeField(
+              GenomeLength(genomeLengthProperty.value),
+              MutationVariant(mutationVariantProperty.value),
+              MinMutations(minMutationsProperty.value),
+              MaxMutations(maxMutationsProperty.value),
+              ReproductionEnergyRatio(reproductionEnergyRatioProperty.value),
+            )
+          }?.let { genomeField ->
+            Config(mapField, plantField, animalField, genomeField)
+          }
+        }
+      }
+    }
+  }
 }
 
 class ConfigEditor : View("Config Editor") {
   override val root = form {}
 
   val currentConfig: Config by param(Config.default())
-  private var model: ConfigModal = ConfigModal(currentConfig)
+  private val model: ConfigModel = ConfigModel(currentConfig)
 
   init {
     root.apply {
-      fieldset("Edit Config") {
+      heading = ("configure your Darwin World")
+
+      fieldset("Map") {
         input<MapWidth>(model.mapWidthProperty)
         input<MapHeight>(model.mapHeightProperty)
+      }
+
+      fieldset("Plants") {
         input<InitialPlants>(model.initialPlantsProperty)
         input<NutritionScore>(model.nutritionScoreProperty)
         input<PlantsPerDay>(model.plantsPerDayProperty)
@@ -86,27 +110,43 @@ class ConfigEditor : View("Config Editor") {
             required()
           }
         }
+      }
+
+      fieldset("Animals") {
         input<InitialAnimals>(model.initialAnimalsProperty)
         input<InitialAnimalEnergy>(model.initialAnimalEnergyProperty)
         input<SatietyEnergy>(model.satietyEnergyProperty)
+      }
+
+      fieldset("Genome") {
         input<ReproductionEnergyRatio>(model.reproductionEnergyRatioProperty)
         input<MinMutations>(model.minMutationsProperty)
         input<MaxMutations>(model.maxMutationsProperty)
         input<MutationVariant>(model.mutationVariantProperty)
         input<GenomeLength>(model.genomeLengthProperty)
+      }
 
+      label(model.errorProperty) {
+        style {
+          textFill = c("red")
+        }
+      }
+
+      buttonbar {
         button("Save") {
           enableWhen(model.valid)
-          action { model.commit { save() } }
+          action {
+            model.createConfig()?.let { config -> model.commit { save(config) } }
+          }
         }
       }
     }
   }
 
-  private fun save() {
+  private fun save(config: Config) {
     this.replaceWith(
       find<SimulationView>(
-        SimulationView::simulationConfig to model.toConfig()
+        SimulationView::simulationConfig to config
       )
     )
   }
@@ -118,8 +158,12 @@ private inline fun <reified U : ConfigField<*>> EventTarget.input(
 ) = field(label<U>()) {
   helpTooltip(description<U>() + ".\n" + errorMessage<U>())
   textfield(property) {
-    filterInput { change ->
-      !change.isAdded || validate<U>(change.controlNewText)
+    validator {
+      when {
+        it.isNullOrBlank() -> error("This field is required")
+        !isValid<U>(it) -> error(errorMessage<U>())
+        else -> null
+      }
     }
     op(this)
   }

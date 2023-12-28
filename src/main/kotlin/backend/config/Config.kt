@@ -68,7 +68,7 @@ sealed class ConfigField<T>(
     inline fun <reified U : ConfigField<*>> errorMessage() =
       (find<U>().companionObjectInstance as ConfigFieldInfo<*>).errorMessage
 
-    inline fun <reified U : ConfigField<*>> validate(value: String) =
+    inline fun <reified U : ConfigField<*>> isValid(value: String) =
       (find<U>().companionObjectInstance as ConfigFieldInfo<*>).validate(value)
   }
 
