@@ -11,7 +11,7 @@ abstract class AbstractMap(protected val config: Config) {
 
   private val mutator = GenMutator(config)
 
-  protected val elements = (0..<config.mapWidth)
+  private val elements = (0..<config.mapWidth)
     .flatMap { x ->
       (0..<config.mapHeight).map { y ->
         Vector(x, y) to mutableSetOf<MapElement>()
@@ -37,6 +37,8 @@ abstract class AbstractMap(protected val config: Config) {
       }
   }
 
+  fun getElements() = elements
+
   fun growAnimals() = elements.forEach { (_, set) ->
     set.filterIsInstance<Animal>().forEach(Animal::grow)
   }
@@ -49,30 +51,30 @@ abstract class AbstractMap(protected val config: Config) {
     set.filterIsInstance<Animal>().forEach(Animal::rotate)
   }
 
-  fun moveAnimals() = elements.forEach { (position, set) ->
-    set.filterIsInstance<Animal>().forEach { animal ->
-      elements[position]!!.remove(animal)
-      val newPosition = position + animal.direction.vector
-      elements[newPosition]?.add(animal) ?: {
-        val (x, y) = newPosition
-        when {
-          x < 0 -> elements[newPosition.withX(config.mapWidth - 1)]!!.add(animal)
-          x >= config.mapWidth -> elements[newPosition.withX(0)]!!.add(animal)
-          y !in 0..<config.mapHeight -> {
-            elements[position]!!.add(animal)
-            animal.turnBack()
-          }
-
-          else -> TODO()
-        }
+  fun moveAnimals() = elements.flatMap { (position, set) ->
+    set.filterIsInstance<Animal>().map { animal ->
+      set.remove(animal)
+      var newPosition = position + animal.getDirection().vector
+      when {
+        newPosition.x < 0 -> newPosition = newPosition.withX(config.mapWidth - 1)
+        newPosition.x >= config.mapWidth -> newPosition = newPosition.withX(0)
       }
+      if (newPosition.y !in 0..<config.mapHeight) {
+        newPosition = newPosition.withY(position.y)
+        animal.turnBack()
+      }
+      newPosition to animal
     }
+  }.forEach { (position, animal) ->
+    elements[position]!!.add(animal)
   }
 
   fun consumePlants() = elements.forEach { (_, set) ->
     set.firstOrNull { it is Plant }?.let { plant ->
-      set.filterIsInstance<Animal>().maxOrNull()?.eat(config.nutritionScore)
-      set.remove(plant)
+      set.filterIsInstance<Animal>().maxOrNull()?.also {
+        it.eat(config.nutritionScore)
+        set.remove(plant)
+      }
     }
   }
 
@@ -81,16 +83,27 @@ abstract class AbstractMap(protected val config: Config) {
       if (animals.size >= 2) {
         val animal1 = animals.max()
         val animal2 = (animals - animal1).max()
-        if (animal2.energy >= config.satietyEnergy) set.add(
-          animal1.cover(
-            animal2,
-            config.reproductionEnergyRatio,
-            mutator,
+        if (animal2.getEnergy() >= config.satietyEnergy) {
+          set.add(
+            animal1.cover(
+              animal2,
+              config.reproductionEnergyRatio,
+              mutator,
+            )
           )
-        )
+        }
       }
     }
   }
 
   abstract fun growPlants(plantsCount: Int)
+
+  protected fun seedRandomly(emptyFields: List<Vector>, numberOfSeeds: Int) {
+    generateSequence { emptyFields[Random.nextInt(emptyFields.size)] }
+      .distinct()
+      .take(numberOfSeeds)
+      .forEach {
+        getElements()[it]?.add(Plant) ?: error("Empty field $it is not in the map")
+      }
+  }
 }
