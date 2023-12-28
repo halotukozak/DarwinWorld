@@ -2,23 +2,10 @@ package backend.config
 
 import backend.config.ConfigField.Companion.default
 import backend.config.PlantGrowthVariant.EQUATOR
-
-// class Config(
-//  val mapWidth: Int = 100,
-//  val mapHeight: Int = 30,
-//  val initialPlants: Int = 300, //startowa liczba roślin
-//  val nutritionScore: Int = 10, //energia zapewniana przez zjedzenie jednej rośliny,
-//  val plantsPerDay: Int = 50, //liczba roślin wyrastająca każdego dnia,
-//  val plantGrowthVariant: PlantGrowthVariant = EQUATOR,
-//  val initialAnimals: Int = 100,
-//  val initialAnimalEnergy: Int = 20, //startowa energia zwierzaków,
-//  val satietyEnergy: Int = 10, //energia konieczna, by uznać zwierzaka za najedzonego (i gotowego do rozmnażania),
-//  val reproductionEnergyRatio: Double = .5, //proporcja energia rodziców zużywana by stworzyć potomka,
-//  val minMutations: Int = 0, //minimalna liczba mutacji u potomków (może być równa 0),
-//  val maxMutations: Int = 8, //maksymalna liczba mutacji u potomków (może być równa 0),
-//  val mutationVariant: Double = 0.0,// szansa, że geny się zamienią, gdy 0 to wariant domyślny
-//  val genomeLength: Int = 8,
-//}
+import tornadofx.*
+import java.util.*
+import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.full.createInstance
 
 
 class Config(
@@ -27,20 +14,21 @@ class Config(
   animalField: AnimalField,
   genomeField: GenomeField,
 ) {
-  val mapWidth = { mapField.mapWidth.value }
-  val mapHeight = { mapField.mapHeight.value }
-  val initialPlants = { plantField.initialPlants.value }
-  val nutritionScore = { plantField.nutritionScore.value }
-  val plantsPerDay = { plantField.plantsPerDay.value }
-  val plantGrowthVariant = { plantField.plantGrowthVariant.value }
-  val initialAnimals = { animalField.initialAnimals.value }
-  val initialAnimalEnergy = { animalField.initialAnimalEnergy.value }
-  val satietyEnergy = { animalField.satietyEnergy.value }
-  val reproductionEnergyRatio = { genomeField.reproductionEnergyRatio.value }
-  val minMutations = { genomeField.minMutations.value }
-  val maxMutations = { genomeField.maxMutations.value }
-  val mutationVariant = { genomeField.mutationVariant.value }
-  val genomeLength = { genomeField.genomeLength.value }
+
+  val mapWidth = mapField.mapWidth.value
+  val mapHeight = mapField.mapHeight.value
+  val initialPlants = plantField.initialPlants.value
+  val nutritionScore = plantField.nutritionScore.value
+  val plantsPerDay = plantField.plantsPerDay.value
+  val plantGrowthVariant = plantField.plantGrowthVariant.value
+  val initialAnimals = animalField.initialAnimals.value
+  val initialAnimalEnergy = animalField.initialAnimalEnergy.value
+  val satietyEnergy = animalField.satietyEnergy.value
+  val reproductionEnergyRatio = genomeField.reproductionEnergyRatio.value
+  val minMutations = genomeField.minMutations.value
+  val maxMutations = genomeField.maxMutations.value
+  val mutationVariant = genomeField.mutationVariant.value
+  val genomeLength = genomeField.genomeLength.value
 
   companion object {
     fun default() = Config(
@@ -52,25 +40,38 @@ class Config(
   }
 }
 
+abstract class ConfigFieldInfo<T> {
+  abstract val label: String
+  abstract val description: String
+  abstract val errorMessage: String
+
+  abstract fun validate(it: String): Boolean
+}
 
 sealed class ConfigField<T>(
-  val label: String,
-  val description: String,
   val value: T,
-  val default: T,
-  val validator: (T) -> Boolean,
 ) {
 
-  init {
-    require(validator(value))
-  }
-
-  fun isValid(): Boolean = validator(value)
-
   companion object {
-    inline fun <reified U : ConfigField<*>> default(): U =
-      this::class.nestedClasses.first { it.isInstance(U::class) }.objectInstance as U
+    inline fun <reified U : ConfigField<*>> find() = ConfigField::class.sealedSubclasses.first { it == U::class }
+    inline fun <reified U : ConfigField<*>> default(): U = find<U>().createInstance() as U
+    inline fun <reified U : ConfigField<*>> label() = (find<U>().companionObjectInstance as ConfigFieldInfo<*>).label
+    inline fun <reified U : ConfigField<*>> description() =
+      (find<U>().companionObjectInstance as ConfigFieldInfo<*>).description
+
+    inline fun <reified U : ConfigField<*>> propertyName() = label<U>().replaceFirstChar {
+      if (it.isLowerCase()) it.titlecase(
+        Locale.getDefault()
+      ) else it.toString()
+    }
+
+    inline fun <reified U : ConfigField<*>> errorMessage() =
+      (find<U>().companionObjectInstance as ConfigFieldInfo<*>).errorMessage
+
+    inline fun <reified U : ConfigField<*>> validate(value: String) =
+      (find<U>().companionObjectInstance as ConfigFieldInfo<*>).validate(value)
   }
+
 }
 
 class MapField(
@@ -79,24 +80,30 @@ class MapField(
 ) {
 
   class MapWidth(
-    mapWidth: Int,
+    mapWidth: Int = 100,
   ) : ConfigField<Int>(
-    "Map width",
-    "Width of the map",
     mapWidth,
-    100,
-    { it in 0..1000 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Int>() {
+      override val label = "Map width"
+      override val description = "Width of the map"
+      override val errorMessage = "Must be between 0 and 1000"
+      override fun validate(it: String): Boolean = it.isInt() && it.toInt() in 0..1000
+    }
+  }
 
   class MapHeight(
-    mapHeight: Int,
+    mapHeight: Int = 30,
   ) : ConfigField<Int>(
-    "Map height",
-    "Height of the map",
     mapHeight,
-    30,
-    { it in 0..1000 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Int>() {
+      override val label = "Map height"
+      override val description = "Height of the map"
+      override val errorMessage = "Must be between 0 and 1000"
+      override fun validate(it: String): Boolean = it.isInt() && it.toInt() in 0..1000
+    }
+  }
 }
 
 class PlantField(
@@ -107,44 +114,57 @@ class PlantField(
 ) {
 
   class InitialPlants(
-    initialPlants: Int,
+    initialPlants: Int = 300,
   ) : ConfigField<Int>(
-    "Initial plants",
-    "Number of plants at the beginning of the simulation",
     initialPlants,
-    300,
-    { it >= 0 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Int>() {
+      override val label = "Initial plants"
+      override val description = "Number of plants at the beginning of the simulation"
+      override val errorMessage: String = "Must be greater or equal than 0"
+      override fun validate(it: String): Boolean = it.isInt() && it.toInt() >= 0
+    }
+  }
 
   class NutritionScore(
-    nutritionScore: Int,
+    nutritionScore: Int = 10,
   ) : ConfigField<Int>(
-    "Nutrition score",
-    "Energy provided by eating one plant",
     nutritionScore,
-    10,
-    { it >= 0 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Int>() {
+      override val label = "Nutrition score"
+      override val description = "Energy provided by eating one plant"
+      override val errorMessage: String = "Must be greater or equal than 0"
+      override fun validate(it: String): Boolean = it.isInt() && it.toInt() >= 0
+    }
+  }
 
   class PlantsPerDay(
-    plantsPerDay: Int,
+    plantsPerDay: Int = 50,
   ) : ConfigField<Int>(
-    "Plants per day",
-    "Number of plants growing each day",
     plantsPerDay,
-    50,
-    { it >= 0 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Int>() {
+      override val label = "Plants per day"
+      override val description = "Number of plants growing each day"
+      override val errorMessage: String = "Must be greater or equal than 0"
+      override fun validate(it: String): Boolean = it.isInt() && it.toInt() >= 0
+    }
+  }
 
   class PlantGrowthVariantField(
-    plantGrowthVariant: PlantGrowthVariant,
+    plantGrowthVariant: PlantGrowthVariant = EQUATOR,
   ) : ConfigField<PlantGrowthVariant>(
-    "Plant growth variant",
-    "Variant of plant growth",
     plantGrowthVariant,
-    EQUATOR,
-    { true },
-  )
+  ) {
+    companion object : ConfigFieldInfo<PlantGrowthVariant>() {
+      override val label = "Plant growth variant"
+      override val description = "Variant of plant growth"
+      override val errorMessage: String = "Must be one of ${PlantGrowthVariant.entries.map { it.name }}"
+
+      override fun validate(it: String) = PlantGrowthVariant.entries.map { it.name }.contains(it)
+    }
+  }
 }
 
 class AnimalField(
@@ -154,34 +174,43 @@ class AnimalField(
 ) {
 
   class InitialAnimals(
-    initialAnimals: Int,
+    initialAnimals: Int = 100,
   ) : ConfigField<Int>(
-    "Initial animals",
-    "Number of animals at the beginning of the simulation",
     initialAnimals,
-    100,
-    { it > 0 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Int>() {
+      override val label = "Initial animals"
+      override val description = "Number of animals at the beginning of the simulation"
+      override val errorMessage: String = "Must be greater or equal than 0"
+      override fun validate(it: String) = it.isInt() && it.toInt() >= 0
+    }
+  }
 
   class InitialAnimalEnergy(
-    initialAnimalEnergy: Int,
+    initialAnimalEnergy: Int = 20,
   ) : ConfigField<Int>(
-    "Initial animal energy",
-    "Initial energy of animals",
     initialAnimalEnergy,
-    20,
-    { it > 0 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Int>() {
+      override val label = "Initial animal energy"
+      override val description = "Initial energy of animals"
+      override val errorMessage: String = "Must be greater than 0"
+      override fun validate(it: String) = it.isInt() && it.toInt() > 0
+    }
+  }
 
   class SatietyEnergy(
-    satietyEnergy: Int,
+    satietyEnergy: Int = 10,
   ) : ConfigField<Int>(
-    "Satiety energy",
-    "Energy required to consider an animal full (and ready to reproduce)",
     satietyEnergy,
-    10,
-    { it > 0 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Int>() {
+      override val label = "Satiety energy"
+      override val description = "Energy required to consider an animal full (and ready to reproduce)"
+      override val errorMessage: String = "Must be greater than 0"
+      override fun validate(it: String) = it.isInt() && it.toInt() > 0
+    }
+  }
 }
 
 
@@ -193,54 +222,69 @@ class GenomeField(
   val reproductionEnergyRatio: ReproductionEnergyRatio = default(),
 ) {
   class ReproductionEnergyRatio(
-    reproductionEnergyRatio: Double,
+    reproductionEnergyRatio: Double = .5,
   ) : ConfigField<Double>(
-    "Reproduction energy ratio",
-    "Proportion of energy used by parents to create offspring",
     reproductionEnergyRatio,
-    .5,
-    { it in 0.0..1.0 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Double>() {
+      override val label = "Reproduction energy ratio"
+      override val description = "Proportion of energy used by parents to create offspring"
+      override val errorMessage: String = "Must be between 0 and 1"
+      override fun validate(it: String) = it.isDouble() && it.toDouble() in 0.0..1.0
+    }
+  }
 
   class MinMutations(
-    minMutations: Int,
+    minMutations: Int = 0,
   ) : ConfigField<Int>(
-    "Min mutations",
-    "Minimum number of mutations in offspring (can be 0)",
     minMutations,
-    0,
-    { it >= 0 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Int>() {
+      override val label = "Min mutations"
+      override val description = "Minimum number of mutations in offspring (can be 0)"
+      override val errorMessage: String = "Must be greater or equal than 0"
+      override fun validate(it: String) = it.isInt() && it.toInt() >= 0
+    }
+  }
 
   class MaxMutations(
-    maxMutations: Int,
+    maxMutations: Int = 8,
   ) : ConfigField<Int>(
-    "Max mutations",
-    "Maximum number of mutations in offspring (can be 0)",
     maxMutations,
-    8,
-    { it >= 0 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Int>() {
+      override val label = "Max mutations"
+      override val description = "Maximum number of mutations in offspring (can be 0)"
+      override val errorMessage: String = "Must be greater or equal than 0"
+      override fun validate(it: String) = it.isInt() && it.toInt() >= 0
+    }
+  }
 
   class MutationVariant(
-    mutationVariant: Double,
+    mutationVariant: Double = 0.0,//todo(check it)
   ) : ConfigField<Double>(
-    "Mutation variant",
-    "Chance that genes will change, when 0 then default variant",
     mutationVariant,
-    0.0,//todo(check it)
-    { it in 0.0..1.0 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Double>() {
+      override val label = "Mutation variant"
+      override val description = "Chance that genes will change, when 0 then default variant"
+      override val errorMessage: String = "Must be between 0 and 1"
+      override fun validate(it: String) = it.isDouble() && it.toDouble() in 0.0..1.0
+    }
+  }
 
   class GenomeLength(
-    genomeLength: Int,
+    genomeLength: Int = 8,
   ) : ConfigField<Int>(
-    "Genome length",
-    "Length of the genome",
     genomeLength,
-    8,
-    { it > 0 },
-  )
+  ) {
+    companion object : ConfigFieldInfo<Int>() {
+      override val label = "Genome length"
+      override val description = "Length of the genome"
+      override val errorMessage: String = "Must be greater than 0"
+      override fun validate(it: String) = it.isInt() && it.toInt() > 0
+    }
+  }
 
   init {
     require(minMutations.value <= maxMutations.value) { "Min mutations must be less or equal to max mutations" }

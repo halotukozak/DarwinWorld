@@ -8,9 +8,9 @@ abstract class AbstractMap(protected val config: Config) {
 
   private val mutator = GenMutator(config)
 
-  protected val elements = (0..<config.mapWidth())
+  protected val elements = (0..<config.mapWidth)
     .flatMap { x ->
-      (0..<config.mapHeight()).map { y ->
+      (0..<config.mapHeight).map { y ->
         Vector(x, y) to mutableSetOf<MapElement>()
       }
     }
@@ -19,15 +19,15 @@ abstract class AbstractMap(protected val config: Config) {
 
   init {
     generateSequence {
-      Vector(Random.nextInt(config.mapWidth()), Random.nextInt(config.mapHeight()))
+      Vector(Random.nextInt(config.mapWidth), Random.nextInt(config.mapHeight))
     }
       .distinct()
-      .take(config.initialAnimals())
+      .take(config.initialAnimals)
       .forEach { position ->
         elements[position]!!.add(
           Animal(
-            config.initialAnimalEnergy(),
-            Genome.random(config.genomeLength()),
+            config.initialAnimalEnergy,
+            Genome.random(config.genomeLength),
             Direction.random(),
           )
         )
@@ -54,8 +54,8 @@ abstract class AbstractMap(protected val config: Config) {
         val (x, y) = newPosition
         when {
           x < 0 -> elements[newPosition.withX(config.mapWidth - 1)]!!.add(animal)
-          x >= config.mapWidth() -> elements[newPosition.withX(0)]!!.add(animal)
-          y !in 0..<config.mapHeight() -> {
+          x >= config.mapWidth -> elements[newPosition.withX(0)]!!.add(animal)
+          y !in 0..<config.mapHeight -> {
             elements[position]!!.add(animal)
             animal.turnBack()
           }
@@ -68,7 +68,7 @@ abstract class AbstractMap(protected val config: Config) {
 
   fun consumePlants() = elements.forEach { (_, set) ->
     set.firstOrNull { it is Plant }?.let { plant ->
-      set.filterIsInstance<Animal>().maxOrNull()?.eat(config.nutritionScore())
+      set.filterIsInstance<Animal>().maxOrNull()?.eat(config.nutritionScore)
       set.remove(plant)
     }
   }
@@ -78,7 +78,7 @@ abstract class AbstractMap(protected val config: Config) {
       if (animals.size >= 2) {
         val animal1 = animals.max()
         val animal2 = (animals - animal1).max()
-        if (animal2.energy >= config.satietyEnergy()) set.add(
+        if (animal2.energy >= config.satietyEnergy) set.add(
           animal1.cover(
             animal2,
             config.reproductionEnergyRatio,
