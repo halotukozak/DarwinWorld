@@ -20,4 +20,3 @@ class GenMutator(private val config: Config) {
     return Genome(newGenes)
   }
 }
-
