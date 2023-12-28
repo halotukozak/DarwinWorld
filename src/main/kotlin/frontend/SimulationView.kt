@@ -2,48 +2,49 @@ package frontend
 
 import backend.Simulation
 import backend.config.Config
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.SimpleLongProperty
 import tornadofx.*
 
 class SimulationView : View() {
 
   val simulationConfig: Config by param()
 
-  private val simulation by lazy {
-    println(simulationConfig)
-    Simulation(simulationConfig)
-  }
+  private val simulation = Simulation(simulationConfig)
 
-  override val root = vbox {
-    gridpane {
-      for (x in 0..<simulationConfig.mapWidth) {
-        for (y in 0..<simulationConfig.mapHeight) {
-          rectangle {
-            width = 10.0
-            height = 10.0
-            fill = c("green")
-            gridpaneConstraints {
-              columnRowIndex(x, y)
-            }
-          }
+  private val isRunning = SimpleBooleanProperty(false)
+  private val dayDuration = SimpleLongProperty(0)
+
+  override val root = gridpane {
+    label(dayDuration)
+
+    buttonbar {
+      button("run") {
+        hiddenWhen(isRunning)
+        action {
+          simulation.resume()
+          isRunning.set(true)
+        }
+      }
+
+      button("pause") {
+        visibleWhen(isRunning)
+        action {
+          simulation.pause()
+          isRunning.set(false)
+        }
+      }
+
+      button("faster") {
+        action {
+          dayDuration.set(simulation.faster())
+        }
+      }
+      button("slower") {
+        action {
+          dayDuration.set(simulation.slower())
         }
       }
     }
-
-    button("Start simulation") {
-      action {
-        runAsync {
-          simulation.run()
-        }
-      }
-    }
-
-    button("Edit config") {
-      action {
-        replaceWith(
-          find<ConfigEditor>(ConfigEditor::currentConfig to simulationConfig)
-        )
-      }
-    }
   }
-
 }
