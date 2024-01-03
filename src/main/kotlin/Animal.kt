@@ -1,16 +1,25 @@
 import map.MapElement
 
-data class Animal(var energy: Int, val genome: Genome, val direction: Direction) : MapElement, Comparable<Animal> {
+data class Animal(var energy: Int, private val genome: Genome, var direction: Direction) : MapElement,
+  Comparable<Animal> {
 
-  private var age = 0
+  var age = 0
 
-  private var children = mutableSetOf<Animal>()
+  var children = mutableSetOf<Animal>()
 
   val isDead = { energy <= 0 }
 
-  fun rotate() = direction + genome.next()
-  fun turnBack() = direction + 4
-  fun grow() = age++
+  fun rotate() {
+    direction += genome.next()
+  }
+
+  fun turnBack() {
+    direction += 4
+  }
+
+  fun grow() {
+    age++
+  }
 
   fun eat(energy: Int) {
     this.energy += energy

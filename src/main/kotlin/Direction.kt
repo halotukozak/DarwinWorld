@@ -15,7 +15,7 @@ enum class Direction(val vector: Vector) {
   operator fun plus(next: Gen): Direction = this + next.ordinal
   operator fun minus(next: Gen): Direction = this - next.ordinal
   operator fun plus(i: Int): Direction = entries[(this.ordinal + i) % entries.size]
-  operator fun minus(i: Int): Direction = entries[(this.ordinal - i) % entries.size]
+  operator fun minus(i: Int): Direction = entries[(this.ordinal + entries.size - i) % entries.size]
 
    companion object {
     fun random() = entries.random()

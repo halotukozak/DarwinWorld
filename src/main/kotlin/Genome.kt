@@ -1,9 +1,8 @@
 import kotlin.random.Random
 
+class Genome(val genes: List<Gen>, startPos: Int? = null) : Iterator<Gen> {
 
-class Genome(private val genes: List<Gen>) : Iterator<Gen> {
-
-  private var curr = Random.nextInt(genes.size)
+  private var curr = startPos ?: Random.nextInt(genes.size)
 
   override fun hasNext(): Boolean = true
 
@@ -21,7 +20,7 @@ class Genome(private val genes: List<Gen>) : Iterator<Gen> {
 }
 
 enum class Gen {
-  SHH, DmNotch, MDM2, zCycD1, Frp, NAC, sdf;
+  SHH, DmNotch, MDM2, zCycD1, Frp, NAC, sdf, EGFR;
 
   companion object {
     fun random() = entries.random()
