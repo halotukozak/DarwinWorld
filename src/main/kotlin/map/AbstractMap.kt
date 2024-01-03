@@ -11,7 +11,7 @@ abstract class AbstractMap(protected val config: Config) {
 
   private val mutator = GenMutator(config)
 
-  private val elements = (0..<config.mapWidth)
+  val elements = (0..<config.mapWidth)
     .flatMap { x ->
       (0..<config.mapHeight).map { y ->
         Vector(x, y) to mutableSetOf<MapElement>()
@@ -37,8 +37,6 @@ abstract class AbstractMap(protected val config: Config) {
       }
   }
 
-  fun getElements() = elements
-
   fun growAnimals() = elements.forEach { (_, set) ->
     set.filterIsInstance<Animal>().forEach(Animal::grow)
   }
@@ -54,7 +52,7 @@ abstract class AbstractMap(protected val config: Config) {
   fun moveAnimals() = elements.flatMap { (position, set) ->
     set.filterIsInstance<Animal>().map { animal ->
       set.remove(animal)
-      var newPosition = position + animal.getDirection().vector
+      var newPosition = position + animal.direction.vector
       when {
         newPosition.x < 0 -> newPosition = newPosition.withX(config.mapWidth - 1)
         newPosition.x >= config.mapWidth -> newPosition = newPosition.withX(0)
@@ -71,8 +69,8 @@ abstract class AbstractMap(protected val config: Config) {
 
   fun consumePlants() = elements.forEach { (_, set) ->
     set.firstOrNull { it is Plant }?.let { plant ->
-      set.filterIsInstance<Animal>().maxOrNull()?.also {
-        it.eat(config.nutritionScore)
+      set.filterIsInstance<Animal>().maxOrNull()?.run {
+        eat(config.nutritionScore)
         set.remove(plant)
       }
     }
@@ -83,7 +81,7 @@ abstract class AbstractMap(protected val config: Config) {
       if (animals.size >= 2) {
         val animal1 = animals.max()
         val animal2 = (animals - animal1).max()
-        if (animal2.getEnergy() >= config.satietyEnergy) {
+        if (animal2.energy >= config.satietyEnergy) {
           set.add(
             animal1.cover(
               animal2,
@@ -103,7 +101,7 @@ abstract class AbstractMap(protected val config: Config) {
       .distinct()
       .take(numberOfSeeds)
       .forEach {
-        getElements()[it]?.add(Plant) ?: error("Empty field $it is not in the map")
+        elements[it]?.add(Plant) ?: error("Empty field $it is not in the map")
       }
   }
 }

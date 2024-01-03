@@ -3,17 +3,14 @@ package map
 import Plant
 import config.Config
 import kotlin.math.roundToInt
-import kotlin.random.Random
 import kotlin.math.min
 
 class EquatorMap(config: Config) : AbstractMap(config) {
 
-  private val equator =
+  val equator =
     (config.mapHeight.toDouble() / 5)
       .roundToInt()
       .let { equatorHeight -> ((config.mapHeight - equatorHeight) / 2)..<((config.mapHeight + equatorHeight) / 2) }
-
-  fun getEquator() = equator
 
   override fun growPlants(plantsCount: Int) {
     val emptyFieldsOnEquator = emptyFields(equator)
@@ -29,7 +26,10 @@ class EquatorMap(config: Config) : AbstractMap(config) {
   private fun emptyFields(heights: IntRange) =
     heights.flatMap { y ->
       (0..<config.mapWidth).mapNotNull { x ->
-        if (getElements()[Vector(x, y)]!!.contains(Plant)) null else Vector(x, y)
+        if ((elements[Vector(x, y)] ?: error(
+            "Empty field ${Vector(x, y)} is not in the map"
+          )).contains(Plant)
+        ) null else Vector(x, y)
       }
     }
 }

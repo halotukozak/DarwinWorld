@@ -1,10 +1,8 @@
 import kotlin.random.Random
 
-class Genome(private val genes: List<Gen>, startPos: Int? = null) : Iterator<Gen> {
+class Genome(val genes: List<Gen>, startPos: Int? = null) : Iterator<Gen> {
 
   private var curr = startPos ?: Random.nextInt(genes.size)
-
-  fun getGenes() = genes
 
   override fun hasNext(): Boolean = true
 

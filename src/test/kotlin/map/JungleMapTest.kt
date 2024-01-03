@@ -25,12 +25,12 @@ class JungleMapTest : FunSpec({
       Vector(0, 1),
       Vector(1, 1)
     )
-    map.getElements()[Vector(5, 5)]!!.add(Plant)
-    map.getElements()[Vector(0, 0)]!!.add(Plant)
+    map.elements[Vector(5, 5)]!!.add(Plant)
+    map.elements[Vector(0, 0)]!!.add(Plant)
 
     map.growPlants(10)
 
-    val plantsPositions = map.getElements().keys.filter { map.getElements()[it]!!.contains(Plant) }
+    val plantsPositions = map.elements.keys.filter { map.elements[it]!!.contains(Plant) }
     plantsPositions.size shouldBe 12
     (plantsPositions - preferredPositions).size shouldBe 2
   }

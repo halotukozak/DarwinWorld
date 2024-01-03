@@ -7,12 +7,13 @@ import kotlin.math.roundToInt
 
 class JungleMap(config: Config) : AbstractMap(config) {
   override fun growPlants(plantsCount: Int) {
-    val preferredPositions = getElements()
+    val preferredPositions = elements
       .flatMap { (position, set) ->
         if (set.contains(Plant)) getSurroundingPositions(position) else listOf()
-      }.filter { 0 <= it.x && it.x < config.mapWidth && 0 <= it.y && it.y < config.mapHeight }
+      }
+      .filter { it.x in 0..<config.mapWidth && it.y in 0..<config.mapHeight }
       .toSet()
-    val otherPositions = (getElements().keys - preferredPositions).filter { !getElements()[it]!!.contains(Plant) }
+    val otherPositions = (elements.keys - preferredPositions).filterNot { elements[it]!!.contains(Plant) }
 
     val plantsOnPreferredPositions = min(preferredPositions.size, (plantsCount * 0.8).roundToInt())
     val plantsOnOtherPositions = min(otherPositions.size, plantsCount - plantsOnPreferredPositions)
