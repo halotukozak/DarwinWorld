@@ -16,6 +16,8 @@ class Genome(private val genes: List<Gen>) : Iterator<Gen> {
   fun drop(numberOfGenes: Int) = this.genes.drop(numberOfGenes)
   fun dropLast(numberOfGenes: Int) = this.genes.dropLast(numberOfGenes)
 
+  fun <K> groupingBy(keySelector: (Gen) -> K): Grouping<Gen, K> = this.genes.groupingBy(keySelector)
+
 
   companion object {
     fun random(size: Int): Genome = Genome(List(size) { Gen.random() })

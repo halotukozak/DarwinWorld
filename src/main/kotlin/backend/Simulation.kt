@@ -4,28 +4,38 @@ import backend.config.Config
 import backend.config.PlantGrowthVariant
 import backend.map.EquatorMap
 import backend.map.JungleMap
-import kotlinx.coroutines.*
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.launch
+import java.io.Closeable
+import kotlin.math.max
 
-class Simulation(private val config: Config) {
+class Simulation(private val config: Config) : Closeable {
+  private val day = MutableStateFlow(0)
+
   private var simulationJob: Job? = null
-  private var isPaused = AtomicBoolean(true)
 
-  var timeMillis = AtomicLong(0) //todo(config or sth?)
+  private val _isRunning = MutableStateFlow(false)
+  val isRunning: StateFlow<Boolean> get() = _isRunning
+
+  private var _dayDuration = MutableStateFlow(0L)
+  val dayDuration: StateFlow<Long> = _dayDuration
 
   private val map = when (config.plantGrowthVariant) {
     PlantGrowthVariant.EQUATOR -> EquatorMap(config)
     PlantGrowthVariant.JUNGLE -> JungleMap(config)
   }
 
-  init {
-    println("runnning in init")
-    run()
-  }
+  val plants = map.plants
+  val animals = map.animals
 
   private fun nextDay() {
-    println("Next day!")
+    println("${day.updateAndGet { it + 1 }} day!")
     map.growAnimals()
     map.removeDeadAnimals()
     map.rotateAnimals()
@@ -33,46 +43,31 @@ class Simulation(private val config: Config) {
     map.consumePlants()
     map.breedAnimals()
     map.growPlants(config.plantsPerDay)
+
+    map.ageAnimals()
   }
 
-  private suspend fun launchSimulation() = coroutineScope {
-    launch {
-      while (true) {
-        if (!isPaused.get()) {
-          nextDay()
-          delay(timeMillis.get())
+  fun pause() = _isRunning.update { false }
+  fun resume() = _isRunning.update { true }
+
+  fun faster() = _dayDuration.updateAndGet { max(0, it - 100) }
+  fun slower() = _dayDuration.updateAndGet { it + 100 }
+  override fun close() {
+    simulationJob?.cancel()
+  }
+
+
+  init {
+    GlobalScope.launch {
+      map.growPlants(config.initialPlants)
+      simulationJob = launch {
+        while (true) {
+          if (isRunning.value) {
+            nextDay()
+            delay(dayDuration.value)
+          }
         }
       }
     }
   }
-
-
-  fun run() {
-    map.growPlants(config.initialPlants)
-    println("before suspend")
-    GlobalScope.async { simulationJob = launchSimulation() } //todo blabla
-    println("after suspend")
-  }
-
-  fun pause() {
-    println("Pausing simulation...")
-    isPaused.set(true)
-  }
-
-  fun resume() {
-    println("Resuming simulation...")
-    isPaused.set(false)
-  }
-
-  fun faster(): Long {
-    println("Speeding up simulation...")
-    return if (timeMillis.get() == 0L) 0
-    else timeMillis.addAndGet(-100)
-  }
-
-  fun slower(): Long {
-    println("Slowing down simulation...")
-    return timeMillis.addAndGet(100)
-  }
-
 }

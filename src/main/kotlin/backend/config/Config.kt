@@ -1,12 +1,16 @@
 package backend.config
 
 import backend.config.ConfigField.Companion.default
+import backend.config.InvalidFieldException.Companion.requireField
 import backend.config.PlantGrowthVariant.EQUATOR
 import tornadofx.*
 import java.util.*
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.primaryConstructor
 
+
+//todo(rozróżnić jakoś nazwy field/fieldpack czy coś, bo jest syf, tak samo z exceptionami)
 
 class Config(
   mapField: MapField,
@@ -45,10 +49,11 @@ abstract class ConfigFieldInfo<T> {
   abstract val description: String
   abstract val errorMessage: String
 
-  abstract fun validate(it: String): Boolean
+  abstract fun isValid(it: String): Boolean
+  fun validate(it: String) = require(isValid(it)) { errorMessage }
 }
 
-sealed class ConfigField<T>(
+sealed class ConfigField<out T : Any>(
   val value: T,
 ) {
 
@@ -68,8 +73,21 @@ sealed class ConfigField<T>(
     inline fun <reified U : ConfigField<*>> errorMessage() =
       (find<U>().companionObjectInstance as ConfigFieldInfo<*>).errorMessage
 
-    inline fun <reified U : ConfigField<*>> isValid(value: String) =
-      (find<U>().companionObjectInstance as ConfigFieldInfo<*>).validate(value)
+    inline fun <reified U : ConfigField<*>> validate(value: String) =
+      (find<U>().companionObjectInstance as ConfigFieldInfo<*>).isValid(value)
+
+
+    inline fun <reified U : ConfigField<Int>> initInt(value: String): U {
+      validate<U>(value)
+      return find<U>().primaryConstructor!!.call(value.toInt()) as U
+    }
+
+    inline fun <reified U : ConfigField<Double>> initDouble(value: String): U {
+      validate<U>(value)
+      return find<U>().primaryConstructor!!.call(value.toDouble()) as U
+    }
+
+
   }
 
 }
@@ -80,7 +98,7 @@ class MapField(
 ) {
 
   class MapWidth(
-    mapWidth: Int = 100,
+    mapWidth: Int = 999,
   ) : ConfigField<Int>(
     mapWidth,
   ) {
@@ -88,12 +106,12 @@ class MapField(
       override val label = "Map width"
       override val description = "Width of the map"
       override val errorMessage = "Must be between 0 and 1000"
-      override fun validate(it: String): Boolean = it.isInt() && it.toInt() in 0..1000
+      override fun isValid(it: String): Boolean = it.isInt() && it.toInt() in 0..1000
     }
   }
 
   class MapHeight(
-    mapHeight: Int = 30,
+    mapHeight: Int = 300,
   ) : ConfigField<Int>(
     mapHeight,
   ) {
@@ -101,7 +119,7 @@ class MapField(
       override val label = "Map height"
       override val description = "Height of the map"
       override val errorMessage = "Must be between 0 and 1000"
-      override fun validate(it: String): Boolean = it.isInt() && it.toInt() in 0..1000
+      override fun isValid(it: String): Boolean = it.isInt() && it.toInt() in 0..1000
     }
   }
 }
@@ -122,7 +140,7 @@ class PlantField(
       override val label = "Initial plants"
       override val description = "Number of plants at the beginning of the simulation"
       override val errorMessage: String = "Must be greater or equal than 0"
-      override fun validate(it: String): Boolean = it.isInt() && it.toInt() >= 0
+      override fun isValid(it: String): Boolean = it.isInt() && it.toInt() >= 0
     }
   }
 
@@ -135,7 +153,7 @@ class PlantField(
       override val label = "Nutrition score"
       override val description = "Energy provided by eating one plant"
       override val errorMessage: String = "Must be greater or equal than 0"
-      override fun validate(it: String): Boolean = it.isInt() && it.toInt() >= 0
+      override fun isValid(it: String): Boolean = it.isInt() && it.toInt() >= 0
     }
   }
 
@@ -148,7 +166,7 @@ class PlantField(
       override val label = "Plants per day"
       override val description = "Number of plants growing each day"
       override val errorMessage: String = "Must be greater or equal than 0"
-      override fun validate(it: String): Boolean = it.isInt() && it.toInt() >= 0
+      override fun isValid(it: String): Boolean = it.isInt() && it.toInt() >= 0
     }
   }
 
@@ -162,7 +180,7 @@ class PlantField(
       override val description = "Variant of plant growth"
       override val errorMessage: String = "Must be one of ${PlantGrowthVariant.entries.map { it.name }}"
 
-      override fun validate(it: String) = PlantGrowthVariant.entries.map { it.name }.contains(it)
+      override fun isValid(it: String) = PlantGrowthVariant.entries.map { it.name }.contains(it)
     }
   }
 }
@@ -174,15 +192,16 @@ class AnimalField(
 ) {
 
   class InitialAnimals(
-    initialAnimals: Int = 100,
+    initialAnimals: Int = 999,
   ) : ConfigField<Int>(
     initialAnimals,
   ) {
+
     companion object : ConfigFieldInfo<Int>() {
       override val label = "Initial animals"
       override val description = "Number of animals at the beginning of the simulation"
       override val errorMessage: String = "Must be greater or equal than 0"
-      override fun validate(it: String) = it.isInt() && it.toInt() >= 0
+      override fun isValid(it: String) = it.isInt() && it.toInt() >= 0
     }
   }
 
@@ -195,7 +214,7 @@ class AnimalField(
       override val label = "Initial animal energy"
       override val description = "Initial energy of animals"
       override val errorMessage: String = "Must be greater than 0"
-      override fun validate(it: String) = it.isInt() && it.toInt() > 0
+      override fun isValid(it: String) = it.isInt() && it.toInt() > 0
     }
   }
 
@@ -208,7 +227,7 @@ class AnimalField(
       override val label = "Satiety energy"
       override val description = "Energy required to consider an animal full (and ready to reproduce)"
       override val errorMessage: String = "Must be greater than 0"
-      override fun validate(it: String) = it.isInt() && it.toInt() > 0
+      override fun isValid(it: String) = it.isInt() && it.toInt() > 0
     }
   }
 }
@@ -230,7 +249,7 @@ class GenomeField(
       override val label = "Reproduction energy ratio"
       override val description = "Proportion of energy used by parents to create offspring"
       override val errorMessage: String = "Must be between 0 and 1"
-      override fun validate(it: String) = it.isDouble() && it.toDouble() in 0.0..1.0
+      override fun isValid(it: String) = it.isDouble() && it.toDouble() in 0.0..1.0
     }
   }
 
@@ -243,7 +262,7 @@ class GenomeField(
       override val label = "Min mutations"
       override val description = "Minimum number of mutations in offspring (can be 0)"
       override val errorMessage: String = "Must be greater or equal than 0"
-      override fun validate(it: String) = it.isInt() && it.toInt() >= 0
+      override fun isValid(it: String) = it.isInt() && it.toInt() >= 0
     }
   }
 
@@ -256,7 +275,7 @@ class GenomeField(
       override val label = "Max mutations"
       override val description = "Maximum number of mutations in offspring (can be 0)"
       override val errorMessage: String = "Must be greater or equal than 0"
-      override fun validate(it: String) = it.isInt() && it.toInt() >= 0
+      override fun isValid(it: String) = it.isInt() && it.toInt() >= 0
     }
   }
 
@@ -269,7 +288,7 @@ class GenomeField(
       override val label = "Mutation variant"
       override val description = "Chance that genes will change, when 0 then default variant"
       override val errorMessage: String = "Must be between 0 and 1"
-      override fun validate(it: String) = it.isDouble() && it.toDouble() in 0.0..1.0
+      override fun isValid(it: String) = it.isDouble() && it.toDouble() in 0.0..1.0
     }
   }
 
@@ -282,12 +301,27 @@ class GenomeField(
       override val label = "Genome length"
       override val description = "Length of the genome"
       override val errorMessage: String = "Must be greater than 0"
-      override fun validate(it: String) = it.isInt() && it.toInt() > 0
+      override fun isValid(it: String) = it.isInt() && it.toInt() > 0
     }
   }
 
   init {
-    require(minMutations.value <= maxMutations.value) { "Min mutations must be less or equal to max mutations" }
-    require(maxMutations.value <= genomeLength.value) { "Max mutations must be less or equal to genome length" }
+    requireField(
+      minMutations.value <= maxMutations.value,
+      "Min mutations must be less or equal to max mutations"
+    )
+    requireField(
+      maxMutations.value <= genomeLength.value,
+      "Max mutations must be less or equal to genome length"
+    )
+  }
+}
+
+class InvalidFieldException(message: String) : Exception(message) {
+  companion object {
+    //dupa nazwa strasznie
+    fun requireField(predicate: Boolean, message: String) {
+      if (!predicate) throw InvalidFieldException(message)
+    }
   }
 }

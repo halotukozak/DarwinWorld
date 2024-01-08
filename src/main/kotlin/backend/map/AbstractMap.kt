@@ -1,93 +1,115 @@
 package backend.map
 
-import backend.*
+import backend.Animal
+import backend.Direction
+import backend.GenMutator
+import backend.Genome
 import backend.config.Config
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlin.random.Random
 
 abstract class AbstractMap(protected val config: Config) {
 
   private val mutator = GenMutator(config)
 
-  protected val elements = (0..<config.mapWidth)
-    .flatMap { x ->
-      (0..<config.mapHeight).map { y ->
-        Vector(x, y) to mutableSetOf<MapElement>()
-      }
-    }
-    .toMap()
-    .toMutableMap()
+  val fields = (0..<config.mapWidth).flatMap { x ->
+    (0..<config.mapHeight).map { y -> Vector(x, y) }
+  }
+
+  protected val _animals = MutableStateFlow(fields.associateWith { emptyList<Animal>() })
+  protected val _plants = MutableStateFlow(emptySet<Vector>())
+
+  val animals: StateFlow<Map<Vector, List<Animal>>> = _animals
+  val plants: StateFlow<Set<Vector>> = _plants
 
   init {
-    generateSequence {
-      Vector(Random.nextInt(config.mapWidth), Random.nextInt(config.mapHeight))
-    }
-      .distinct()
-      .take(config.initialAnimals)
-      .forEach { position ->
-        elements[position]!!.add(
-          Animal(
-            config.initialAnimalEnergy,
-            Genome.random(config.genomeLength),
-            Direction.random(),
-          )
-        )
+    _animals.update {
+      generateSequence {
+        Vector(Random.nextInt(config.mapWidth), Random.nextInt(config.mapHeight))
       }
+        .distinct()
+        .take(config.initialAnimals)
+        .groupingBy { it }
+        .eachCount()
+        .mapValues { (_, n) ->
+          List(n) { Animal(config.initialAnimalEnergy, Genome.random(config.genomeLength), Direction.random()) }
+        }
+    }
   }
 
-  fun growAnimals() = elements.forEach { (_, set) ->
-    set.filterIsInstance<Animal>().forEach(Animal::grow)
+  private fun updateAnimals(f: Animal.() -> Animal) = _animals.update {
+    it.mapValues { (_, set) -> set.map(f) }
   }
 
-  fun removeDeadAnimals() = elements.forEach { (_, set) ->
-    set.removeIf { it is Animal && it.isDead() }
+  fun growAnimals() = updateAnimals(Animal::grow)
+  fun rotateAnimals() = updateAnimals(Animal::rotate)
+  fun ageAnimals() = updateAnimals(Animal::age)
+
+
+  fun removeDeadAnimals() = _animals.update {
+    it.mapValues { (_, set) ->
+      set.filterNot(Animal::isDead)
+    }
   }
 
-  fun rotateAnimals() = elements.forEach { (_, set) ->
-    set.filterIsInstance<Animal>().forEach(Animal::rotate)
-  }
-
-  fun moveAnimals() = elements.forEach { (position, set) ->
-    set.filterIsInstance<Animal>().forEach { animal ->
-      elements[position]!!.remove(animal)
-      val newPosition = position + animal.direction.vector
-      elements[newPosition]?.add(animal) ?: {
-        val (x, y) = newPosition
+  fun moveAnimals() = _animals.update { animals ->
+    animals.flatMap { (position, set) ->
+      set.map { animal ->
+        var newPosition = position + animal.direction.vector //todo (var)
         when {
-          x < 0 -> elements[newPosition.withX(config.mapWidth - 1)]!!.add(animal)
-          x >= config.mapWidth -> elements[newPosition.withX(0)]!!.add(animal)
-          y !in 0..<config.mapHeight -> {
-            elements[position]!!.add(animal)
-            animal.turnBack()
-          }
+          newPosition.x < 0 -> newPosition = newPosition.withX(config.mapWidth - 1)
+          newPosition.x >= config.mapWidth -> newPosition = newPosition.withX(0)
+        }
+        if (newPosition.y !in 0..<config.mapHeight) {
+          newPosition = newPosition.withY(position.y)
+          animal.turnBack()
+        }
+        newPosition to animal
+      }
+    }
+      .groupByTo(mutableMapOf(), { it.first }, { it.second })
+  }
 
-          else -> TODO()
+  fun consumePlants() = _plants.update { plants ->
+    val p = plants.toMutableSet()
+    _animals.update { animals ->
+      animals.mapValues { (position, set) ->
+        set.mapMax {
+          if (position in plants) {
+            p.remove(position)
+            it.eat(config.nutritionScore)
+          } else it
         }
       }
     }
+    p//todo
   }
 
-  fun consumePlants() = elements.forEach { (_, set) ->
-    set.firstOrNull { it is Plant }?.let { plant ->
-      set.filterIsInstance<Animal>().maxOrNull()?.eat(config.nutritionScore)
-      set.remove(plant)
-    }
-  }
 
-  fun breedAnimals() = elements.forEach { (_, set) ->
-    set.filterIsInstance<Animal>().let { animals ->
-      if (animals.size >= 2) {
-        val animal1 = animals.max()
-        val animal2 = (animals - animal1).max()
-        if (animal2.energy >= config.satietyEnergy) set.add(
-          animal1.cover(
+  fun breedAnimals() = _animals.update { animals ->
+    animals.mapValues { (_, set) ->
+      if (set.size >= 2) {
+        val animal1 = set.max()
+        val animal2 = (set - animal1).max()
+        if (animal2.energy >= config.satietyEnergy)
+          set + animal1.cover(
             animal2,
             config.reproductionEnergyRatio,
             mutator,
           )
-        )
-      }
+        else set
+      } else set//todo
     }
   }
 
   abstract fun growPlants(plantsCount: Int)
 }
+
+private fun <T : Comparable<T>> Iterable<T>.mapMax(function: (T) -> T): List<T> =
+  maxOrNull()?.let { max -> map { if (it == max) function(it) else it } } ?: toList()
+
+private fun <R> (() -> R).invokeIf(predicate: () -> Boolean): R? = if (predicate()) invoke() else null
+
+

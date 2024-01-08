@@ -2,19 +2,22 @@ package backend
 
 import backend.map.MapElement
 
-data class Animal(var energy: Int, val genome: Genome, val direction: Direction) : MapElement, Comparable<Animal> {
+data class Animal(
+  var energy: Int,
+  val genome: Genome,
+  val direction: Direction,
+  private val age: Int = 0
+) : MapElement, Comparable<Animal> {
 
-  private var age = 0
-  private var children = mutableSetOf<Animal>()
-  val isDead = { energy <= 0 } //TODO (can be changed?)
+  private val children = mutableSetOf<Animal>()
+  val isDead get() = energy <= 0
 
-  fun rotate() = direction + genome.next()
-  fun turnBack() = direction + 4
-  fun grow() = age++
+  fun rotate(): Animal = this.copy(direction = direction + genome.next())
+  fun turnBack(): Animal = this.copy(direction = direction.opposite())
+  fun grow(): Animal = this.copy(energy = energy + 1)
+  fun eat(energy: Int): Animal = this.copy(energy = this.energy + energy)
+  fun age(): Animal = this.copy(age = age + 1)
 
-  fun eat(energy: Int) {
-    this.energy += energy
-  }
 
   fun cover(other: Animal, reproductionEnergyRatio: Double, mutator: GenMutator): Animal {
     val energyLoss1 = (this.energy * reproductionEnergyRatio).toInt().also { this.energy -= it }
