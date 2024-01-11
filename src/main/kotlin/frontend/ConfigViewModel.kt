@@ -7,20 +7,20 @@ import kotlinx.coroutines.launch
 
 class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
 
-  val mapWidth = MutableStateFlow(currentConfig.mapWidth.toString())
-  val mapHeight = MutableStateFlow(currentConfig.mapHeight.toString())
-  val initialPlants = MutableStateFlow(currentConfig.initialPlants.toString())
-  val initialAnimals = MutableStateFlow(currentConfig.initialAnimals.toString())
-  val satietyEnergy = MutableStateFlow(currentConfig.satietyEnergy.toString())
-  val initialAnimalEnergy = MutableStateFlow(currentConfig.initialAnimalEnergy.toString())
-  val nutritionScore = MutableStateFlow(currentConfig.nutritionScore.toString())
-  val plantsPerDay = MutableStateFlow(currentConfig.plantsPerDay.toString())
-  val plantGrowthVariant = MutableStateFlow(currentConfig.plantGrowthVariant)
-  val reproductionEnergyRatio = MutableStateFlow(currentConfig.reproductionEnergyRatio.toString())
-  val minMutations = MutableStateFlow(currentConfig.minMutations.toString())
-  val maxMutations = MutableStateFlow(currentConfig.maxMutations.toString())
-  val mutationVariant = MutableStateFlow(currentConfig.mutationVariant.toString())
-  val genomeLength = MutableStateFlow(currentConfig.genomeLength.toString())
+  val mapWidth: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapWidth)
+  val mapHeight: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapHeight)
+  val initialPlants: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.initialPlants)
+  val initialAnimals: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.initialAnimals)
+  val satietyEnergy: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.satietyEnergy)
+  val initialAnimalEnergy: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.initialAnimalEnergy)
+  val nutritionScore: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.nutritionScore)
+  val plantsPerDay: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.plantsPerDay)
+  val plantGrowthVariant: MutableStateFlow<PlantGrowthVariant> = MutableStateFlow(currentConfig.plantGrowthVariant)
+  val reproductionEnergyRatio: MutableStateFlow<Double?> = MutableStateFlow(currentConfig.reproductionEnergyRatio)
+  val minMutations: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.minMutations)
+  val maxMutations: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.maxMutations)
+  val mutationVariant: MutableStateFlow<Double?> = MutableStateFlow(currentConfig.mutationVariant)
+  val genomeLength: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.genomeLength)
 
   private lateinit var mapGroup: StateFlow<MapGroup?>
   private lateinit var plantGroup: StateFlow<PlantGroup?>
@@ -51,8 +51,8 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
       mapGroup = combine(mapWidth, mapHeight) { mapWidth, mapHeight ->
         safeFieldInit(mapFieldError) {
           MapGroup(
-            MapGroup.MapWidth(mapWidth.toInt()),
-            MapGroup.MapHeight(mapHeight.toInt()),
+            MapGroup.MapWidth(mapWidth!!),
+            MapGroup.MapHeight(mapHeight!!),
           )
         }
       }.stateIn(viewModelScope)
@@ -62,9 +62,9 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
       ) { initialPlants, nutritionScore, plantsPerDay, plantGrowthVariant ->
         safeFieldInit(plantFieldError) {
           PlantGroup(
-            PlantGroup.InitialPlants(initialPlants.toInt()),
-            PlantGroup.NutritionScore(nutritionScore.toInt()),
-            PlantGroup.PlantsPerDay(plantsPerDay.toInt()),
+            PlantGroup.InitialPlants(initialPlants!!),
+            PlantGroup.NutritionScore(nutritionScore!!),
+            PlantGroup.PlantsPerDay(plantsPerDay!!),
             PlantGroup.PlantGrowthVariantField(plantGrowthVariant)
           )
         }
@@ -78,9 +78,9 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
       { initialAnimals, initialAnimalEnergy, satietyEnergy ->
         safeFieldInit(animalFieldError) {
           AnimalGroup(
-            AnimalGroup.InitialAnimals(initialAnimals.toInt()),
-            AnimalGroup.InitialAnimalEnergy(initialAnimalEnergy.toInt()),
-            AnimalGroup.SatietyEnergy(satietyEnergy.toInt()),
+            AnimalGroup.InitialAnimals(initialAnimals!!),
+            AnimalGroup.InitialAnimalEnergy(initialAnimalEnergy!!),
+            AnimalGroup.SatietyEnergy(satietyEnergy!!),
           )
         }
       }.stateIn(viewModelScope)
@@ -90,11 +90,11 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
       ) { reproductionEnergyRatio, minMutations, maxMutations, mutationVariant, genomeLength ->
         safeFieldInit(genomeFieldError) {
           GenomeGroup(
-            GenomeGroup.GenomeLength(genomeLength.toInt()),
-            GenomeGroup.MutationVariant(mutationVariant.toDouble()),
-            GenomeGroup.MinMutations(minMutations.toInt()),
-            GenomeGroup.MaxMutations(maxMutations.toInt()),
-            GenomeGroup.ReproductionEnergyRatio(reproductionEnergyRatio.toDouble()),
+            GenomeGroup.GenomeLength(genomeLength!!),
+            GenomeGroup.MutationVariant(mutationVariant!!),
+            GenomeGroup.MinMutations(minMutations!!),
+            GenomeGroup.MaxMutations(maxMutations!!),
+            GenomeGroup.ReproductionEnergyRatio(reproductionEnergyRatio!!),
           )
         }
       }.stateIn(viewModelScope)

@@ -21,7 +21,7 @@ import kotlin.enums.enumEntries
 
 abstract class View(
   title: String? = null,
-  icon: Node? = null
+  icon: Node? = null,
 ) : tornadofx.View(title, icon), CoroutineHandler, ScopedInstance {
 
   protected abstract val viewModel: ViewModel
@@ -85,58 +85,36 @@ abstract class View(
     }
   }
 
-  protected inline fun <reified U : ConfigField<*>> EventTarget.intInput(
-    property: MutableStateFlow<String>,
+  protected inline fun <reified U : ConfigField<T>, reified T : Any> EventTarget.input(
+    property: MutableStateFlow<T?>,
   ) = field(ConfigField.label<U>()) {
     helpTooltip(ConfigField.description<U>())
-    textfield(property.value) {
+    textfield(property.value.toString()) {
       textProperty().addListener { _ ->
-        decorators.forEach {
-          it.undecorate(this)
-        }
+        decorators.forEach { it.undecorate(this) }
         decorators.clear()
-        property.update { text }
         when {
           text.isNullOrBlank() -> "This field is required"
-          !text.isInt() -> "This field must be an integer number"
+          T::class == Int::class && !text.isInt() -> "This field must be an integer number"
+          T::class == Double::class && !text.isDouble() -> "This field must be a double number"
           !ConfigField.validate<U>(text) -> ConfigField.errorMessage<U>()
           else -> null
-        }?.let { error ->
-          addDecorator(
-            SimpleMessageDecorator(error, ValidationSeverity.Error)
-          )
-        }
-      }
-    }
-  }
-
-  protected inline fun <reified U : ConfigField<*>> EventTarget.doubleInput(
-    property: MutableStateFlow<String>,
-  ) = field(ConfigField.label<U>()) {
-    helpTooltip(ConfigField.description<U>())
-    textfield(property.value) {
-      textProperty().addListener { _ ->
-        decorators.forEach {
-          it.undecorate(this)
-        }
-        decorators.clear()
-        property.update { text }
-        when {
-          text.isNullOrBlank() -> "This field is required"
-          !text.isDouble() -> "This field must be a double number"
-          !ConfigField.validate<U>(text) -> ConfigField.errorMessage<U>()
-          else -> null
-        }?.let { error ->
-          addDecorator(
-            SimpleMessageDecorator(error, ValidationSeverity.Error)
-          )
+        }?.also { error ->
+          addDecorator(SimpleMessageDecorator(error, ValidationSeverity.Error))
+          property.update { null }
+        } ?: property.update {
+          when (T::class) {
+            Int::class -> text.toInt() as T
+            Double::class -> text.toDouble() as T
+            else -> TODO()
+          }
         }
       }
     }
   }
 
   @OptIn(ExperimentalStdlibApi::class)
-  protected inline fun <reified T : Enum<T>, reified U : ConfigField<T>> EventTarget.combobox(
+  protected inline fun <reified U : ConfigField<T>, reified T : Enum<T>> EventTarget.combobox(
     property: MutableStateFlow<T>,
   ) = field(ConfigField.label<U>()) {
     helpTooltip(ConfigField.description<U>())

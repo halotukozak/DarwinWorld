@@ -1,6 +1,11 @@
 package frontend
 
 import backend.config.*
+import backend.config.AnimalGroup.*
+import backend.config.GenomeGroup.*
+import backend.config.MapGroup.MapHeight
+import backend.config.MapGroup.MapWidth
+import backend.config.PlantGroup.*
 import frontend.components.View
 import tornadofx.*
 
@@ -13,32 +18,32 @@ class ConfigView : View("Config editor") {
 
       fieldset("Map") {
         errorLabel(mapFieldError)
-        intInput<MapGroup.MapWidth>(mapWidth)
-        intInput<MapGroup.MapHeight>(mapHeight)
+        input<MapWidth, _>(mapWidth)
+        input<MapHeight, _>(mapHeight)
       }
 
       fieldset("Plants") {
         errorLabel(plantFieldError)
-        intInput<PlantGroup.InitialPlants>(initialPlants)
-        intInput<PlantGroup.NutritionScore>(nutritionScore)
-        intInput<PlantGroup.PlantsPerDay>(plantsPerDay)
-        combobox<PlantGrowthVariant, PlantGroup.PlantGrowthVariantField>(plantGrowthVariant)
+        input<InitialPlants, _>(initialPlants)
+        input<NutritionScore, _>(nutritionScore)
+        input<PlantsPerDay, _>(plantsPerDay)
+        combobox<PlantGrowthVariantField, _>(plantGrowthVariant)
       }
 
       fieldset("Animals") {
         errorLabel(animalFieldError)
-        intInput<AnimalGroup.InitialAnimals>(initialAnimals)
-        intInput<AnimalGroup.InitialAnimalEnergy>(initialAnimalEnergy)
-        intInput<AnimalGroup.SatietyEnergy>(satietyEnergy)
+        input<InitialAnimals, _>(initialAnimals)
+        input<InitialAnimalEnergy, _>(initialAnimalEnergy)
+        input<SatietyEnergy, _>(satietyEnergy)
       }
 
       fieldset("Genome") {
         errorLabel(genomeFieldError)
-        doubleInput<GenomeGroup.ReproductionEnergyRatio>(reproductionEnergyRatio)
-        intInput<GenomeGroup.MinMutations>(minMutations)
-        intInput<GenomeGroup.MaxMutations>(maxMutations)
-        doubleInput<GenomeGroup.MutationVariant>(mutationVariant)
-        intInput<GenomeGroup.GenomeLength>(genomeLength)
+        input<ReproductionEnergyRatio, _>(reproductionEnergyRatio)
+        input<MinMutations, _>(minMutations)
+        input<MaxMutations, _>(maxMutations)
+        input<MutationVariant, _>(mutationVariant)
+        input<GenomeLength, _>(genomeLength)
       }
 
       buttonbar {
