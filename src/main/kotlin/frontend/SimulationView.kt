@@ -6,10 +6,7 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.ArcType
 import tornadofx.*
 
-class SimulationView : View() {
-
-  val simulationConfig: Config by param()
-
+class SimulationView(simulationConfig: Config) : View() {
   override val viewModel: SimulationViewModel = SimulationViewModel(simulationConfig)
 
 
@@ -26,7 +23,7 @@ class SimulationView : View() {
             action { simulation.pause() }
           }
           button("faster") {
-            disableWhen(disableFaster)
+            disableWhen(fasterDisabled)
             action { simulation.faster() }
           }
           button("slower") {
@@ -44,8 +41,8 @@ class SimulationView : View() {
       row {
         stackpane {
           rectangle {
-            width = 1000.0
-            height = 1000.0
+            width = simulationConfig.mapWidth.toDouble()
+            height = simulationConfig.mapHeight.toDouble()
             fill = Color.WHITE
           }
           forEach(plants) { plant ->
@@ -62,7 +59,7 @@ class SimulationView : View() {
               centerY = animal.y
               radiusX = 5.0
               radiusY = 5.0
-              startAngle = 45.0
+              startAngle = animal.angle
               length = 250.0
               type = ArcType.ROUND
               fill = animal.color

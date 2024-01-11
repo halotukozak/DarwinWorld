@@ -6,15 +6,15 @@ data class Animal(
   var energy: Int,
   val genome: Genome,
   val direction: Direction,
-  private val age: Int = 0
+  private val age: Int = 0,
 ) : MapElement, Comparable<Animal> {
 
   private val children = mutableSetOf<Animal>()
-  val isDead get() = energy <= 0
+  val isDead = { energy <= 0 }
 
   fun rotate(): Animal = this.copy(direction = direction + genome.next())
   fun turnBack(): Animal = this.copy(direction = direction.opposite())
-  fun grow(): Animal = this.copy(energy = energy + 1)
+  fun grow(): Animal = this.copy(energy = energy - 1)
   fun eat(energy: Int): Animal = this.copy(energy = this.energy + energy)
   fun age(): Animal = this.copy(age = age + 1)
 

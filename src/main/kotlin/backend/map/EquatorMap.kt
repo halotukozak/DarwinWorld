@@ -22,7 +22,7 @@ class EquatorMap(config: Config) : AbstractMap(config) {
           .forEach(dupa::add)
       }
 
-      fun IntRange.emptyFields(x: Int) = fields.filter { it.x == x && it.y in this } - dupa.toSet() //or plants?
+      fun IntRange.emptyFields(x: Int) = fields.filter { it.x == x && it.y in this } - plants
 
       val emptyFieldsOnEquator = (0..<config.mapWidth).flatMap { equator.emptyFields(it) }
       val plantsOnEquator = min(emptyFieldsOnEquator.size, (plantsCount * 0.8).roundToInt())

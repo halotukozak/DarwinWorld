@@ -5,8 +5,7 @@ import frontend.components.ViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class ConfigViewModel : ViewModel() {
-  private val currentConfig: Config = Config.default()
+class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
 
   val mapWidth = MutableStateFlow(currentConfig.mapWidth.toString())
   val mapHeight = MutableStateFlow(currentConfig.mapHeight.toString())
@@ -29,6 +28,8 @@ class ConfigViewModel : ViewModel() {
   private lateinit var genomeField: StateFlow<GenomeField?>
   lateinit var isValid: StateFlow<Boolean>
     private set
+
+  private lateinit var simulationConfig: StateFlow<Config?>
 
   val mapFieldError = MutableStateFlow("")
   val plantFieldError = MutableStateFlow("")
@@ -102,25 +103,23 @@ class ConfigViewModel : ViewModel() {
       isValid = combine(mapField, plantField, animalField, genomeField) { args ->
         args.none { it == null }
       }.stateIn(viewModelScope)
+
+      simulationConfig =
+        combine(mapField, plantField, animalField, genomeField) { mapField, plantField, animalField, genomeField ->
+          if (isValid.value) {
+            Config(
+              mapField!!,
+              plantField!!,
+              animalField!!,
+              genomeField!!,
+            )
+          } else null
+        }.stateIn(viewModelScope)
     }
   }
 
-  fun saveConfig() = launchMain {
-    combine(
-      mapField,
-      plantField,
-      animalField,
-      genomeField,
-    ) { mapField, plantField, animalField, genomeField ->
-      Config(
-        mapField!!,
-        plantField!!,
-        animalField!!,
-        genomeField!!,
-      )
-    }.collect { config: Config? ->
-      find<SimulationView>(SimulationView::simulationConfig to config).openWindow()
-    }
+  fun saveConfig() = simulationConfig.value?.let {
+    SimulationView(it).openWindow()
   }
 
 }

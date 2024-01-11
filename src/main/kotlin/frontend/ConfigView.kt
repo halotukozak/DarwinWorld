@@ -51,5 +51,4 @@ class ConfigView : View("Config editor") {
       }
     }
   }
-
 }

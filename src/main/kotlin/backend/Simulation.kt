@@ -4,26 +4,25 @@ import backend.config.Config
 import backend.config.PlantGrowthVariant
 import backend.map.EquatorMap
 import backend.map.JungleMap
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
-import kotlinx.coroutines.launch
+import shared.CoroutineHandler
 import java.io.Closeable
 import kotlin.math.max
 
-class Simulation(private val config: Config) : Closeable {
+class Simulation(private val config: Config) : Closeable, CoroutineHandler {
+
+  override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+
   private val day = MutableStateFlow(0)
 
-  private var simulationJob: Job? = null
-
   private val _isRunning = MutableStateFlow(false)
-  val isRunning: StateFlow<Boolean> get() = _isRunning
+  val isRunning: StateFlow<Boolean> = _isRunning
 
-  private var _dayDuration = MutableStateFlow(0L)
+  private var _dayDuration = MutableStateFlow(1000L)
   val dayDuration: StateFlow<Long> = _dayDuration
 
   private val map = when (config.plantGrowthVariant) {
@@ -34,7 +33,7 @@ class Simulation(private val config: Config) : Closeable {
   val plants = map.plants
   val animals = map.animals
 
-  private fun nextDay() {
+  private suspend fun nextDay() {
     println("${day.updateAndGet { it + 1 }} day!")
     map.growAnimals()
     map.removeDeadAnimals()
@@ -52,22 +51,21 @@ class Simulation(private val config: Config) : Closeable {
 
   fun faster() = _dayDuration.updateAndGet { max(0, it - 100) }
   fun slower() = _dayDuration.updateAndGet { it + 100 }
-  override fun close() {
-    simulationJob?.cancel()
-  }
 
 
-  init {
-    GlobalScope.launch {
-      map.growPlants(config.initialPlants)
-      simulationJob = launch {
-        while (true) {
-          if (isRunning.value) {
-            nextDay()
-            delay(dayDuration.value)
-          }
-        }
+  private var simulationJob: Job = launchDefault {
+    map.growPlants(config.initialPlants)
+    while (true) {//todo
+      if (isRunning.value) {
+        nextDay()
+        delay(dayDuration.value)
       }
     }
   }
+
+  override fun close() {
+    launchMainImmediate { simulationJob.cancelAndJoin() }
+  }
+
 }
+

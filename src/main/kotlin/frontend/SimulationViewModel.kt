@@ -1,7 +1,9 @@
 package frontend
 
+import backend.Direction
 import backend.Simulation
 import backend.config.Config
+import backend.map.Vector
 import frontend.components.ViewModel
 import javafx.scene.paint.Color
 import kotlinx.coroutines.flow.Flow
@@ -21,7 +23,7 @@ class SimulationViewModel(simulationConfig: Config) : ViewModel() {
     private set
 
 
-  val disableFaster = simulation.dayDuration.map { it <= 0 }
+  val fasterDisabled = simulation.dayDuration.map { it <= 0 }
 
   init {
     viewModelScope.launch {
@@ -31,7 +33,8 @@ class SimulationViewModel(simulationConfig: Config) : ViewModel() {
             AnimalModel(
               vector.x.toDouble(),
               vector.y.toDouble(),
-              animal.energy
+              animal.energy,
+              animal.direction
             )
           }
         }
@@ -52,13 +55,15 @@ class SimulationViewModel(simulationConfig: Config) : ViewModel() {
     val x: Double,
     val y: Double,
     energy: Int,
+    direction: Direction,
   ) {
     val color: Color = when (energy) {
       in 0..<energyStep -> Color.RED
       in energyStep..<energyStep * 2 -> Color.ORANGE
-      in energyStep * 2..<energyStep + 3 -> Color.SPRINGGREEN
+      in energyStep * 2..<energyStep * 3 -> Color.SPRINGGREEN
       else -> Color.GREEN
     }
+    val angle: Double = direction.ordinal * 45.0
   }
 
   class PlantModel(
@@ -66,7 +71,10 @@ class SimulationViewModel(simulationConfig: Config) : ViewModel() {
     val y: Double,
   ) {
     companion object {
-      fun fromVector(vector: backend.map.Vector) = PlantModel(vector.x.toDouble(), vector.y.toDouble())
+      fun fromVector(vector: Vector) = PlantModel(
+        vector.x.toDouble(),
+        vector.y.toDouble()
+      )
     }
   }
 }

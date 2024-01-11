@@ -7,8 +7,13 @@ import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.javafx.JavaFx
 import shared.CoroutineHandler
 import tornadofx.*
@@ -19,31 +24,13 @@ abstract class View(
   icon: Node? = null
 ) : tornadofx.View(title, icon), CoroutineHandler, ScopedInstance {
 
-  protected val viewScope: CoroutineScope =
-    CoroutineScope(SupervisorJob() + Dispatchers.JavaFx.immediate)
-  protected open val fragmentContainer: Pane? get() = null
-
   protected abstract val viewModel: ViewModel
 
-  override fun launch(start: CoroutineStart, block: suspend CoroutineScope.() -> Unit): Job =
-    viewScope.launch(start = start, block = block)
 
-  override fun launchDefault(start: CoroutineStart, block: suspend CoroutineScope.() -> Unit): Job =
-    viewScope.launch(Dispatchers.Default, start, block)
+  protected val viewScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.JavaFx.immediate)
+  override val coroutineScope = viewScope
+  protected open val fragmentContainer: Pane? get() = null
 
-  override fun launchMain(start: CoroutineStart, block: suspend CoroutineScope.() -> Unit): Job =
-    viewScope.launch(Dispatchers.JavaFx, start, block)
-
-  override fun launchMainImmediate(start: CoroutineStart, block: suspend CoroutineScope.() -> Unit): Job =
-    viewScope.launch(Dispatchers.JavaFx.immediate, start, block)
-
-  override fun launchIO(start: CoroutineStart, block: suspend CoroutineScope.() -> Unit): Job =
-    viewScope.launch(Dispatchers.IO, start, block)
-
-  override fun launchUnconfined(start: CoroutineStart, block: suspend CoroutineScope.() -> Unit): Job =
-    viewScope.launch(Dispatchers.Unconfined, start, block)
-
-  override fun <T> Flow<T>.start() = launchIn(viewScope)
 
   open fun openFragment(fragment: Fragment) {
     with(fragmentContainer!!.children) {
@@ -55,18 +42,19 @@ abstract class View(
   override fun onDock() {
     currentWindow?.setOnCloseRequest {
       viewScope.cancel()
-      launchDefault { viewModel.clean() }
+      launchMainImmediate { viewModel.clean() }
     }
   }
 
   override fun onUndock() {
     viewScope.cancel()
-    launchDefault { viewModel.clean() }
+    launchMainImmediate { viewModel.clean() }
     super.onDock()
   }
 
   override fun onDelete() {
     viewScope.cancel()
+    launchMainImmediate { viewModel.clean() }
     super.onDelete()
   }
 
@@ -135,7 +123,7 @@ abstract class View(
         property.update { text }
         when {
           text.isNullOrBlank() -> "This field is required"
-          !text.isInt() -> "This field must be a double number"
+          !text.isDouble() -> "This field must be a double number"
           !ConfigField.validate<U>(text) -> ConfigField.errorMessage<U>()
           else -> null
         }?.let { error ->
@@ -168,11 +156,11 @@ abstract class View(
     }
 
 
-  protected fun Node.errorLabel(errorStateFlow: StateFlow<String>) = text("") {
+  protected fun Node.errorLabel(error: Flow<String>) = text("") {
     style {
       fill = Color.RED
     }
-    errorStateFlow.onUpdate {
+    error.onUpdate {
       textProperty().set(it)
     }
   }
