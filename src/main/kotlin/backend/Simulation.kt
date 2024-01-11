@@ -42,26 +42,32 @@ class Simulation(private val config: Config) : Closeable, CoroutineHandler {
     map.consumePlants()
     map.breedAnimals()
     map.growPlants(config.plantsPerDay)
-
-    map.ageAnimals()
   }
 
-  fun pause() = _isRunning.update { false }
-  fun resume() = _isRunning.update { true }
+  private var simulationJob: Job = launch {
+    map.growPlants(config.initialPlants)
+  }
+
+  private fun launchSimulation() = launch {
+    while (true) {
+      nextDay()
+      delay(_dayDuration.value)
+    }
+  }
+
+  fun pause() = _isRunning.update {
+    simulationJob.cancel()
+    false
+  }
+
+  fun resume() = _isRunning.update {
+    simulationJob = launchSimulation()
+    simulationJob.start()
+  }
 
   fun faster() = _dayDuration.updateAndGet { max(0, it - 100) }
   fun slower() = _dayDuration.updateAndGet { it + 100 }
 
-
-  private var simulationJob: Job = launchDefault {
-    map.growPlants(config.initialPlants)
-    while (true) {//todo
-      if (isRunning.value) {
-        nextDay()
-        delay(dayDuration.value)
-      }
-    }
-  }
 
   override fun close() {
     launchMainImmediate { simulationJob.cancelAndJoin() }

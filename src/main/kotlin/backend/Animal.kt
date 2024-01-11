@@ -10,14 +10,12 @@ data class Animal(
 ) : MapElement, Comparable<Animal> {
 
   private val children = mutableSetOf<Animal>()
-  val isDead = { energy <= 0 }
+  fun isDead() = energy <= 0
 
   fun rotate(): Animal = this.copy(direction = direction + genome.next())
   fun turnBack(): Animal = this.copy(direction = direction.opposite())
-  fun grow(): Animal = this.copy(energy = energy - 1)
+  fun grow(): Animal = this.copy(energy = energy - 1, age = age + 1)
   fun eat(energy: Int): Animal = this.copy(energy = this.energy + energy)
-  fun age(): Animal = this.copy(age = age + 1)
-
 
   fun cover(other: Animal, reproductionEnergyRatio: Double, mutator: GenMutator): Animal {
     val energyLoss1 = (this.energy * reproductionEnergyRatio).toInt().also { this.energy -= it }
@@ -33,9 +31,9 @@ data class Animal(
     }
   }
 
-  override fun compareTo(other: Animal): Int {
-    if (this.energy.compareTo(other.energy) != 0) return this.energy.compareTo(other.energy)
-    if (this.age.compareTo(other.age) != 0) return this.age.compareTo(other.age)
-    return this.children.size.compareTo(other.children.size)
+  override fun compareTo(other: Animal): Int = when {
+    this.energy.compareTo(other.energy) != 0 -> this.energy.compareTo(other.energy)
+    this.age.compareTo(other.age) != 0 -> this.age.compareTo(other.age)
+    else -> this.children.size.compareTo(other.children.size)
   }
 }

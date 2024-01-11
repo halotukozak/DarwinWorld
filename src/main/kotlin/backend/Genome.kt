@@ -23,6 +23,7 @@ class Genome(private val genes: List<Gen>) : Iterator<Gen> {
   }
 }
 
+@Suppress("EnumEntryName")
 enum class Gen {
   SHH, DmNotch, MDM2, zCycD1, Frp, NAC, sdf;
 

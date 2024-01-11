@@ -3,7 +3,6 @@ package frontend
 import backend.config.*
 import frontend.components.ViewModel
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 
 class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
 
@@ -47,7 +46,7 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
   }
 
   init {
-    viewModelScope.launch {
+    launch {
       mapGroup = combine(mapWidth, mapHeight) { mapWidth, mapHeight ->
         safeFieldInit(mapFieldError) {
           MapGroup(
@@ -55,7 +54,7 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
             MapGroup.MapHeight(mapHeight!!),
           )
         }
-      }.stateIn(viewModelScope)
+      }.stateIn(this)
 
       plantGroup = combine(
         initialPlants, nutritionScore, plantsPerDay, plantGrowthVariant
@@ -68,7 +67,7 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
             PlantGroup.PlantGrowthVariantField(plantGrowthVariant)
           )
         }
-      }.stateIn(viewModelScope)
+      }.stateIn(this)
 
       animalGroup = combine(
         initialAnimals,
@@ -83,7 +82,7 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
             AnimalGroup.SatietyEnergy(satietyEnergy!!),
           )
         }
-      }.stateIn(viewModelScope)
+      }.stateIn(this)
 
       genomeGroup = combine(
         reproductionEnergyRatio, minMutations, maxMutations, mutationVariant, genomeLength
@@ -97,12 +96,12 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
             GenomeGroup.ReproductionEnergyRatio(reproductionEnergyRatio!!),
           )
         }
-      }.stateIn(viewModelScope)
+      }.stateIn(this)
 
 
       isValid = combine(mapGroup, plantGroup, animalGroup, genomeGroup) { args ->
         args.none { it == null }
-      }.stateIn(viewModelScope)
+      }.stateIn(this)
 
       simulationConfig =
         combine(mapGroup, plantGroup, animalGroup, genomeGroup) { mapField, plantField, animalField, genomeField ->
@@ -114,7 +113,7 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
               genomeField!!,
             )
           } else null
-        }.stateIn(viewModelScope)
+        }.stateIn(this)
     }
   }
 

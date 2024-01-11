@@ -3,13 +3,11 @@ package frontend
 import backend.Direction
 import backend.Simulation
 import backend.config.Config
-import backend.map.Vector
 import frontend.components.ViewModel
 import javafx.scene.paint.Color
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 class SimulationViewModel(simulationConfig: Config) : ViewModel() {
 
@@ -26,7 +24,7 @@ class SimulationViewModel(simulationConfig: Config) : ViewModel() {
   val fasterDisabled = simulation.dayDuration.map { it <= 0 }
 
   init {
-    viewModelScope.launch {
+    launch {
       animals = simulation.animals.map { animals ->
         animals.flatMap { (vector, set) ->
           set.map { animal ->
@@ -38,11 +36,16 @@ class SimulationViewModel(simulationConfig: Config) : ViewModel() {
             )
           }
         }
-      }.stateIn(viewModelScope)
+      }.stateIn(this)
 
       plants = simulation.plants.map { plants ->
-        plants.map { PlantModel.fromVector(it) }
-      }.stateIn(viewModelScope)
+        plants.map { plant ->
+          PlantModel(
+            plant.x.toDouble(),
+            plant.y.toDouble()
+          )
+        }
+      }.stateIn(this)
     }
   }
 
@@ -69,13 +72,6 @@ class SimulationViewModel(simulationConfig: Config) : ViewModel() {
   class PlantModel(
     val x: Double,
     val y: Double,
-  ) {
-    companion object {
-      fun fromVector(vector: Vector) = PlantModel(
-        vector.x.toDouble(),
-        vector.y.toDouble()
-      )
-    }
-  }
+  )
 }
 

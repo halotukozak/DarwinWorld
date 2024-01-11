@@ -54,11 +54,9 @@ abstract class AbstractMap(protected val config: Config) {
 
   suspend fun growAnimals() = updateAnimals(Animal::grow)
   suspend fun rotateAnimals() = updateAnimals(Animal::rotate)
-  suspend fun ageAnimals() = updateAnimals(Animal::age)
-
 
   suspend fun removeDeadAnimals() = _animals.update {
-    it.mapValuesAsync { set -> set.filterNot { it.isDead() } }
+    it.mapValuesAsync { set -> set.filterNot(Animal::isDead) }
   }
 
   suspend fun moveAnimals() = _animals.update {

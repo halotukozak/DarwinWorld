@@ -4,7 +4,6 @@ import backend.config.ConfigField
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.scene.Node
-import javafx.scene.Parent
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
 import kotlinx.coroutines.CoroutineScope
@@ -26,9 +25,7 @@ abstract class View(
 
   protected abstract val viewModel: ViewModel
 
-
-  protected val viewScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.JavaFx.immediate)
-  override val coroutineScope = viewScope
+  override val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.JavaFx.immediate)
   protected open val fragmentContainer: Pane? get() = null
 
 
@@ -41,19 +38,19 @@ abstract class View(
 
   override fun onDock() {
     currentWindow?.setOnCloseRequest {
-      viewScope.cancel()
+      coroutineScope.cancel()
       launchMainImmediate { viewModel.clean() }
     }
   }
 
   override fun onUndock() {
-    viewScope.cancel()
+    coroutineScope.cancel()
     launchMainImmediate { viewModel.clean() }
     super.onDock()
   }
 
   override fun onDelete() {
-    viewScope.cancel()
+    coroutineScope.cancel()
     launchMainImmediate { viewModel.clean() }
     super.onDelete()
   }
@@ -77,11 +74,9 @@ abstract class View(
     predicate.onUpdate { disableProperty().set(it) }
   }
 
-
-  //todo action: () -> Node?
-  protected fun <T> EventTarget.forEach(sourceSet: Flow<List<T>>, action: Parent.(T) -> Node) = group {
+  protected fun <T> EventTarget.forEach(sourceSet: Flow<List<T>>, action: (T) -> Node) = group {
     sourceSet.onUpdate {
-      children.setAll(it.map { action(it) })
+      children.setAll(it.map(action))
     }
   }
 
@@ -106,7 +101,7 @@ abstract class View(
           when (T::class) {
             Int::class -> text.toInt() as T
             Double::class -> text.toDouble() as T
-            else -> TODO()
+            else -> throw NotImplementedError()
           }
         }
       }

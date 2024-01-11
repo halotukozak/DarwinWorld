@@ -10,13 +10,10 @@ import tornadofx.*
 
 abstract class ViewModel : Component(), CoroutineHandler, ScopedInstance {
 
-  val viewModelScope: CoroutineScope =
-    CoroutineScope(SupervisorJob() + Dispatchers.JavaFx.immediate)
-
-  override val coroutineScope = viewModelScope
+  override val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.JavaFx.immediate)
 
   open suspend fun clean() {
-    viewModelScope.cancel()
+    coroutineScope.cancel()
   }
 
 }
