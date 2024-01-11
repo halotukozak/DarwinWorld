@@ -41,6 +41,31 @@ class Config(
       AnimalField(),
       GenomeField(),
     )
+
+    fun test() = Config(
+      MapField(
+        MapField.MapWidth(100),
+        MapField.MapHeight(100),
+      ),
+      PlantField(
+        PlantField.InitialPlants(100),
+        PlantField.NutritionScore(100),
+        PlantField.PlantsPerDay(1),
+        PlantField.PlantGrowthVariantField(EQUATOR),
+      ),
+      AnimalField(
+        AnimalField.InitialAnimals(10),
+        AnimalField.InitialAnimalEnergy(10),
+        AnimalField.SatietyEnergy(10),
+      ),
+      GenomeField(
+        GenomeField.GenomeLength(8),
+        GenomeField.MutationVariant(0.0),
+        GenomeField.MinMutations(0),
+        GenomeField.MaxMutations(8),
+        GenomeField.ReproductionEnergyRatio(0.5),
+      ),
+    )
   }
 }
 
