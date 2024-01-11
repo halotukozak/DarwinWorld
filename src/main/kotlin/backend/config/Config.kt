@@ -1,69 +1,70 @@
 package backend.config
 
+import backend.config.AnimalGroup.*
 import backend.config.ConfigField.Companion.default
-import backend.config.InvalidFieldException.Companion.requireField
+import backend.config.GenomeGroup.*
+import backend.config.MapGroup.MapHeight
+import backend.config.MapGroup.MapWidth
+import backend.config.PlantGroup.*
 import backend.config.PlantGrowthVariant.EQUATOR
 import tornadofx.*
-import java.util.*
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.primaryConstructor
 
 
-//todo(rozróżnić jakoś nazwy field/fieldpack czy coś, bo jest syf, tak samo z exceptionami)
-
 class Config(
-  mapField: MapField,
-  plantField: PlantField,
-  animalField: AnimalField,
-  genomeField: GenomeField,
+  mapGroup: MapGroup,
+  plantGroup: PlantGroup,
+  animalGroup: AnimalGroup,
+  genomeGroup: GenomeGroup,
 ) {
 
-  val mapWidth = mapField.mapWidth.value
-  val mapHeight = mapField.mapHeight.value
-  val initialPlants = plantField.initialPlants.value
-  val nutritionScore = plantField.nutritionScore.value
-  val plantsPerDay = plantField.plantsPerDay.value
-  val plantGrowthVariant = plantField.plantGrowthVariant.value
-  val initialAnimals = animalField.initialAnimals.value
-  val initialAnimalEnergy = animalField.initialAnimalEnergy.value
-  val satietyEnergy = animalField.satietyEnergy.value
-  val reproductionEnergyRatio = genomeField.reproductionEnergyRatio.value
-  val minMutations = genomeField.minMutations.value
-  val maxMutations = genomeField.maxMutations.value
-  val mutationVariant = genomeField.mutationVariant.value
-  val genomeLength = genomeField.genomeLength.value
+  val mapWidth = mapGroup.mapWidth.value
+  val mapHeight = mapGroup.mapHeight.value
+  val initialPlants = plantGroup.initialPlants.value
+  val nutritionScore = plantGroup.nutritionScore.value
+  val plantsPerDay = plantGroup.plantsPerDay.value
+  val plantGrowthVariant = plantGroup.plantGrowthVariant.value
+  val initialAnimals = animalGroup.initialAnimals.value
+  val initialAnimalEnergy = animalGroup.initialAnimalEnergy.value
+  val satietyEnergy = animalGroup.satietyEnergy.value
+  val reproductionEnergyRatio = genomeGroup.reproductionEnergyRatio.value
+  val minMutations = genomeGroup.minMutations.value
+  val maxMutations = genomeGroup.maxMutations.value
+  val mutationVariant = genomeGroup.mutationVariant.value
+  val genomeLength = genomeGroup.genomeLength.value
 
   companion object {
     fun default() = Config(
-      MapField(),
-      PlantField(),
-      AnimalField(),
-      GenomeField(),
+      MapGroup(),
+      PlantGroup(),
+      AnimalGroup(),
+      GenomeGroup(),
     )
 
     fun test() = Config(
-      MapField(
-        MapField.MapWidth(100),
-        MapField.MapHeight(100),
+      MapGroup(
+        MapWidth(100),
+        MapHeight(100),
       ),
-      PlantField(
-        PlantField.InitialPlants(100),
-        PlantField.NutritionScore(100),
-        PlantField.PlantsPerDay(1),
-        PlantField.PlantGrowthVariantField(EQUATOR),
+      PlantGroup(
+        InitialPlants(100),
+        NutritionScore(100),
+        PlantsPerDay(1),
+        PlantGrowthVariantField(EQUATOR),
       ),
-      AnimalField(
-        AnimalField.InitialAnimals(10),
-        AnimalField.InitialAnimalEnergy(10),
-        AnimalField.SatietyEnergy(10),
+      AnimalGroup(
+        InitialAnimals(10),
+        InitialAnimalEnergy(10),
+        SatietyEnergy(10),
       ),
-      GenomeField(
-        GenomeField.GenomeLength(8),
-        GenomeField.MutationVariant(0.0),
-        GenomeField.MinMutations(0),
-        GenomeField.MaxMutations(8),
-        GenomeField.ReproductionEnergyRatio(0.5),
+      GenomeGroup(
+        GenomeLength(8),
+        MutationVariant(0.0),
+        MinMutations(0),
+        MaxMutations(8),
+        ReproductionEnergyRatio(0.5),
       ),
     )
   }
@@ -84,16 +85,13 @@ sealed class ConfigField<out T : Any>(
 
   companion object {
     inline fun <reified U : ConfigField<*>> find() = ConfigField::class.sealedSubclasses.first { it == U::class }
+
     inline fun <reified U : ConfigField<*>> default(): U = find<U>().createInstance() as U
+
     inline fun <reified U : ConfigField<*>> label() = (find<U>().companionObjectInstance as ConfigFieldInfo<*>).label
+
     inline fun <reified U : ConfigField<*>> description() =
       (find<U>().companionObjectInstance as ConfigFieldInfo<*>).description
-
-    inline fun <reified U : ConfigField<*>> propertyName() = label<U>().replaceFirstChar {
-      if (it.isLowerCase()) it.titlecase(
-        Locale.getDefault()
-      ) else it.toString()
-    }
 
     inline fun <reified U : ConfigField<*>> errorMessage() =
       (find<U>().companionObjectInstance as ConfigFieldInfo<*>).errorMessage
@@ -117,7 +115,7 @@ sealed class ConfigField<out T : Any>(
 
 }
 
-class MapField(
+class MapGroup(
   val mapWidth: MapWidth = default(),
   val mapHeight: MapHeight = default(),
 ) {
@@ -149,7 +147,7 @@ class MapField(
   }
 }
 
-class PlantField(
+class PlantGroup(
   val initialPlants: InitialPlants = default(),
   val nutritionScore: NutritionScore = default(),
   val plantsPerDay: PlantsPerDay = default(),
@@ -210,7 +208,7 @@ class PlantField(
   }
 }
 
-class AnimalField(
+class AnimalGroup(
   val initialAnimals: InitialAnimals = default(),
   val initialAnimalEnergy: InitialAnimalEnergy = default(),
   val satietyEnergy: SatietyEnergy = default(),
@@ -258,7 +256,7 @@ class AnimalField(
 }
 
 
-class GenomeField(
+class GenomeGroup(
   val genomeLength: GenomeLength = default(),
   val mutationVariant: MutationVariant = default(),
   val minMutations: MinMutations = default(),
@@ -331,22 +329,13 @@ class GenomeField(
   }
 
   init {
-    requireField(
-      minMutations.value <= maxMutations.value,
-      "Min mutations must be less or equal to max mutations"
-    )
-    requireField(
-      maxMutations.value <= genomeLength.value,
-      "Max mutations must be less or equal to genome length"
-    )
+    require(minMutations.value <= maxMutations.value) { "Min mutations must be less or equal to max mutations" }
+    require(maxMutations.value <= genomeLength.value) { "Max mutations must be less or equal to genome length" }
   }
 }
 
-class InvalidFieldException(message: String) : Exception(message) {
-  companion object {
-    //dupa nazwa strasznie
-    fun requireField(predicate: Boolean, message: String) {
-      if (!predicate) throw InvalidFieldException(message)
-    }
-  }
+class InvalidFieldException(message: String) : Exception(message)
+
+private fun require(predicate: Boolean, lazyMessage: () -> String) {
+  if (!predicate) throw InvalidFieldException(lazyMessage())
 }

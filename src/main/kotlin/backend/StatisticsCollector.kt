@@ -13,7 +13,7 @@ class StatisticsCollector {
   fun bornAnimal(animal: Animal) {
     _animalsCounter.update { it + 1 }
     _genomeCounter.update { counter ->
-      val change = animal.genome.groupingBy { it }.eachCount()
+      val change = animal.genome.count()
       counter.mapValues { (gen, count) -> count + change[gen]!! }
     }
   }
@@ -21,7 +21,7 @@ class StatisticsCollector {
   fun dieAnimal(animal: Animal) {
     _animalsCounter.update { it - 1 }
     _genomeCounter.update { counter ->
-      val change = animal.genome.groupingBy { it }.eachCount()
+      val change = animal.genome.count()
       counter.mapValues { (gen, count) -> count - change[gen]!! }
     }
   }

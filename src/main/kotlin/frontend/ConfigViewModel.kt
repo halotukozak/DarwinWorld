@@ -22,10 +22,10 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
   val mutationVariant = MutableStateFlow(currentConfig.mutationVariant.toString())
   val genomeLength = MutableStateFlow(currentConfig.genomeLength.toString())
 
-  private lateinit var mapField: StateFlow<MapField?>
-  private lateinit var plantField: StateFlow<PlantField?>
-  private lateinit var animalField: StateFlow<AnimalField?>
-  private lateinit var genomeField: StateFlow<GenomeField?>
+  private lateinit var mapGroup: StateFlow<MapGroup?>
+  private lateinit var plantGroup: StateFlow<PlantGroup?>
+  private lateinit var animalGroup: StateFlow<AnimalGroup?>
+  private lateinit var genomeGroup: StateFlow<GenomeGroup?>
   lateinit var isValid: StateFlow<Boolean>
     private set
 
@@ -48,64 +48,64 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
 
   init {
     viewModelScope.launch {
-      mapField = combine(mapWidth, mapHeight) { mapWidth, mapHeight ->
+      mapGroup = combine(mapWidth, mapHeight) { mapWidth, mapHeight ->
         safeFieldInit(mapFieldError) {
-          MapField(
-            MapField.MapWidth(mapWidth.toInt()),
-            MapField.MapHeight(mapHeight.toInt()),
+          MapGroup(
+            MapGroup.MapWidth(mapWidth.toInt()),
+            MapGroup.MapHeight(mapHeight.toInt()),
           )
         }
       }.stateIn(viewModelScope)
 
-      plantField = combine(
+      plantGroup = combine(
         initialPlants, nutritionScore, plantsPerDay, plantGrowthVariant
       ) { initialPlants, nutritionScore, plantsPerDay, plantGrowthVariant ->
         safeFieldInit(plantFieldError) {
-          PlantField(
-            PlantField.InitialPlants(initialPlants.toInt()),
-            PlantField.NutritionScore(nutritionScore.toInt()),
-            PlantField.PlantsPerDay(plantsPerDay.toInt()),
-            PlantField.PlantGrowthVariantField(plantGrowthVariant)
+          PlantGroup(
+            PlantGroup.InitialPlants(initialPlants.toInt()),
+            PlantGroup.NutritionScore(nutritionScore.toInt()),
+            PlantGroup.PlantsPerDay(plantsPerDay.toInt()),
+            PlantGroup.PlantGrowthVariantField(plantGrowthVariant)
           )
         }
       }.stateIn(viewModelScope)
 
-      animalField = combine(
+      animalGroup = combine(
         initialAnimals,
         initialAnimalEnergy,
         satietyEnergy
       )
       { initialAnimals, initialAnimalEnergy, satietyEnergy ->
         safeFieldInit(animalFieldError) {
-          AnimalField(
-            AnimalField.InitialAnimals(initialAnimals.toInt()),
-            AnimalField.InitialAnimalEnergy(initialAnimalEnergy.toInt()),
-            AnimalField.SatietyEnergy(satietyEnergy.toInt()),
+          AnimalGroup(
+            AnimalGroup.InitialAnimals(initialAnimals.toInt()),
+            AnimalGroup.InitialAnimalEnergy(initialAnimalEnergy.toInt()),
+            AnimalGroup.SatietyEnergy(satietyEnergy.toInt()),
           )
         }
       }.stateIn(viewModelScope)
 
-      genomeField = combine(
+      genomeGroup = combine(
         reproductionEnergyRatio, minMutations, maxMutations, mutationVariant, genomeLength
       ) { reproductionEnergyRatio, minMutations, maxMutations, mutationVariant, genomeLength ->
         safeFieldInit(genomeFieldError) {
-          GenomeField(
-            GenomeField.GenomeLength(genomeLength.toInt()),
-            GenomeField.MutationVariant(mutationVariant.toDouble()),
-            GenomeField.MinMutations(minMutations.toInt()),
-            GenomeField.MaxMutations(maxMutations.toInt()),
-            GenomeField.ReproductionEnergyRatio(reproductionEnergyRatio.toDouble()),
+          GenomeGroup(
+            GenomeGroup.GenomeLength(genomeLength.toInt()),
+            GenomeGroup.MutationVariant(mutationVariant.toDouble()),
+            GenomeGroup.MinMutations(minMutations.toInt()),
+            GenomeGroup.MaxMutations(maxMutations.toInt()),
+            GenomeGroup.ReproductionEnergyRatio(reproductionEnergyRatio.toDouble()),
           )
         }
       }.stateIn(viewModelScope)
 
 
-      isValid = combine(mapField, plantField, animalField, genomeField) { args ->
+      isValid = combine(mapGroup, plantGroup, animalGroup, genomeGroup) { args ->
         args.none { it == null }
       }.stateIn(viewModelScope)
 
       simulationConfig =
-        combine(mapField, plantField, animalField, genomeField) { mapField, plantField, animalField, genomeField ->
+        combine(mapGroup, plantGroup, animalGroup, genomeGroup) { mapField, plantField, animalField, genomeField ->
           if (isValid.value) {
             Config(
               mapField!!,

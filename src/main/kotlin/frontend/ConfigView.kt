@@ -13,32 +13,32 @@ class ConfigView : View("Config editor") {
 
       fieldset("Map") {
         errorLabel(mapFieldError)
-        intInput<MapField.MapWidth>(mapWidth)
-        intInput<MapField.MapHeight>(mapHeight)
+        intInput<MapGroup.MapWidth>(mapWidth)
+        intInput<MapGroup.MapHeight>(mapHeight)
       }
 
       fieldset("Plants") {
         errorLabel(plantFieldError)
-        intInput<PlantField.InitialPlants>(initialPlants)
-        intInput<PlantField.NutritionScore>(nutritionScore)
-        intInput<PlantField.PlantsPerDay>(plantsPerDay)
-        combobox<PlantGrowthVariant, PlantField.PlantGrowthVariantField>(plantGrowthVariant)
+        intInput<PlantGroup.InitialPlants>(initialPlants)
+        intInput<PlantGroup.NutritionScore>(nutritionScore)
+        intInput<PlantGroup.PlantsPerDay>(plantsPerDay)
+        combobox<PlantGrowthVariant, PlantGroup.PlantGrowthVariantField>(plantGrowthVariant)
       }
 
       fieldset("Animals") {
         errorLabel(animalFieldError)
-        intInput<AnimalField.InitialAnimals>(initialAnimals)
-        intInput<AnimalField.InitialAnimalEnergy>(initialAnimalEnergy)
-        intInput<AnimalField.SatietyEnergy>(satietyEnergy)
+        intInput<AnimalGroup.InitialAnimals>(initialAnimals)
+        intInput<AnimalGroup.InitialAnimalEnergy>(initialAnimalEnergy)
+        intInput<AnimalGroup.SatietyEnergy>(satietyEnergy)
       }
 
       fieldset("Genome") {
         errorLabel(genomeFieldError)
-        doubleInput<GenomeField.ReproductionEnergyRatio>(reproductionEnergyRatio)
-        intInput<GenomeField.MinMutations>(minMutations)
-        intInput<GenomeField.MaxMutations>(maxMutations)
-        doubleInput<GenomeField.MutationVariant>(mutationVariant)
-        intInput<GenomeField.GenomeLength>(genomeLength)
+        doubleInput<GenomeGroup.ReproductionEnergyRatio>(reproductionEnergyRatio)
+        intInput<GenomeGroup.MinMutations>(minMutations)
+        intInput<GenomeGroup.MaxMutations>(maxMutations)
+        doubleInput<GenomeGroup.MutationVariant>(mutationVariant)
+        intInput<GenomeGroup.GenomeLength>(genomeLength)
       }
 
       buttonbar {
