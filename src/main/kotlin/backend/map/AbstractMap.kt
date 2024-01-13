@@ -1,10 +1,10 @@
 package backend.map
 
+import backend.GenMutator
+import backend.config.Config
 import backend.model.Animal
 import backend.model.Direction
-import backend.GenMutator
 import backend.model.Genome
-import backend.config.Config
 import kotlinx.coroutines.flow.*
 import shared.group
 import shared.mapMax
@@ -101,13 +101,13 @@ abstract class AbstractMap(protected val config: Config) {
         val animal1 = set.max()
         val animal2 = (set - animal1).max()
         if (animal2.energy >= config.satietyEnergy)
-          set + animal1.cover(
+          set - animal1 - animal2 + animal1.cover(
             animal2,
             config.reproductionEnergyRatio,
             mutator,
           )
         else set
-      } else set//todo
+      } else set//todo(awful elses)
     }
   }
 
