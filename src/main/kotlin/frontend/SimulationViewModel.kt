@@ -1,6 +1,6 @@
 package frontend
 
-import backend.Direction
+import backend.model.Direction
 import backend.Simulation
 import backend.config.Config
 import frontend.components.ViewModel

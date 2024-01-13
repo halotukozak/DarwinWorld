@@ -1,5 +1,7 @@
 package backend
 
+import backend.model.Animal
+import backend.model.Gen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update

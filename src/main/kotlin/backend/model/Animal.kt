@@ -1,5 +1,6 @@
-package backend
+package backend.model
 
+import backend.GenMutator
 import backend.map.MapElement
 
 data class Animal(

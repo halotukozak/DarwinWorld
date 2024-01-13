@@ -1,4 +1,4 @@
-package backend
+package backend.model
 
 import kotlin.random.Random
 

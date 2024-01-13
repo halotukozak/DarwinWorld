@@ -1,9 +1,9 @@
 package backend.map
 
-import backend.Animal
-import backend.Direction
+import backend.model.Animal
+import backend.model.Direction
 import backend.GenMutator
-import backend.Genome
+import backend.model.Genome
 import backend.config.Config
 import kotlinx.coroutines.flow.*
 import shared.group
