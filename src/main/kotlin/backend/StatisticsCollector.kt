@@ -15,7 +15,7 @@ class StatisticsCollector {
   fun bornAnimal(animal: Animal) {
     _animalsCounter.update { it + 1 }
     _genomeCounter.update { counter ->
-      val change = animal.genome.count()
+      val change = animal.genome.frequencyMap
       counter.mapValues { (gen, count) -> count + change[gen]!! }
     }
   }
@@ -23,7 +23,7 @@ class StatisticsCollector {
   fun dieAnimal(animal: Animal) {
     _animalsCounter.update { it - 1 }
     _genomeCounter.update { counter ->
-      val change = animal.genome.count()
+      val change = animal.genome.frequencyMap
       counter.mapValues { (gen, count) -> count - change[gen]!! }
     }
   }

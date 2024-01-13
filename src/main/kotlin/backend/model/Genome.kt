@@ -16,7 +16,7 @@ class Genome(private val genes: List<Gen>) : Iterator<Gen> {
   fun drop(numberOfGenes: Int) = this.genes.drop(numberOfGenes)
   fun dropLast(numberOfGenes: Int) = this.genes.dropLast(numberOfGenes)
 
-  fun count() = this.genes.groupingBy { it }.eachCount()
+  val frequencyMap by lazy { this.genes.groupingBy { it }.eachCount() }
 
   companion object {
     fun random(size: Int): Genome = Genome(List(size) { Gen.random() })
