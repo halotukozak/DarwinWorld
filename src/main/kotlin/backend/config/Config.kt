@@ -10,7 +10,6 @@ import backend.config.PlantGrowthVariant.EQUATOR
 import tornadofx.*
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.createInstance
-import kotlin.reflect.full.primaryConstructor
 
 
 class Config(
@@ -99,20 +98,7 @@ sealed class ConfigField<out T : Any>(
     inline fun <reified U : ConfigField<*>> validate(value: String) =
       (find<U>().companionObjectInstance as ConfigFieldInfo<*>).isValid(value)
 
-
-    inline fun <reified U : ConfigField<Int>> initInt(value: String): U {
-      validate<U>(value)
-      return find<U>().primaryConstructor!!.call(value.toInt()) as U
-    }
-
-    inline fun <reified U : ConfigField<Double>> initDouble(value: String): U {
-      validate<U>(value)
-      return find<U>().primaryConstructor!!.call(value.toDouble()) as U
-    }
-
-
   }
-
 }
 
 class MapGroup(

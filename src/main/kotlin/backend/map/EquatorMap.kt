@@ -15,7 +15,7 @@ class EquatorMap(config: Config) : AbstractMap(config) {
 
   override fun growPlants(plantsCount: Int) =
     _plants.update { plants ->
-      val dupa = plants.toMutableSet()
+      val dupa = plants.toMutableSet() //todo
       val addPlantsRandomly = { emptyFields: List<Vector>, numberOfPlants: Int ->
         emptyFields
           .takeRandom(numberOfPlants)

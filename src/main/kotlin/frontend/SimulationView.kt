@@ -7,8 +7,8 @@ import javafx.scene.shape.ArcType
 import tornadofx.*
 
 class SimulationView(simulationConfig: Config) : View() {
-  override val viewModel: SimulationViewModel = SimulationViewModel(simulationConfig)
 
+  override val viewModel: SimulationViewModel = SimulationViewModel(simulationConfig)
 
   override val root = with(viewModel) {
     gridpane {

@@ -3,6 +3,7 @@ package frontend
 import backend.config.*
 import frontend.components.ViewModel
 import kotlinx.coroutines.flow.*
+import shared.ifTrue
 
 class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
 
@@ -105,14 +106,14 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
 
       simulationConfig =
         combine(mapGroup, plantGroup, animalGroup, genomeGroup) { mapField, plantField, animalField, genomeField ->
-          if (isValid.value) {
+          isValid.value.ifTrue {
             Config(
               mapField!!,
               plantField!!,
               animalField!!,
               genomeField!!,
             )
-          } else null
+          }
         }.stateIn(this)
     }
   }

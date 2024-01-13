@@ -2,7 +2,7 @@ package backend.model
 
 import backend.map.Vector
 
-enum class Direction(val vector: Vector) {
+enum class Direction(x: Int, y: Int) {
   N(0, -1),
   NE(1, -1),
   E(1, 0),
@@ -12,7 +12,7 @@ enum class Direction(val vector: Vector) {
   W(-1, 0),
   NW(-1, -1);
 
-  constructor(x: Int, y: Int) : this(Vector(x, y))
+  val vector: Vector by lazy { Vector(x, y) }
 
   operator fun plus(next: Gen): Direction = this + next.ordinal
   operator fun minus(next: Gen): Direction = this - next.ordinal

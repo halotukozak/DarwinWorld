@@ -6,10 +6,7 @@ import backend.model.Animal
 import backend.model.Direction
 import backend.model.Genome
 import kotlinx.coroutines.flow.*
-import shared.group
-import shared.mapMax
-import shared.mapValues
-import shared.mapValuesAsync
+import shared.*
 import kotlin.random.Random
 
 abstract class AbstractMap(protected val config: Config) {
@@ -64,11 +61,11 @@ abstract class AbstractMap(protected val config: Config) {
       set.map { animal ->
         var newPosition = position + animal.direction.vector //todo (var)
         when {
-          newPosition.x < 0 -> newPosition = newPosition.withX(config.mapWidth - 1)
-          newPosition.x >= config.mapWidth -> newPosition = newPosition.withX(0)
+          newPosition.x < 0 -> newPosition = newPosition.copy(x = config.mapWidth - 1)
+          newPosition.x >= config.mapWidth -> newPosition = newPosition.copy(x = 0)
         }
         if (newPosition.y !in 0..<config.mapHeight) {
-          newPosition = newPosition.withY(position.y)
+          newPosition = newPosition.copy(y = position.y)
           animal.turnBack()
         }
         newPosition to animal
@@ -97,20 +94,18 @@ abstract class AbstractMap(protected val config: Config) {
 
   suspend fun breedAnimals() = _animals.update { animals ->
     animals.mapValuesAsync { set ->
-      if (set.size >= 2) {
-        val animal1 = set.max()
-        val animal2 = (set - animal1).max()
-        if (animal2.energy >= config.satietyEnergy)
+      (set.size >= 2).ifTrue {
+        val (animal1, animal2) = set.max().let { it to (set - it).max() }
+        (animal2.energy >= config.satietyEnergy).ifTrue {
           set - animal1 - animal2 + animal1.cover(
             animal2,
             config.reproductionEnergyRatio,
             mutator,
           )
-        else set
-      } else set//todo(awful elses)
+        }
+      } ?: set
     }
   }
 
   abstract fun growPlants(plantsCount: Int)
 }
-
