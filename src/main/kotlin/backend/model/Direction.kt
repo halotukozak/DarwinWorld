@@ -13,12 +13,12 @@ enum class Direction(x: Int, y: Int) {
   NW(-1, -1);
 
   val vector: Vector by lazy { Vector(x, y) }
+  val opposite: Direction by lazy { this + 4 }
 
   operator fun plus(next: Gen): Direction = this + next.ordinal
   operator fun minus(next: Gen): Direction = this - next.ordinal
   operator fun plus(i: Int): Direction = entries[(this.ordinal + i) % entries.size]
   operator fun minus(i: Int): Direction = entries[(this.ordinal - i) % entries.size]
-  fun opposite(): Direction = this + 4
 
   companion object {
     fun random() = entries.random()

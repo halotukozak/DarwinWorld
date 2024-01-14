@@ -14,9 +14,10 @@ data class Animal(
   fun isDead() = energy <= 0
 
   fun rotate(): Animal = this.copy(direction = direction + genome.next())
-  fun turnBack(): Animal = this.copy(direction = direction.opposite())
+  fun turnBack(): Animal = this.copy(direction = direction.opposite)
   fun grow(): Animal = this.copy(energy = energy - 1, age = age + 1)
   fun eat(energy: Int): Animal = this.copy(energy = this.energy + energy)
+
   private fun decreaseEnergy(energy: Int): Animal = this.copy(energy = this.energy - energy)
   private fun withChild(child: Animal): Animal = this.copy(children = children + child)
 

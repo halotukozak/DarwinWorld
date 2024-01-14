@@ -1,10 +1,8 @@
+import backend.model.Gen
 import backend.model.Gen.*
 import backend.model.Genome
-import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import Gen.*
 import io.kotest.matchers.types.shouldBeInstanceOf
 
 class GenomeTest : FunSpec({
