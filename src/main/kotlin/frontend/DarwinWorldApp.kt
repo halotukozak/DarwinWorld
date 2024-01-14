@@ -2,4 +2,4 @@ package frontend
 
 import tornadofx.*
 
-class DarwinWorldApp : App(ConfigEditor::class)
+class DarwinWorldApp : App(ConfigView::class)

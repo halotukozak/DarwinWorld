@@ -1,49 +1,72 @@
 package frontend
 
-import backend.Simulation
 import backend.config.Config
+import frontend.components.View
+import javafx.scene.paint.Color
+import javafx.scene.shape.ArcType
 import tornadofx.*
 
-class SimulationView : View() {
+class SimulationView(simulationConfig: Config) : View() {
 
-  val simulationConfig: Config by param()
+  override val viewModel: SimulationViewModel = SimulationViewModel(simulationConfig)
 
-  private val simulation by lazy {
-    println(simulationConfig)
-    Simulation(simulationConfig)
-  }
-
-  override val root = vbox {
+  override val root = with(viewModel) {
     gridpane {
-      for (x in 0..<simulationConfig.mapWidth) {
-        for (y in 0..<simulationConfig.mapHeight) {
+      row {
+        buttonbar {
+          button("run") {
+            hiddenWhen(simulation.isRunning)
+            action { simulation.resume() }
+          }
+          button("pause") {
+            visibleWhen(simulation.isRunning)
+            action { simulation.pause() }
+          }
+          button("faster") {
+            disableWhen(fasterDisabled)
+            action { simulation.faster() }
+          }
+          button("slower") {
+            action { simulation.slower() }
+          }
+
+          label {
+            simulation.dayDuration.onUpdate {
+              text = "Day duration: $it ms"
+            }
+          }
+        }
+      }
+
+      row {
+        stackpane {
           rectangle {
-            width = 10.0
-            height = 10.0
-            fill = c("green")
-            gridpaneConstraints {
-              columnRowIndex(x, y)
+            width = simulationConfig.mapWidth.toDouble()
+            height = simulationConfig.mapHeight.toDouble()
+            fill = Color.WHITE
+          }
+          forEach(plants) { plant ->
+            circle {
+              centerX = plant.x
+              centerY = plant.y
+              radius = 5.0
+              fill = Color.BLUE
+            }
+          }
+          forEach(animals) { animal ->
+            arc {
+              centerX = animal.x
+              centerY = animal.y
+              radiusX = 5.0
+              radiusY = 5.0
+              startAngle = animal.angle
+              length = 250.0
+              type = ArcType.ROUND
+              fill = animal.color
             }
           }
         }
       }
     }
-
-    button("Start simulation") {
-      action {
-        runAsync {
-          simulation.run()
-        }
-      }
-    }
-
-    button("Edit config") {
-      action {
-        replaceWith(
-          find<ConfigEditor>(ConfigEditor::currentConfig to simulationConfig)
-        )
-      }
-    }
   }
-
 }
