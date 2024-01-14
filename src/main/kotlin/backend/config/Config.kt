@@ -34,6 +34,11 @@ class Config(
   val mutationVariant = genomeGroup.mutationVariant.value
   val genomeLength = genomeGroup.genomeLength.value
 
+  init {
+    require(initialPlants <= mapWidth * mapHeight) { "Initial plants must be less or equal to map size" }
+    require(initialAnimals <= mapWidth * mapHeight) { "Initial animals must be less or equal to map size" }
+  }
+
   companion object {
     fun default() = Config(
       MapGroup(),
@@ -189,7 +194,7 @@ class PlantGroup(
       override val description = "Variant of plant growth"
       override val errorMessage: String = "Must be one of ${PlantGrowthVariant.entries.map { it.name }}"
 
-      override fun isValid(it: String) = PlantGrowthVariant.entries.map { it.name }.contains(it)
+      override fun isValid(it: String) = PlantGrowthVariant.entries.any { e -> e.name == it }
     }
   }
 }
