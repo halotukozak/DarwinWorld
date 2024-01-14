@@ -7,7 +7,7 @@ data class Animal(
   val energy: Int,
   val genome: Genome,
   val direction: Direction,
-  private val age: Int = 0,
+  val age: Int = 0,
   private val children: Set<Animal> = setOf(),
 ) : MapElement, Comparable<Animal> {
 

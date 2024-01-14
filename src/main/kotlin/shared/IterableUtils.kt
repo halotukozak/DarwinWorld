@@ -10,6 +10,15 @@ inline fun <T, U, V> List<Pair<T, U>>.mapValues(crossinline f: (T, U) -> V): Lis
 inline fun <T, U, V> List<Pair<T, U>>.mapValues(crossinline f: (U) -> V): List<Pair<T, V>> =
   map { (t, u) -> t to f(u) }
 
+inline fun <T, U, V> List<Pair<T, U>>.flatMapValues(crossinline f: (T, U) -> Iterable<V>): List<V> =
+  flatMap { (t, u) -> f(t, u) }
+
+inline fun <U, V> List<Pair<*, U>>.flatMapValues(crossinline f: (U) -> Iterable<V>): List<V> =
+  flatMap { (_, u) -> f(u) }
+
+fun <U, V : Iterable<U>> List<Pair<*, V>>.flattenValues(): List<U> =
+  flatMap { (_, u) -> u }
+
 inline fun <T : Comparable<T>> Iterable<T>.mapMax(crossinline function: (T) -> T): List<T> =
   maxOrNull()?.let { max -> map { if (it == max) function(it) else it } } ?: toList()
 

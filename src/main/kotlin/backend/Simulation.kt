@@ -4,20 +4,25 @@ import backend.config.Config
 import backend.config.PlantGrowthVariant
 import backend.map.EquatorMap
 import backend.map.JungleMap
+import backend.statistics.StatisticsService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import shared.CoroutineHandler
+import shared.flattenValues
 import java.io.Closeable
 import kotlin.math.max
 
-class Simulation(private val config: Config) : Closeable, CoroutineHandler {
+class Simulation(
+  private val config: Config,
+  private val statisticsService: StatisticsService,
+) : Closeable, CoroutineHandler {
 
   override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 
-  private val day = MutableStateFlow(0)
+  val day = MutableStateFlow(0)
 
   private val _isRunning = MutableStateFlow(false)
   val isRunning: StateFlow<Boolean> = _isRunning
@@ -36,12 +41,17 @@ class Simulation(private val config: Config) : Closeable, CoroutineHandler {
   private suspend fun nextDay() {
     println("${day.updateAndGet { it + 1 }} day!")
     map.growAnimals()
-    map.removeDeadAnimals()
+    map.removeDeadAnimals { /*launchIO {*/ statisticsService.registerDeath(day.value, it) }
     map.rotateAnimals()
     map.moveAnimals()
     map.consumePlants()
-    map.breedAnimals()
+    map.breedAnimals { launch { statisticsService.registerBirth(day.value) } }
     map.growPlants(config.plantsPerDay)
+
+//    launchIO {
+    statisticsService.registerPlants(day.value, plants.value.size)
+    statisticsService.registerAnimals(day.value, animals.value.flattenValues())
+//    }
   }
 
   private var simulationJob: Job = launch {
@@ -63,9 +73,10 @@ class Simulation(private val config: Config) : Closeable, CoroutineHandler {
   fun resume() = _isRunning.update {
     simulationJob = launchSimulation()
     simulationJob.start()
+    true
   }
 
-  fun faster() = _dayDuration.updateAndGet { max(0, it - 100) }
+  fun faster() = _dayDuration.updateAndGet { max(50, it - 100) }
   fun slower() = _dayDuration.updateAndGet { it + 100 }
 
 

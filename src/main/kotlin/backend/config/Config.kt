@@ -17,6 +17,7 @@ class Config(
   plantGroup: PlantGroup,
   animalGroup: AnimalGroup,
   genomeGroup: GenomeGroup,
+  val statisticsConfig: StatisticsConfig,
 ) {
 
   val mapWidth = mapGroup.mapWidth.value
@@ -34,12 +35,22 @@ class Config(
   val mutationVariant = genomeGroup.mutationVariant.value
   val genomeLength = genomeGroup.genomeLength.value
 
+  val births = statisticsConfig.births.value
+  val deaths = statisticsConfig.deaths.value
+  val population = statisticsConfig.population.value
+  val plantDensity = statisticsConfig.plantDensity.value
+  val dailyAverageEnergy = statisticsConfig.dailyAverageEnergy.value
+  val dailyAverageAge = statisticsConfig.dailyAverageAge.value
+  val gens = statisticsConfig.gens.value
+  val genomes = statisticsConfig.genomes.value
+
   companion object {
     fun default() = Config(
       MapGroup(),
       PlantGroup(),
       AnimalGroup(),
       GenomeGroup(),
+      StatisticsConfig(),
     )
 
     fun test() = Config(
@@ -54,8 +65,8 @@ class Config(
         PlantGrowthVariantField(EQUATOR),
       ),
       AnimalGroup(
-        InitialAnimals(10),
-        InitialAnimalEnergy(10),
+        InitialAnimals(100),
+        InitialAnimalEnergy(2000),
         SatietyEnergy(10),
       ),
       GenomeGroup(
@@ -65,6 +76,7 @@ class Config(
         MaxMutations(8),
         ReproductionEnergyRatio(0.5),
       ),
+      StatisticsConfig(),
     )
   }
 }
@@ -78,6 +90,7 @@ abstract class ConfigFieldInfo<T> {
   fun validate(it: String) = require(isValid(it)) { errorMessage }
 }
 
+//todo consider value classes
 sealed class ConfigField<out T : Any>(
   val value: T,
 ) {
