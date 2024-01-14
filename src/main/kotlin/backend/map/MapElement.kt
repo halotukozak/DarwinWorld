@@ -1,3 +1,3 @@
-package map
+package backend.map
 
 interface MapElement

@@ -1,4 +1,8 @@
-import config.Config
+package backend
+
+import backend.config.Config
+import backend.model.Gen
+import backend.model.Genome
 import kotlin.random.Random
 
 class GenMutator(private val config: Config) {
@@ -29,4 +33,3 @@ class GenMutator(private val config: Config) {
     return Genome(newGenes)
   }
 }
-
