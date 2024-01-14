@@ -100,7 +100,9 @@ class StatisticsView(
               if (isDailyAverageAgeMetricsEnabled) {
                 linechart("Daily Average Energy Over Time", NumberAxis(), NumberAxis()) {
                   normalize()
-                  series("age", dailyAverageAgeMetrics)
+                  series("age", dailyAverageAgeMetrics){
+                    tripleLegend("age", dailyAverageAgeTriple)
+                  }
                 }
               }
             }

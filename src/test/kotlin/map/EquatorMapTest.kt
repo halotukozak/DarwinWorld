@@ -1,32 +1,36 @@
 package map
 
-import Plant
-import config.Config
+import backend.config.Config
+import backend.map.EquatorMap
+import backend.map.Vector
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 class EquatorMapTest : FunSpec({
 
   test("growPlants") {
-    val config = Config(mapHeight = 12, mapWidth = 10)
+    val config = Config.test.copy(mapHeight = 12, mapWidth = 10)
     val map = EquatorMap(config)
-    map.equator shouldBe (5..6)
+
+    val equator =  EquatorMap::class.java.getDeclaredField("printGreetings").get(map) as IntRange
+
+    equator shouldBe (5..6)
 
     map.growPlants(10)
 
-    map.equator.flatMap { y ->
+    equator.flatMap { y ->
       (0..<config.mapWidth).filter { x ->
-        map.elements[Vector(x, y)]!!.contains(Plant)
+        map.plants.value.contains(Vector(x, y))
       }
     }.size shouldBe 8
 
-    (0..<map.equator.first).flatMap { y ->
+    (0..<equator.first).flatMap { y ->
       (0..<config.mapWidth).filter { x ->
-        map.elements[Vector(x, y)]!!.contains(Plant)
+        map.plants.value.contains(Vector(x, y))
       }
-    }.size + (map.equator.last + 1 ..< config.mapHeight).flatMap { y ->
+    }.size + (equator.last + 1 ..< config.mapHeight).flatMap { y ->
       (0..<config.mapWidth).filter { x ->
-        map.elements[Vector(x, y)]!!.contains(Plant)
+        map.plants.value.contains(Vector(x, y))
       }
     }.size shouldBe 2
   }

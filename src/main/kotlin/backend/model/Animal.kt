@@ -1,15 +1,14 @@
 package backend.model
 
 import backend.GenMutator
-import backend.map.MapElement
 
 data class Animal(
   val energy: Int,
   val genome: Genome,
   val direction: Direction,
   val age: Int = 0,
-  private val children: Set<Animal> = setOf(),
-) : MapElement, Comparable<Animal> {
+  val children: Set<Animal> = setOf(),
+) : Comparable<Animal> {
 
   fun isDead() = energy <= 0
 

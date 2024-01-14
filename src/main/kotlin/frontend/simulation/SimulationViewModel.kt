@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.stateIn
 
 class SimulationViewModel(simulationConfig: Config) : ViewModel() {
 
-  val statisticsService = StatisticsService(simulationConfig.statisticsConfig)
+  val statisticsService = StatisticsService(simulationConfig)
   val simulation = Simulation(simulationConfig, statisticsService)
 
   private val energyStep = simulationConfig.satietyEnergy / 4

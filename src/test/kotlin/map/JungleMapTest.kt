@@ -1,14 +1,17 @@
 package map
 
-import Plant
-import config.Config
+import backend.config.Config
+import backend.map.JungleMap
+import backend.map.Vector
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 
 class JungleMapTest : FunSpec({
 
   test("growPlants") {
-    val config = Config()
+    val config = Config.test.copy(initialPlants = 0)
     val map = JungleMap(config)
     val preferredPositions = setOf(
       Vector(4, 4),
@@ -25,12 +28,17 @@ class JungleMapTest : FunSpec({
       Vector(0, 1),
       Vector(1, 1)
     )
-    map.elements[Vector(5, 5)]!!.add(Plant)
-    map.elements[Vector(0, 0)]!!.add(Plant)
+    @Suppress("UNCHECKED_CAST")
+    val _plants =
+      JungleMap::class.java.getDeclaredField("_plants").get(map) as MutableStateFlow<Set<Vector>>
+
+    _plants.update {
+      it + Vector(5, 5) + Vector(0, 0)
+    }
 
     map.growPlants(10)
 
-    val plantsPositions = map.elements.keys.filter { map.elements[it]!!.contains(Plant) }
+    val plantsPositions = map.plants.value
     plantsPositions.size shouldBe 12
     (plantsPositions - preferredPositions).size shouldBe 2
   }

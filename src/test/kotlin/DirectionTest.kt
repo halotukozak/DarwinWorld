@@ -1,8 +1,9 @@
+import backend.map.Vector
+import backend.model.Direction
+import backend.model.Direction.*
+import backend.model.Gen.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import Gen.*
-import Direction.*
-import map.Vector
 import io.kotest.matchers.types.shouldBeInstanceOf
 
 class DirectionTest : FunSpec({

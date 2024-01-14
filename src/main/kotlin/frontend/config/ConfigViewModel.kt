@@ -8,7 +8,7 @@ import shared.component6
 import shared.component7
 import shared.ifTrue
 
-class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
+class ConfigViewModel(currentConfig: Config = Config.default) : ViewModel() {
 
   val mapWidth: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapWidth)
   val mapHeight: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapHeight)
@@ -145,14 +145,31 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
         animalGroup,
         genomeGroup,
         statisticsConfig,
-      ) { mapField, plantField, animalField, genomeField, statisticsConfig ->
+      ) { mapGroup, plantGroup, animalGroup, genomeGroup, statisticsConfig ->
         isValid.value.ifTrue {
           Config(
-            mapField!!,
-            plantField!!,
-            animalField!!,
-            genomeField!!,
-            statisticsConfig,
+            mapWidth = mapGroup!!.mapWidth.value,
+            mapHeight = mapGroup.mapHeight.value,
+            initialPlants = plantGroup!!.initialPlants.value,
+            nutritionScore = plantGroup.nutritionScore.value,
+            plantsPerDay = plantGroup.plantsPerDay.value,
+            plantGrowthVariant = plantGroup.plantGrowthVariant.value,
+            initialAnimals = animalGroup!!.initialAnimals.value,
+            initialAnimalEnergy = animalGroup.initialAnimalEnergy.value,
+            satietyEnergy = animalGroup.satietyEnergy.value,
+            reproductionEnergyRatio = genomeGroup!!.reproductionEnergyRatio.value,
+            minMutations = genomeGroup.minMutations.value,
+            maxMutations = genomeGroup.maxMutations.value,
+            mutationVariant = genomeGroup.mutationVariant.value,
+            genomeLength = genomeGroup.genomeLength.value,
+            births = statisticsConfig.births.value,
+            deaths = statisticsConfig.deaths.value,
+            population = statisticsConfig.population.value,
+            plantDensity = statisticsConfig.plantDensity.value,
+            dailyAverageEnergy = statisticsConfig.dailyAverageEnergy.value,
+            dailyAverageAge = statisticsConfig.dailyAverageAge.value,
+            gens = statisticsConfig.gens.value,
+            genomes = statisticsConfig.genomes.value,
           )
         }
       }.stateIn(this)

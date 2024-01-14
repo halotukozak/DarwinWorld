@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.*
 import shared.*
 import kotlin.random.Random
 
+@Suppress("PropertyName")
 abstract class AbstractMap(protected val config: Config) {
 
   private val mutator = GenMutator(config)

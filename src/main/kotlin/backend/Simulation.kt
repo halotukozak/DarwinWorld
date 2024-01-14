@@ -49,8 +49,8 @@ class Simulation(
     map.growPlants(config.plantsPerDay)
 
 //    launchIO {
-    statisticsService.registerPlants(day.value, plants.value.size)
-    statisticsService.registerAnimals(day.value, animals.value.flattenValues())
+    statisticsService.registerPlants(plants.value.size)
+    statisticsService.registerAnimals(animals.value.flattenValues())
 //    }
   }
 
