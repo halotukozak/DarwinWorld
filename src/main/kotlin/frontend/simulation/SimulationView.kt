@@ -1,7 +1,8 @@
-package frontend
+package frontend.simulation
 
 import backend.config.Config
 import frontend.components.View
+import frontend.statistics.StatisticsView
 import javafx.scene.paint.Color
 import javafx.scene.shape.ArcType
 import tornadofx.*
@@ -28,6 +29,17 @@ class SimulationView(simulationConfig: Config) : View() {
           }
           button("slower") {
             action { simulation.slower() }
+          }
+          button("info") {
+            action {
+              openInternalWindow(
+                StatisticsView(
+                  statisticsService,
+                  simulationConfig.mapWidth * simulationConfig.mapHeight,
+                  simulation.day,
+                ), modal = false
+              )
+            }
           }
 
           label {

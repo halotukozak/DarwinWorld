@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.*
 import shared.*
 import kotlin.random.Random
 
+@Suppress("PropertyName")
 abstract class AbstractMap(protected val config: Config) {
 
   private val mutator = GenMutator(config)
@@ -45,15 +46,23 @@ abstract class AbstractMap(protected val config: Config) {
     }
   }
 
-  private suspend fun updateAnimals(f: Animal.() -> Animal) = _animals.update {
-    it.mapValuesAsync { set -> set.map(f) }
-  }
+  private suspend fun updateAnimals(f: Animal.() -> Animal, callback: suspend (List<Animal>) -> Unit) =
+    _animals.update {
+      it.mapValuesAsync { set -> set.map(f) }.also {
+        callback(it.flattenValues()) //todo maybe launch?
+      }
+    }
 
-  suspend fun growAnimals() = updateAnimals(Animal::grow)
-  suspend fun rotateAnimals() = updateAnimals(Animal::rotate)
+  suspend fun growAnimals(callback: suspend (List<Animal>) -> Unit = {}) = updateAnimals(Animal::grow, callback)
+  suspend fun rotateAnimals(callback: suspend (List<Animal>) -> Unit = {}) = updateAnimals(Animal::rotate, callback)
 
-  suspend fun removeDeadAnimals() = _animals.update {
-    it.mapValuesAsync { set -> set.filterNot(Animal::isDead) }
+  suspend fun removeDeadAnimals(callback: suspend (List<Animal>) -> Unit = {}) = _animals.update {
+    it.mapValuesAsync { set ->
+      set.partition(Animal::isDead).let { (dead, alive) ->
+        callback(dead)
+        alive
+      }
+    }
   }
 
   suspend fun moveAnimals() = _animals.update {
@@ -92,7 +101,7 @@ abstract class AbstractMap(protected val config: Config) {
   }
 
 
-  suspend fun breedAnimals() = _animals.update { animals ->
+  suspend fun breedAnimals(callback:  (Animal) -> Unit = {}) = _animals.update { animals ->
     animals.mapValuesAsync { set ->
       (set.size >= 2).ifTrue {
         val (animal1, animal2) = set.max().let { it to (set - it).max() }
@@ -101,7 +110,9 @@ abstract class AbstractMap(protected val config: Config) {
             animal2,
             config.reproductionEnergyRatio,
             mutator,
-          )
+          ).also { (_, _, child) ->
+            callback(child)
+          }
         }
       } ?: set
     }

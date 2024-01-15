@@ -4,7 +4,6 @@ import backend.config.ConfigField
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.scene.Node
-import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,15 +25,6 @@ abstract class View(
   protected abstract val viewModel: ViewModel
 
   override val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.JavaFx.immediate)
-  protected open val fragmentContainer: Pane? get() = null
-
-
-  open fun openFragment(fragment: Fragment) {
-    with(fragmentContainer!!.children) {
-      if (isNotEmpty()) clear()
-      add(fragment)
-    }
-  }
 
   override fun onDock() {
     currentWindow?.setOnCloseRequest {
@@ -74,13 +64,13 @@ abstract class View(
     predicate.onUpdate { disableProperty().set(it) }
   }
 
-  protected fun <T> EventTarget.forEach(sourceSet: Flow<List<T>>, action: (T) -> Node) = group {
-    sourceSet.onUpdate {
+  protected fun <T> EventTarget.forEach(source: Flow<List<T>>, action: (T) -> Node) = group {
+    source.onUpdate {
       children.setAll(it.map(action))
     }
   }
 
-  protected inline fun <reified U : ConfigField<T>, reified T : Any> EventTarget.input(
+  protected inline fun <reified U : ConfigField<T>, reified T : Number> EventTarget.input(
     property: MutableStateFlow<T?>,
   ) = field(ConfigField.label<U>()) {
     helpTooltip(ConfigField.description<U>())
@@ -104,6 +94,17 @@ abstract class View(
             else -> throw NotImplementedError()
           }
         }
+      }
+    }
+  }
+
+  protected inline fun <reified U : ConfigField<Boolean>> EventTarget.checkbox(
+    property: MutableStateFlow<Boolean>,
+  ) = field {
+    helpTooltip(ConfigField.description<U>())
+    checkbox(ConfigField.label<U>(), property.value.toProperty()) {
+      selectedProperty().addListener { _, _, newValue ->
+        property.update { newValue }
       }
     }
   }

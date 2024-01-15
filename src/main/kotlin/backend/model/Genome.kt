@@ -3,6 +3,14 @@ package backend.model
 import kotlin.random.Random
 
 class Genome(val genes: List<Gen>, startPos: Int? = null) : Iterator<Gen> {
+  override fun toString(): String = genes.joinToString(", ")
+
+  override fun equals(other: Any?): Boolean = when {
+    this === other -> true
+    other !is Genome -> false
+    genes != other.genes -> false
+    else -> true
+  }
 
   private var curr = startPos ?: Random.nextInt(genes.size)
 
@@ -16,6 +24,12 @@ class Genome(val genes: List<Gen>, startPos: Int? = null) : Iterator<Gen> {
   fun dropLast(numberOfGenes: Int) = this.genes.dropLast(numberOfGenes)
 
   val frequencyMap by lazy { this.genes.groupingBy { it }.eachCount() }
+
+  override fun hashCode(): Int {
+    var result = genes.hashCode()
+    result = 31 * result + curr
+    return result
+  }
 
   companion object {
     fun random(size: Int): Genome = Genome(List(size) { Gen.random() })

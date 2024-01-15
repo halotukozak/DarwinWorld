@@ -1,11 +1,14 @@
-package frontend
+package frontend.config
 
 import backend.config.*
 import frontend.components.ViewModel
+import frontend.simulation.SimulationView
 import kotlinx.coroutines.flow.*
+import shared.component6
+import shared.component7
 import shared.ifTrue
 
-class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
+class ConfigViewModel(currentConfig: Config = Config.default) : ViewModel() {
 
   val mapWidth: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapWidth)
   val mapHeight: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapHeight)
@@ -22,10 +25,22 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
   val mutationVariant: MutableStateFlow<Double?> = MutableStateFlow(currentConfig.mutationVariant)
   val genomeLength: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.genomeLength)
 
+  val births = MutableStateFlow(currentConfig.births)
+  val deaths = MutableStateFlow(currentConfig.deaths)
+  val population = MutableStateFlow(currentConfig.population)
+  val plantDensity = MutableStateFlow(currentConfig.plantDensity)
+  val dailyAverageEnergy = MutableStateFlow(currentConfig.dailyAverageEnergy)
+  val dailyAverageAge = MutableStateFlow(currentConfig.dailyAverageAge)
+  val gens = MutableStateFlow(currentConfig.gens)
+  val genomes = MutableStateFlow(currentConfig.genomes)
+
   private lateinit var mapGroup: StateFlow<MapGroup?>
   private lateinit var plantGroup: StateFlow<PlantGroup?>
   private lateinit var animalGroup: StateFlow<AnimalGroup?>
   private lateinit var genomeGroup: StateFlow<GenomeGroup?>
+
+  private lateinit var statisticsConfig: StateFlow<StatisticsConfig>
+
   lateinit var isValid: StateFlow<Boolean>
     private set
 
@@ -99,22 +114,65 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
         }
       }.stateIn(this)
 
-
       isValid = combine(mapGroup, plantGroup, animalGroup, genomeGroup) { args ->
         args.none { it == null }
       }.stateIn(this)
 
-      simulationConfig =
-        combine(mapGroup, plantGroup, animalGroup, genomeGroup) { mapField, plantField, animalField, genomeField ->
-          isValid.value.ifTrue {
-            Config(
-              mapField!!,
-              plantField!!,
-              animalField!!,
-              genomeField!!,
-            )
-          }
-        }.stateIn(this)
+      statisticsConfig = combine(
+        births,
+        population,
+        plantDensity,
+        dailyAverageEnergy,
+        dailyAverageAge,
+        gens,
+        genomes
+      ) { (birthsAndDeaths, population, plantDensity, dailyAverageEnergy, dailyAverageAge, gens, genomes) ->
+        StatisticsConfig(
+          Births(birthsAndDeaths),
+          Deaths(birthsAndDeaths),
+          Population(population),
+          PlantDensity(plantDensity),
+          DailyAverageEnergy(dailyAverageEnergy),
+          DailyAverageAge(dailyAverageAge),
+          Gens(gens),
+          Genomes(genomes)
+        )
+      }.stateIn(this)
+
+      simulationConfig = combine(
+        mapGroup,
+        plantGroup,
+        animalGroup,
+        genomeGroup,
+        statisticsConfig,
+      ) { mapGroup, plantGroup, animalGroup, genomeGroup, statisticsConfig ->
+        isValid.value.ifTrue {
+          Config(
+            mapWidth = mapGroup!!.mapWidth.value,
+            mapHeight = mapGroup.mapHeight.value,
+            initialPlants = plantGroup!!.initialPlants.value,
+            nutritionScore = plantGroup.nutritionScore.value,
+            plantsPerDay = plantGroup.plantsPerDay.value,
+            plantGrowthVariant = plantGroup.plantGrowthVariant.value,
+            initialAnimals = animalGroup!!.initialAnimals.value,
+            initialAnimalEnergy = animalGroup.initialAnimalEnergy.value,
+            satietyEnergy = animalGroup.satietyEnergy.value,
+            reproductionEnergyRatio = genomeGroup!!.reproductionEnergyRatio.value,
+            minMutations = genomeGroup.minMutations.value,
+            maxMutations = genomeGroup.maxMutations.value,
+            mutationVariant = genomeGroup.mutationVariant.value,
+            genomeLength = genomeGroup.genomeLength.value,
+            births = statisticsConfig.births.value,
+            deaths = statisticsConfig.deaths.value,
+            population = statisticsConfig.population.value,
+            plantDensity = statisticsConfig.plantDensity.value,
+            dailyAverageEnergy = statisticsConfig.dailyAverageEnergy.value,
+            dailyAverageAge = statisticsConfig.dailyAverageAge.value,
+            gens = statisticsConfig.gens.value,
+            genomes = statisticsConfig.genomes.value,
+          )
+        }
+      }.stateIn(this)
     }
   }
 
@@ -123,4 +181,3 @@ class ConfigViewModel(currentConfig: Config = Config.test()) : ViewModel() {
   }
 
 }
-

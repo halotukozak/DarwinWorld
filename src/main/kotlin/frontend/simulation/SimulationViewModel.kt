@@ -1,8 +1,9 @@
-package frontend
+package frontend.simulation
 
-import backend.model.Direction
 import backend.Simulation
 import backend.config.Config
+import backend.model.Direction
+import backend.statistics.StatisticsService
 import frontend.components.ViewModel
 import javafx.scene.paint.Color
 import kotlinx.coroutines.flow.Flow
@@ -11,7 +12,8 @@ import kotlinx.coroutines.flow.stateIn
 
 class SimulationViewModel(simulationConfig: Config) : ViewModel() {
 
-  val simulation = Simulation(simulationConfig)
+  val statisticsService = StatisticsService(simulationConfig)
+  val simulation = Simulation(simulationConfig, statisticsService)
 
   private val energyStep = simulationConfig.satietyEnergy / 4
 
@@ -21,7 +23,7 @@ class SimulationViewModel(simulationConfig: Config) : ViewModel() {
     private set
 
 
-  val fasterDisabled = simulation.dayDuration.map { it <= 0 }
+  val fasterDisabled = simulation.dayDuration.map { it < 100 }
 
   init {
     launch {

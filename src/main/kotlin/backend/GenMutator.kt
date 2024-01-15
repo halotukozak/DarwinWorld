@@ -21,7 +21,7 @@ class GenMutator(private val config: Config) {
       .distinct()
       .take(2 * switchMutations)
       .windowed(2)
-      .forEach {indicators ->
+      .forEach { indicators ->
         newGenes[indicators[0]] = newGenes[indicators[1]].also { newGenes[indicators[1]] = newGenes[indicators[0]] }
       }
 

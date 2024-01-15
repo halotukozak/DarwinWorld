@@ -1,38 +1,36 @@
 package backend.config
 
-import backend.config.AnimalGroup.*
 import backend.config.ConfigField.Companion.default
-import backend.config.GenomeGroup.*
-import backend.config.MapGroup.MapHeight
-import backend.config.MapGroup.MapWidth
-import backend.config.PlantGroup.*
 import backend.config.PlantGrowthVariant.EQUATOR
 import tornadofx.*
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.createInstance
 
+data class Config(
+  val mapWidth: Int,
+  val mapHeight: Int,
+  val initialPlants: Int,
+  val nutritionScore: Int,
+  val plantsPerDay: Int,
+  val plantGrowthVariant: PlantGrowthVariant,
+  val initialAnimals: Int,
+  val initialAnimalEnergy: Int,
+  val satietyEnergy: Int,
+  val reproductionEnergyRatio: Double,
+  val minMutations: Int,
+  val maxMutations: Int,
+  val mutationVariant: Double,
+  val genomeLength: Int,
 
-class Config(
-  mapGroup: MapGroup,
-  plantGroup: PlantGroup,
-  animalGroup: AnimalGroup,
-  genomeGroup: GenomeGroup,
+  val births: Boolean,
+  val deaths: Boolean,
+  val population: Boolean,
+  val plantDensity: Boolean,
+  val dailyAverageEnergy: Boolean,
+  val dailyAverageAge: Boolean,
+  val gens: Boolean,
+  val genomes: Boolean,
 ) {
-
-  val mapWidth = mapGroup.mapWidth.value
-  val mapHeight = mapGroup.mapHeight.value
-  val initialPlants = plantGroup.initialPlants.value
-  val nutritionScore = plantGroup.nutritionScore.value
-  val plantsPerDay = plantGroup.plantsPerDay.value
-  val plantGrowthVariant = plantGroup.plantGrowthVariant.value
-  val initialAnimals = animalGroup.initialAnimals.value
-  val initialAnimalEnergy = animalGroup.initialAnimalEnergy.value
-  val satietyEnergy = animalGroup.satietyEnergy.value
-  val reproductionEnergyRatio = genomeGroup.reproductionEnergyRatio.value
-  val minMutations = genomeGroup.minMutations.value
-  val maxMutations = genomeGroup.maxMutations.value
-  val mutationVariant = genomeGroup.mutationVariant.value
-  val genomeLength = genomeGroup.genomeLength.value
 
   init {
     require(initialPlants <= mapWidth * mapHeight) { "Initial plants must be less or equal to map size" }
@@ -40,36 +38,53 @@ class Config(
   }
 
   companion object {
-    fun default() = Config(
-      MapGroup(),
-      PlantGroup(),
-      AnimalGroup(),
-      GenomeGroup(),
+    val test = Config(
+      mapWidth = 10,
+      mapHeight = 10,
+      initialPlants = 10,
+      nutritionScore = 10,
+      plantsPerDay = 10,
+      plantGrowthVariant = EQUATOR,
+      initialAnimals = 10,
+      initialAnimalEnergy = 10,
+      satietyEnergy = 10,
+      reproductionEnergyRatio = 0.5,
+      minMutations = 0,
+      maxMutations = 8,
+      mutationVariant = 0.0,
+      genomeLength = 8,
+      births = false,
+      deaths = false,
+      population = false,
+      plantDensity = false,
+      dailyAverageEnergy = false,
+      dailyAverageAge = false,
+      gens = false,
+      genomes = false,
     )
-
-    fun test() = Config(
-      MapGroup(
-        MapWidth(100),
-        MapHeight(100),
-      ),
-      PlantGroup(
-        InitialPlants(100),
-        NutritionScore(100),
-        PlantsPerDay(1),
-        PlantGrowthVariantField(EQUATOR),
-      ),
-      AnimalGroup(
-        InitialAnimals(10),
-        InitialAnimalEnergy(10),
-        SatietyEnergy(10),
-      ),
-      GenomeGroup(
-        GenomeLength(8),
-        MutationVariant(0.0),
-        MinMutations(0),
-        MaxMutations(8),
-        ReproductionEnergyRatio(0.5),
-      ),
+    val default = Config(
+      mapWidth = default<MapGroup.MapWidth>().value,
+      mapHeight = default<MapGroup.MapHeight>().value,
+      initialPlants = default<PlantGroup.InitialPlants>().value,
+      nutritionScore = default<PlantGroup.NutritionScore>().value,
+      plantsPerDay = default<PlantGroup.PlantsPerDay>().value,
+      plantGrowthVariant = default<PlantGroup.PlantGrowthVariantField>().value,
+      initialAnimals = default<AnimalGroup.InitialAnimals>().value,
+      initialAnimalEnergy = default<AnimalGroup.InitialAnimalEnergy>().value,
+      satietyEnergy = default<AnimalGroup.SatietyEnergy>().value,
+      reproductionEnergyRatio = default<GenomeGroup.ReproductionEnergyRatio>().value,
+      minMutations = default<GenomeGroup.MinMutations>().value,
+      maxMutations = default<GenomeGroup.MaxMutations>().value,
+      mutationVariant = default<GenomeGroup.MutationVariant>().value,
+      genomeLength = default<GenomeGroup.GenomeLength>().value,
+      births = default<Births>().value,
+      deaths = default<Deaths>().value,
+      population = default<Population>().value,
+      plantDensity = default<PlantDensity>().value,
+      dailyAverageEnergy = default<DailyAverageEnergy>().value,
+      dailyAverageAge = default<DailyAverageAge>().value,
+      gens = default<Gens>().value,
+      genomes = default<Genomes>().value,
     )
   }
 }
@@ -194,7 +209,7 @@ class PlantGroup(
       override val description = "Variant of plant growth"
       override val errorMessage: String = "Must be one of ${PlantGrowthVariant.entries.map { it.name }}"
 
-      override fun isValid(it: String) = PlantGrowthVariant.entries.any { e -> e.name == it }
+      override fun isValid(it: String) = PlantGrowthVariant.entries.map { it.name }.contains(it)
     }
   }
 }
