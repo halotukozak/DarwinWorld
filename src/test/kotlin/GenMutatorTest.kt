@@ -20,10 +20,10 @@ class GenMutatorTest : FunSpec({
     val combinedGenom = mutator.combine(genome1, genome2, 1.0)
     combinedGenom.genes.size shouldBe config.genomeLength
     var differences = 0
-    (0..<config.genomeLength).forEach() {
+    (0..<config.genomeLength).forEach {
       if (genome1.genes[it] != combinedGenom.genes[it]) differences++
     }
-    (config.minMutations..config.maxMutations).shouldContain(differences)
+    (config.minMutations..config.maxMutations) shouldContain differences
   }
 
   test("combine only switching") {

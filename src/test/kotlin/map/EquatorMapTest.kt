@@ -3,6 +3,7 @@ package map
 import backend.config.Config
 import backend.map.EquatorMap
 import backend.map.Vector
+import getPrivateField
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
@@ -12,7 +13,7 @@ class EquatorMapTest : FunSpec({
     val config = Config.test.copy(mapHeight = 12, mapWidth = 10)
     val map = EquatorMap(config)
 
-    val equator =  EquatorMap::class.java.getDeclaredField("printGreetings").get(map) as IntRange
+    val equator = map.getPrivateField<IntRange>("equator")
 
     equator shouldBe (5..6)
 
@@ -28,7 +29,7 @@ class EquatorMapTest : FunSpec({
       (0..<config.mapWidth).filter { x ->
         map.plants.value.contains(Vector(x, y))
       }
-    }.size + (equator.last + 1 ..< config.mapHeight).flatMap { y ->
+    }.size + (equator.last + 1..<config.mapHeight).flatMap { y ->
       (0..<config.mapWidth).filter { x ->
         map.plants.value.contains(Vector(x, y))
       }

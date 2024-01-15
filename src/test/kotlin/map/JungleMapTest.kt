@@ -3,11 +3,13 @@ package map
 import backend.config.Config
 import backend.map.JungleMap
 import backend.map.Vector
+import getPrivateField
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
+@Suppress("LocalVariableName")
 class JungleMapTest : FunSpec({
 
   test("growPlants") {
@@ -28,9 +30,8 @@ class JungleMapTest : FunSpec({
       Vector(0, 1),
       Vector(1, 1)
     )
-    @Suppress("UNCHECKED_CAST")
-    val _plants =
-      JungleMap::class.java.getDeclaredField("_plants").get(map) as MutableStateFlow<Set<Vector>>
+
+    val _plants = map.getPrivateField<MutableStateFlow<Set<Vector>>>("_plants")
 
     _plants.update {
       it + Vector(5, 5) + Vector(0, 0)

@@ -15,7 +15,7 @@ import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.update
-import shared.mapValuesAsync
+import shared.mapValues
 
 class AbstractMapTest : FunSpec({
 
@@ -23,17 +23,15 @@ class AbstractMapTest : FunSpec({
   fun AbstractMapForTesting(config: Config) = object : AbstractMap(config) {
     override fun growPlants(plantsCount: Int) {}
 
-    suspend fun addAnimal(vector: Vector, animal: Animal) {
-      _animals.update {
-        it.mapValuesAsync { v, set ->
-          if (v == vector) set + animal else set
-        }
+    fun addAnimal(vector: Vector, animal: Animal) = _animals.update {
+      it.mapValues { v, set ->
+        if (v == vector) set + animal else set
       }
     }
 
     fun addPlant(vector: Vector) = _plants.update { it + vector }
-
-    fun animalsAt(vector: Vector) = _animals.value.first { it.first == vector }.second
+    fun animalsAt(x: Int, y: Int) = _animals.value.firstOrNull { it.first == Vector(x, y) }?.second ?: emptyList()
+    fun findAnimal(animal: Animal) = _animals.value.flatMap { it.second }.first { it == animal }
   }
 
 
@@ -67,7 +65,7 @@ class AbstractMapTest : FunSpec({
 
     map.removeDeadAnimals()
 
-    map.animalsAt(Vector(0, 0)).shouldContainOnly(aliveAnimal)
+    map.animalsAt(0, 0).shouldContainOnly(aliveAnimal)
   }
 
   test("rotateAnimals") {
@@ -83,9 +81,9 @@ class AbstractMapTest : FunSpec({
 
     map.rotateAnimals()
 
-    animal1.direction shouldBe N
-    animal2.direction shouldBe E
-    animal3.direction shouldBe S
+    map.findAnimal(animal1).direction shouldBe N
+    map.findAnimal(animal2).direction shouldBe E
+    map.findAnimal(animal3).direction shouldBe S
   }
 
   test("moveAnimals") {
@@ -98,39 +96,39 @@ class AbstractMapTest : FunSpec({
 
     map.moveAnimals()
 
-    map.animalsAt(Vector(0, 0)).shouldContainOnly(animals1[0])// N
-    animals1[0].direction shouldBe S
-    map.animalsAt(Vector(1, 0)).shouldContainOnly(animals1[1]) // NE
-    animals1[1].direction shouldBe SW
-    map.animalsAt(Vector(1, 0)).shouldContainOnly(animals1[2]) // E
-    animals1[2].direction shouldBe E
-    map.animalsAt(Vector(1, 1)).shouldContainOnly(animals1[3]) // SE
-    animals1[3].direction shouldBe SE
-    map.animalsAt(Vector(0, 1)).shouldContainOnly(animals1[4]) // S
-    animals1[4].direction shouldBe S
-    map.animalsAt(Vector(99, 1)).shouldContainOnly(animals1[5])// SW
-    animals1[5].direction shouldBe SW
-    map.animalsAt(Vector(99, 0)).shouldContainOnly(animals1[6]) // W
-    animals1[6].direction shouldBe W
-    map.animalsAt(Vector(99, 0)).shouldContainOnly(animals1[7])// NW
-    animals1[7].direction shouldBe SE
+    map.animalsAt(0, 0).shouldContainOnly(animals1[0])// N
+    map.findAnimal(animals1[0]).direction shouldBe S
+    map.animalsAt(1, 0).shouldContainOnly(animals1[1]) // NE
+    map.findAnimal(animals1[1]).direction shouldBe SW
+    map.animalsAt(1, 0).shouldContainOnly(animals1[2]) // E
+    map.findAnimal(animals1[2]).direction shouldBe E
+    map.animalsAt(1, 1).shouldContainOnly(animals1[3]) // SE
+    map.findAnimal(animals1[3]).direction shouldBe SE
+    map.animalsAt(0, 1).shouldContainOnly(animals1[4]) // S
+    map.findAnimal(animals1[4]).direction shouldBe S
+    map.animalsAt(99, 1).shouldContainOnly(animals1[5])// SW
+    map.findAnimal(animals1[5]).direction shouldBe SW
+    map.animalsAt(99, 0).shouldContainOnly(animals1[6]) // W
+    map.findAnimal(animals1[6]).direction shouldBe W
+    map.animalsAt(99, 0).shouldContainOnly(animals1[7])// NW
+    map.findAnimal(animals1[7]).direction shouldBe SE
 
-    map.animalsAt(Vector(99, 28)).shouldContainOnly(animals2[0])// N
-    animals2[0].direction shouldBe N
-    map.animalsAt(Vector(0, 28)).shouldContainOnly(animals2[1])// NE
-    animals2[1].direction shouldBe NE
-    map.animalsAt(Vector(0, 29)).shouldContainOnly(animals2[2]) // E
-    animals2[2].direction shouldBe E
-    map.animalsAt(Vector(0, 29)).shouldContainOnly(animals2[3])// SE
-    animals2[3].direction shouldBe NW
-    map.animalsAt(Vector(99, 29)).shouldContainOnly(animals2[4])// S
-    animals2[4].direction shouldBe N
-    map.animalsAt(Vector(98, 29)).shouldContainOnly(animals2[5]) // SW
-    animals2[5].direction shouldBe NE
-    map.animalsAt(Vector(98, 29)).shouldContainOnly(animals2[6]) // W
-    animals2[6].direction shouldBe W
-    map.animalsAt(Vector(98, 28)).shouldContainOnly(animals2[7]) // NW
-    animals2[7].direction shouldBe NW
+    map.animalsAt(99, 28).shouldContainOnly(animals2[0])// N
+    map.findAnimal(animals2[0]).direction shouldBe N
+    map.animalsAt(0, 28).shouldContainOnly(animals2[1])// NE
+    map.findAnimal(animals2[1]).direction shouldBe NE
+    map.animalsAt(0, 29).shouldContainOnly(animals2[2]) // E
+    map.findAnimal(animals2[2]).direction shouldBe E
+    map.animalsAt(0, 29).shouldContainOnly(animals2[3])// SE
+    map.findAnimal(animals2[3]).direction shouldBe NW
+    map.animalsAt(99, 29).shouldContainOnly(animals2[4])// S
+    map.findAnimal(animals2[4]).direction shouldBe N
+    map.animalsAt(98, 29).shouldContainOnly(animals2[5]) // SW
+    map.findAnimal(animals2[5]).direction shouldBe NE
+    map.animalsAt(98, 29).shouldContainOnly(animals2[6]) // W
+    map.findAnimal(animals2[6]).direction shouldBe W
+    map.animalsAt(98, 28).shouldContainOnly(animals2[7]) // NW
+    map.findAnimal(animals2[7]).direction shouldBe NW
   }
 
   test("consumePlants") {
@@ -148,9 +146,9 @@ class AbstractMapTest : FunSpec({
 
     map.consumePlants()
 
-    animal1.energy shouldBe 100 + config.nutritionScore
-    animal2.energy shouldBe 50
-    animal3.energy shouldBe 20
+    map.findAnimal(animal1).energy shouldBe 100 + config.nutritionScore
+    map.findAnimal(animal2).energy shouldBe 50
+    map.findAnimal(animal3).energy shouldBe 20
     map.plants.value shouldNotContain Vector(0, 0)
     map.plants.value shouldContain Vector(1, 1)
   }
@@ -170,13 +168,13 @@ class AbstractMapTest : FunSpec({
     map.addAnimal(Vector(1, 1), animal4)
     map.addAnimal(Vector(1, 1), animal5)
     map.breedAnimals()
-    map.animalsAt(Vector(0, 0)).size shouldBe 4
-    animal1.children.size shouldBe 1
-    animal1.energy shouldBe 50
-    animal2.children.size shouldBe 1
-    animal2.energy shouldBe 25
-    animal3.children.size shouldBe 0
-    animal3.energy shouldBe 20
-    map.animalsAt(Vector(1, 1)).size shouldBe 2
+    map.animalsAt(0, 0).size shouldBe 4
+    map.findAnimal(animal1).children.size shouldBe 1
+    map.findAnimal(animal1).energy shouldBe 50
+    map.findAnimal(animal2).children.size shouldBe 1
+    map.findAnimal(animal2).energy shouldBe 25
+    map.findAnimal(animal3).children.size shouldBe 0
+    map.findAnimal(animal3).energy shouldBe 20
+    map.animalsAt(1, 1).size shouldBe 2
   }
 })
