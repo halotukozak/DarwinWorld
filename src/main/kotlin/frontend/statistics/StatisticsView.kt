@@ -100,27 +100,40 @@ class StatisticsView(
               if (isDailyAverageAgeMetricsEnabled) {
                 linechart("Daily Average Energy Over Time", NumberAxis(), NumberAxis()) {
                   normalize()
-                  series("age", dailyAverageAgeMetrics){
+                  series("age", dailyAverageAgeMetrics) {
                     tripleLegend("age", dailyAverageAgeTriple)
                   }
                 }
               }
             }
           }
-        if (isGenCollectorEnabled)
+        if (isGenCollectorEnabled || isGenomeCollectorEnabled)
           tab("Gens") {
             vbox {
-              piechart("Present") {
-                animated = false
-                genCollector.onUpdate {
-                  data.setAll(it.toList().lastOrNull()?.second?.sortedBy { it.first }?.map { (gen, count) ->
-                    PieChart.Data(gen.toString(), count.toDouble()) //todo to view model
-                  })
+              if (isGenCollectorEnabled) {
+                piechart("Present") {
+                  animated = false
+                  genCollector.onUpdate {
+                    data.setAll(it.toList().lastOrNull()?.second?.sortedBy { it.first }?.map { (gen, count) ->
+                      PieChart.Data(gen.toString(), count.toDouble()) //todo to view model
+                    })
+                  }
+                }
+                linechart("Gens", NumberAxis(), NumberAxis()) {
+                  normalize()
+                  multiseries(Gen.entries.map { it.name }, genCollector)
                 }
               }
-              linechart("Gens", NumberAxis(), NumberAxis()) {
-                normalize()
-                multiseries(Gen.entries.map { it.name }, genCollector)
+              if (isGenomeCollectorEnabled) {
+                label("Top 10 genomes")
+                tableview {
+                  topGenomes.onUpdate {
+                    items.setAll(it)
+                  }
+                  readonlyColumn("Genome", GenomeColumn::genome)
+                  readonlyColumn("Count", GenomeColumn::count)
+                  readonlyColumn("Diff", GenomeColumn::diff)
+                }
               }
             }
           }

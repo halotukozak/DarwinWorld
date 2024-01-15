@@ -3,6 +3,7 @@ package backend.statistics
 import backend.config.Config
 import backend.model.Animal
 import backend.model.Gen
+import backend.model.Genome
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import metrics.Day
@@ -85,6 +86,10 @@ class StatisticsService(simulationConfig: Config) {
   private val _genCollector by lazy { MutableCollector<Gen>(range) }
   val genCollector: Collector<Gen> by lazy { _genCollector }
 
+  val isGenomeCollectorEnabled = simulationConfig.genomes
+  private val _genomeCollector by lazy { MutableCollector<Genome>(range) }
+  val genomeCollector: Collector<Genome> by lazy { _genomeCollector }
+
   fun registerBirth(day: Day) {
     if (isBirthsMetricsEnabled) {
       _birthMetrics.register(day, 1)
@@ -131,6 +136,9 @@ class StatisticsService(simulationConfig: Config) {
           .groupBy({ it.first }, { it.second })
           .map { (key, values) -> key to values.sum() }
       )
+    if (isGenomeCollectorEnabled)
+      _genomeCollector.register(
+        animals.map(Animal::genome).groupingBy { it }.eachCount().toList().sortedByDescending { it.second }) //extractFromHere
   }
 }
 
