@@ -32,6 +32,8 @@ val kotestVersion = "5.8.0"
 
 dependencies {
   implementation("no.tornado:tornadofx:1.7.20")
+  implementation("io.github.mkpaz:atlantafx-base:2.0.1")
+
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0-RC2")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-javafx:1.8.0-RC2")
 
