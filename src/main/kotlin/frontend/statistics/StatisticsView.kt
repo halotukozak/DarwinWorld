@@ -27,6 +27,7 @@ class StatisticsView(
       tabpane {
         if (isBirthsMetricsEnabled || isDeathsMetricsEnabled || isPopulationMetricsEnabled) {
           tab("Life Cycle") {
+            isClosable = false
             vbox {
               if (isBirthsMetricsEnabled || isDeathsMetricsEnabled) {
                 areachart("Births and Deaths", NumberAxis(), NumberAxis()) {
@@ -58,35 +59,33 @@ class StatisticsView(
         }
         if (isPlantDensityMetricsEnabled) {
           tab("Flora") {
-            vbox {
-              if (isPlantDensityMetricsEnabled) {
-                linechart("Plant Density", NumberAxis(), NumberAxis()) {
-                  xAxis.isAutoRanging = false
-                  yAxis.isAutoRanging = false
-                  day.onUpdate {
-                    (xAxis as NumberAxis).lowerBound = max(0.0, it.toDouble() - range)
-                    (xAxis as NumberAxis).upperBound = it.toDouble()
-                    (yAxis as NumberAxis).lowerBound = 0.0
-                    (yAxis as NumberAxis).upperBound = 100.0
-                  }
-                  (xAxis as NumberAxis).tickUnit = 1.0
-                  animated = false
-                  series("plants", plantDensityMetrics.map { //todo move to viewmodel
-                    it.mapValues { v -> v.ofAllPlants() }
-                  }) {
-                    tripleLegend("plants", plantDensityTriple.map {
-                      Triple(
-                        it.first.ofAllPlants(), it.second.ofAllPlants(), it.third.ofAllPlants()
-                      )
-                    })
-                  }
-                }
+            isClosable = false
+            linechart("Plant Density", NumberAxis(), NumberAxis()) {
+              xAxis.isAutoRanging = false
+              yAxis.isAutoRanging = false
+              day.onUpdate {
+                (xAxis as NumberAxis).lowerBound = max(0.0, it.toDouble() - range)
+                (xAxis as NumberAxis).upperBound = it.toDouble()
+                (yAxis as NumberAxis).lowerBound = 0.0
+                (yAxis as NumberAxis).upperBound = 100.0
+              }
+              (xAxis as NumberAxis).tickUnit = 1.0
+              animated = false
+              series("plants", plantDensityMetrics.map { //todo move to viewmodel
+                it.mapValues { v -> v.ofAllPlants() }
+              }) {
+                tripleLegend("plants", plantDensityTriple.map {
+                  Triple(
+                    it.first.ofAllPlants(), it.second.ofAllPlants(), it.third.ofAllPlants()
+                  )
+                })
               }
             }
           }
         }
-        if (isDailyAverageEnergyMetricsEnabled || isDailyAverageAgeMetricsEnabled)
+        if (isDailyAverageEnergyMetricsEnabled || isDailyAverageAgeMetricsEnabled) {
           tab("Fauna") {
+            isClosable = false
             vbox {
               if (isDailyAverageEnergyMetricsEnabled) {
                 linechart("Daily Average Energy Over Time", NumberAxis(), NumberAxis()) {
@@ -107,36 +106,40 @@ class StatisticsView(
               }
             }
           }
-        if (isGenCollectorEnabled || isGenomeCollectorEnabled)
+        }
+        if (isGenCollectorEnabled) {
           tab("Gens") {
+            isClosable = false
             vbox {
-              if (isGenCollectorEnabled) {
-                piechart("Present") {
-                  animated = false
-                  genCollector.onUpdate {
-                    data.setAll(it.toList().lastOrNull()?.second?.sortedBy { it.first }?.map { (gen, count) ->
-                      PieChart.Data(gen.toString(), count.toDouble()) //todo to view model
-                    })
-                  }
-                }
-                linechart("Gens", NumberAxis(), NumberAxis()) {
-                  normalize()
-                  multiseries(Gen.entries.map { it.name }, genCollector)
+              piechart("Present") {
+                animated = false
+                genCollector.onUpdate {
+                  data.setAll(it.toList().lastOrNull()?.second?.sortedBy { it.first }?.map { (gen, count) ->
+                    PieChart.Data(gen.toString(), count.toDouble()) //todo to view model
+                  })
                 }
               }
-              if (isGenomeCollectorEnabled) {
-                label("Top 10 genomes")
-                tableview {
-                  topGenomes.onUpdate {
-                    items.setAll(it)
-                  }
-                  readonlyColumn("Genome", GenomeColumn::genome)
-                  readonlyColumn("Count", GenomeColumn::count)
-                  readonlyColumn("Diff", GenomeColumn::diff)
-                }
+              linechart("Gens", NumberAxis(), NumberAxis()) {
+                normalize()
+                multiseries(Gen.entries.map { it.name }, genCollector)
               }
             }
           }
+        }
+        if (isGenomeCollectorEnabled) {
+          tab("Genomes") {
+            isClosable = false
+            label("Top 10 genomes")
+            tableview {
+              topGenomes.onUpdate {
+                items.setAll(it)
+              }
+              readonlyColumn("Genome", GenomeColumn::genome)
+              readonlyColumn("Count", GenomeColumn::count)
+              readonlyColumn("Diff", GenomeColumn::diff)
+            }
+          }
+        }
       }
     }
   }

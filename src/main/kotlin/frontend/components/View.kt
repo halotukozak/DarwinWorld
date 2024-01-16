@@ -64,7 +64,7 @@ abstract class View(
     predicate.onUpdate { disableProperty().set(it) }
   }
 
-  protected fun <T> EventTarget.forEach(source: Flow<List<T>>, action: (T) -> Node) = group {
+  protected fun <T> EventTarget.forEach(source: Flow<List<T>>, action: (T) -> Node) = pane {
     source.onUpdate {
       children.setAll(it.map(action))
     }

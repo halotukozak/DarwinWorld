@@ -62,6 +62,30 @@ data class Config(
       gens = false,
       genomes = false,
     )
+    val debug = Config(
+      mapWidth = 5,
+      mapHeight = 5,
+      initialPlants = 2,
+      nutritionScore = 10,
+      plantsPerDay = 2,
+      plantGrowthVariant = EQUATOR,
+      initialAnimals = 3,
+      initialAnimalEnergy = 10,
+      satietyEnergy = 10,
+      reproductionEnergyRatio = 0.5,
+      minMutations = 0,
+      maxMutations = 4,
+      mutationVariant = 0.0,
+      genomeLength = 5,
+      births = false,
+      deaths = false,
+      population = false,
+      plantDensity = false,
+      dailyAverageEnergy = false,
+      dailyAverageAge = false,
+      gens = false,
+      genomes = false,
+    )
     val default = Config(
       mapWidth = default<MapGroup.MapWidth>().value,
       mapHeight = default<MapGroup.MapHeight>().value,
@@ -127,7 +151,7 @@ class MapGroup(
 ) {
 
   class MapWidth(
-    mapWidth: Int = 999,
+    mapWidth: Int = 50,
   ) : ConfigField<Int>(
     mapWidth,
   ) {
@@ -140,7 +164,7 @@ class MapGroup(
   }
 
   class MapHeight(
-    mapHeight: Int = 300,
+    mapHeight: Int = 50,
   ) : ConfigField<Int>(
     mapHeight,
   ) {
@@ -174,7 +198,7 @@ class PlantGroup(
   }
 
   class NutritionScore(
-    nutritionScore: Int = 10,
+    nutritionScore: Int = 50,
   ) : ConfigField<Int>(
     nutritionScore,
   ) {
@@ -187,7 +211,7 @@ class PlantGroup(
   }
 
   class PlantsPerDay(
-    plantsPerDay: Int = 50,
+    plantsPerDay: Int = 200,
   ) : ConfigField<Int>(
     plantsPerDay,
   ) {
@@ -221,7 +245,7 @@ class AnimalGroup(
 ) {
 
   class InitialAnimals(
-    initialAnimals: Int = 999,
+    initialAnimals: Int = 100,
   ) : ConfigField<Int>(
     initialAnimals,
   ) {
@@ -235,7 +259,7 @@ class AnimalGroup(
   }
 
   class InitialAnimalEnergy(
-    initialAnimalEnergy: Int = 20,
+    initialAnimalEnergy: Int = 100,
   ) : ConfigField<Int>(
     initialAnimalEnergy,
   ) {
@@ -248,7 +272,7 @@ class AnimalGroup(
   }
 
   class SatietyEnergy(
-    satietyEnergy: Int = 10,
+    satietyEnergy: Int = 50,
   ) : ConfigField<Int>(
     satietyEnergy,
   ) {
@@ -296,7 +320,7 @@ class GenomeGroup(
   }
 
   class MaxMutations(
-    maxMutations: Int = 8,
+    maxMutations: Int = 4,
   ) : ConfigField<Int>(
     maxMutations,
   ) {
@@ -322,7 +346,7 @@ class GenomeGroup(
   }
 
   class GenomeLength(
-    genomeLength: Int = 8,
+    genomeLength: Int = 5,
   ) : ConfigField<Int>(
     genomeLength,
   ) {
