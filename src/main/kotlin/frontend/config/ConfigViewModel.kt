@@ -6,7 +6,7 @@ import frontend.simulation.SimulationView
 import kotlinx.coroutines.flow.*
 import shared.*
 
-class ConfigViewModel(currentConfig: Config = Config.default) : ViewModel() {
+class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
 
   val mapWidth: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapWidth)
   val mapHeight: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapHeight)
@@ -189,7 +189,6 @@ class ConfigViewModel(currentConfig: Config = Config.default) : ViewModel() {
   }
 
   fun saveConfig() = simulationConfig.value?.let {
-    SimulationView(it).openWindow()
+    SimulationView(it).openWindow(resizable = false)
   }
-
 }
