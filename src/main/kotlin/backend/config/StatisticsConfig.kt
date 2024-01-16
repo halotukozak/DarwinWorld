@@ -107,7 +107,7 @@ class Filename(
   companion object : ConfigFieldInfo<String>() {
     override val label = "Filename"
     override val description = "Filename to save simulation statistics"
-    override val errorMessage = ""
-    override fun isValid(it: String) = it.endsWith(".csv") && it.length > 4
+    override val errorMessage = "Must be valid csv file"
+    override fun isValid(it: String) = it.endsWith(".csv") && it.trim().length > 4
   }
 }

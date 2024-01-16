@@ -1,10 +1,10 @@
 package frontend.components
 
-import atlantafx.base.controls.ToggleSwitch
 import backend.config.ConfigField
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.scene.Node
+import javafx.scene.control.TextField
 import javafx.scene.paint.Color
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.javafx.JavaFx
+import org.kordamp.ikonli.material2.Material2SharpAL
 import shared.CoroutineHandler
 import tornadofx.*
 import kotlin.enums.enumEntries
@@ -73,6 +74,7 @@ abstract class View(
 
   protected inline fun <reified U : ConfigField<T>, reified T : Any> EventTarget.input(
     property: MutableStateFlow<T?>,
+    crossinline op: TextField.() -> Unit = {},
   ) = field(ConfigField.label<U>()) {
     helpTooltip(ConfigField.description<U>())
     textfield(property.value.toString()) {
@@ -97,14 +99,15 @@ abstract class View(
           }
         }
       }
-    }
+    }.apply(op)
   }
 
-  protected inline fun <reified U : ConfigField<Boolean>> EventTarget.toggleButton(
+  protected inline fun <reified U : ConfigField<Boolean>> EventTarget.toggleSwitch(
     property: MutableStateFlow<Boolean>,
-  ) = field {
+  ) = field(ConfigField.label<U>()) {
     helpTooltip(ConfigField.description<U>())
-    ToggleSwitch(ConfigField.label<U>()).apply {
+    toggleSwitch {
+      isSelected = property.value
       selectedProperty().addListener { _, _, newValue ->
         property.update { newValue }
       }
@@ -124,12 +127,10 @@ abstract class View(
     }
   }
 
-  fun Node.helpTooltip(text: String) =
-    svgicon("M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336h24V272H216c-13.3 0-24-10.7-24-24s10.7-24 24-24h48c13.3 0 24 10.7 24 24v88h8c13.3 0 24 10.7 24 24s-10.7 24-24 24H216c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z") {
-      tooltip(text) {
-        showDelay = 100.millis
-      }
-    }
+  fun Node.helpTooltip(text: String) {
+    fontIcon(Material2SharpAL.INFO)
+    tooltip(text)
+  }
 
 
   protected fun Node.errorLabel(error: Flow<String>) = text("") {

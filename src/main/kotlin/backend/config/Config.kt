@@ -89,6 +89,8 @@ data class Config(
       dailyAverageAge = false,
       gens = false,
       genomes = false,
+      csvExportEnabled = false,
+      filename = "",
     )
     val default = Config(
       mapWidth = default<MapGroup.MapWidth>().value,

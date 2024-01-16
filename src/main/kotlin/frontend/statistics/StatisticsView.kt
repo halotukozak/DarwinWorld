@@ -115,7 +115,7 @@ class StatisticsView(
                 animated = false
                 genCollector.onUpdate {
                   data.setAll(it.toList().lastOrNull()?.second?.sortedBy { it.first }?.map { (gen, count) ->
-                    PieChart.Data(gen.toString(), count.toDouble()) //todo to view model
+                    PieChart.Data(gen.name, count.toDouble()) //todo to view model
                   })
                 }
               }

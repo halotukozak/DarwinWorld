@@ -15,3 +15,6 @@ fun <K, V> Flow<Pair<K, V>>.group(): Flow<Pair<K, List<V>>> = flow {//todo idk i
   collect { t -> storage.getOrPut(t.first) { mutableListOf() } += t.second }
   storage.forEach { (k, ts) -> emit(k to ts) }
 }
+
+val Flow<Boolean>.not
+  get() = map { !it }

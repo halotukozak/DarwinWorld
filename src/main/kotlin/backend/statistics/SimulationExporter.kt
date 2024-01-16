@@ -27,7 +27,7 @@ class SimulationExporter(statisticsConfig: Config) : CoroutineHandler {
           "Most Popular Gen".takeIf { gens },
           "Most Popular Genome".takeIf { genomes },
         )
-          .joinToString(", ")
+          .joinToString("; ")
           .let {
             write(it)
             newLine()
@@ -51,7 +51,7 @@ class SimulationExporter(statisticsConfig: Config) : CoroutineHandler {
           mostPopularGen,
           mostPopularGenome,
         )
-          .joinToString(", ")
+          .joinToString("; ")
           .let {
             write(it)
             newLine()
