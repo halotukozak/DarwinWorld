@@ -1,5 +1,6 @@
 package frontend.components
 
+import atlantafx.base.controls.ToggleSwitch
 import backend.config.ConfigField
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
@@ -70,7 +71,7 @@ abstract class View(
     }
   }
 
-  protected inline fun <reified U : ConfigField<T>, reified T : Number> EventTarget.input(
+  protected inline fun <reified U : ConfigField<T>, reified T : Any> EventTarget.input(
     property: MutableStateFlow<T?>,
   ) = field(ConfigField.label<U>()) {
     helpTooltip(ConfigField.description<U>())
@@ -91,6 +92,7 @@ abstract class View(
           when (T::class) {
             Int::class -> text.toInt() as T
             Double::class -> text.toDouble() as T
+            String::class -> text as T
             else -> throw NotImplementedError()
           }
         }
@@ -98,11 +100,11 @@ abstract class View(
     }
   }
 
-  protected inline fun <reified U : ConfigField<Boolean>> EventTarget.checkbox(
+  protected inline fun <reified U : ConfigField<Boolean>> EventTarget.toggleButton(
     property: MutableStateFlow<Boolean>,
   ) = field {
     helpTooltip(ConfigField.description<U>())
-    checkbox(ConfigField.label<U>(), property.value.toProperty()) {
+    ToggleSwitch(ConfigField.label<U>()).apply {
       selectedProperty().addListener { _, _, newValue ->
         property.update { newValue }
       }

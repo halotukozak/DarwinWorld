@@ -16,13 +16,13 @@ class ConfigView : View("Config editor") {
           padding = insets(10.0)
           vbox {
             fieldset("Map") {
-              errorLabel(mapFieldError)
+              errorLabel(mapGroupError)
               input<MapGroup.MapWidth, _>(mapWidth)
               input<MapGroup.MapHeight, _>(mapHeight)
             }
 
             fieldset("Plants") {
-              errorLabel(plantFieldError)
+              errorLabel(plantGroupError)
               input<PlantGroup.InitialPlants, _>(initialPlants)
               input<PlantGroup.NutritionScore, _>(nutritionScore)
               input<PlantGroup.PlantsPerDay, _>(plantsPerDay)
@@ -30,14 +30,14 @@ class ConfigView : View("Config editor") {
             }
 
             fieldset("Animals") {
-              errorLabel(animalFieldError)
+              errorLabel(animalGroupError)
               input<AnimalGroup.InitialAnimals, _>(initialAnimals)
               input<AnimalGroup.InitialAnimalEnergy, _>(initialAnimalEnergy)
               input<AnimalGroup.SatietyEnergy, _>(satietyEnergy)
             }
 
             fieldset("Genome") {
-              errorLabel(genomeFieldError)
+              errorLabel(genomeGroupError)
               input<GenomeGroup.ReproductionEnergyRatio, _>(reproductionEnergyRatio)
               input<GenomeGroup.MinMutations, _>(minMutations)
               input<GenomeGroup.MaxMutations, _>(maxMutations)
@@ -50,14 +50,16 @@ class ConfigView : View("Config editor") {
           padding = insets(10.0)
           vbox {
             fieldset {
-              checkbox<Births>(births)
-              checkbox<Deaths>(deaths)
-              checkbox<Population>(population)
-              checkbox<PlantDensity>(plantDensity)
-              checkbox<DailyAverageEnergy>(dailyAverageEnergy)
-              checkbox<DailyAverageAge>(dailyAverageAge)
-              checkbox<Gens>(gens)
-              checkbox<Genomes>(genomes)
+              toggleButton<Births>(births)
+              toggleButton<Deaths>(deaths)
+              toggleButton<Population>(population)
+              toggleButton<PlantDensity>(plantDensity)
+              toggleButton<DailyAverageEnergy>(dailyAverageEnergy)
+              toggleButton<DailyAverageAge>(dailyAverageAge)
+              toggleButton<Gens>(gens)
+              toggleButton<Genomes>(genomes)
+              toggleButton<CsvExportEnabled>(csvExportEnabled)
+              input<Filename, _>(filename)
             }
           }
         }

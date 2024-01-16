@@ -1,6 +1,7 @@
 package frontend
 
 import atlantafx.base.theme.PrimerLight
+import frontend.config.ConfigView
 import javafx.stage.Stage
 import tornadofx.*
 

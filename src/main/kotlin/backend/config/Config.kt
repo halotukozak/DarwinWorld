@@ -30,6 +30,8 @@ data class Config(
   val dailyAverageAge: Boolean,
   val gens: Boolean,
   val genomes: Boolean,
+  val csvExportEnabled: Boolean,
+  val filename: String,
 ) {
 
   init {
@@ -61,6 +63,8 @@ data class Config(
       dailyAverageAge = false,
       gens = false,
       genomes = false,
+      csvExportEnabled = false,
+      filename = "",
     )
     val default = Config(
       mapWidth = default<MapGroup.MapWidth>().value,
@@ -85,6 +89,8 @@ data class Config(
       dailyAverageAge = default<DailyAverageAge>().value,
       gens = default<Gens>().value,
       genomes = default<Genomes>().value,
+      csvExportEnabled = default<CsvExportEnabled>().value,
+      filename = default<Filename>().value,
     )
   }
 }
