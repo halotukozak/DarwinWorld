@@ -67,22 +67,27 @@ abstract class AbstractMap(protected val config: Config) {
 
   suspend fun moveAnimals() = _animals.update {
     it.flatMap { (position, set) ->
-      set.map { animal ->
-        var newPosition = position + animal.direction.vector //todo (var)
-        when {
-          newPosition.x < 0 -> newPosition = newPosition.copy(x = config.mapWidth - 1)
-          newPosition.x >= config.mapWidth -> newPosition = newPosition.copy(x = 0)
+      set
+        .asFlow()
+        .map { animal ->
+          position + animal.direction.vector to animal
         }
-        if (newPosition.y !in 0..<config.mapHeight) {
-          newPosition = newPosition.copy(y = position.y)
-          animal.turnBack()
+        .mapKeys { newPosition ->
+          when {
+            newPosition.x < 0 -> newPosition.copy(x = config.mapWidth - 1)
+            newPosition.x >= config.mapWidth -> newPosition.copy(x = 0)
+            else -> newPosition
+          }
         }
-        newPosition to animal
-      }
+        .map { (newPosition, animal) ->
+          if (newPosition.y in 0..<config.mapHeight)
+            newPosition to animal
+          else
+            newPosition.copy(y = newPosition.y) to animal.turnBack()
+        }
+        .group()
+        .toList()
     }
-      .asFlow()
-      .group()
-      .toList()
   }
 
   suspend fun consumePlants() = _plants.update { plants ->

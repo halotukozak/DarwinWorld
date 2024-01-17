@@ -7,8 +7,14 @@ import kotlinx.coroutines.flow.toList
 inline fun <T, U, V> List<Pair<T, U>>.mapValues(crossinline f: (T, U) -> V): List<Pair<T, V>> =
   map { (t, u) -> t to f(t, u) }
 
+inline fun <T, U, S> List<Pair<T, U>>.mapKeys(crossinline f: (T) -> S): List<Pair<S, U>> =
+  map { (t, u) -> f(t) to u }
+
 inline fun <T, U, V> List<Pair<T, U>>.mapValues(crossinline f: (U) -> V): List<Pair<T, V>> =
   map { (t, u) -> t to f(u) }
+
+inline fun <T, U, S> List<Pair<T, U>>.mapKeys(crossinline f: (T, U) -> S): List<Pair<S, U>> =
+  map { (t, u) -> f(t, u) to u }
 
 inline fun <T, U, V> List<Pair<T, U>>.flatMapValues(crossinline f: (T, U) -> Iterable<V>): List<V> =
   flatMap { (t, u) -> f(t, u) }
@@ -28,5 +34,11 @@ private suspend inline fun <T> Iterable<T>.mapAsync(crossinline f: suspend (T) -
 suspend inline fun <T, U, V> Iterable<Pair<T, U>>.mapValuesAsync(crossinline f: suspend (T, U) -> V): List<Pair<T, V>> =
   asFlow().mapValues(f).toList()
 
+suspend inline fun <T, U, S> Iterable<Pair<T, U>>.mapKeysAsync(crossinline f: suspend (T, U) -> S): List<Pair<S, U>> =
+  asFlow().mapKeys(f).toList()
+
 suspend inline fun <T, U, V> Iterable<Pair<T, U>>.mapValuesAsync(crossinline f: suspend (U) -> V): List<Pair<T, V>> =
   asFlow().mapValues(f).toList()
+
+suspend inline fun <T, U, S> Iterable<Pair<T, U>>.mapKeysAsync(crossinline f: suspend (T) -> S): List<Pair<S, U>> =
+  asFlow().mapKeys(f).toList()

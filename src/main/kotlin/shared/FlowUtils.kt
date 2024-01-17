@@ -8,8 +8,14 @@ import kotlinx.coroutines.flow.map
 inline fun <T, U, V> Flow<Pair<T, U>>.mapValues(crossinline f: suspend (T, U) -> V) =
   map { (t, u) -> t to f(t, u) }
 
+inline fun <T, U, S> Flow<Pair<T, U>>.mapKeys(crossinline f: suspend (T, U) -> S) =
+  map { (t, u) -> f(t, u) to u }
+
 inline fun <T, U, V> Flow<Pair<T, U>>.mapValues(crossinline f: suspend (U) -> V): Flow<Pair<T, V>> =
   map { (t, u) -> t to f(u) }
+
+inline fun <T, U, S> Flow<Pair<T, U>>.mapKeys(crossinline f: suspend (T) -> S): Flow<Pair<S, U>> =
+  map { (t, u) -> f(t) to u }
 
 fun <K, V> Flow<Pair<K, V>>.group(): Flow<Pair<K, List<V>>> = flow {
   val storage = mutableMapOf<K, MutableList<V>>()
