@@ -16,5 +16,7 @@ fun <K, V> Flow<Pair<K, V>>.group(): Flow<Pair<K, List<V>>> = flow {//todo idk i
   storage.forEach { (k, ts) -> emit(k to ts) }
 }
 
+inline fun <reified T> mix(vararg flows: Flow<T>): Flow<Array<T>> = combine(*flows) { it }
+
 val Flow<Boolean>.not
   get() = map { !it }
