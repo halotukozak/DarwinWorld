@@ -120,32 +120,34 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
       }.stateIn(this)
 
       statisticsConfig = combine(
-        births,
-        deaths,
-        population,
-        plantDensity,
-        dailyAverageEnergy,
-        dailyAverageAge,
-        gens,
-        genomes,
-        csvExportEnabled,
-      ) { arrayOf(*it) }
-        .zip(filename) { (births, deaths, population, plantDensity, dailyAverageEnergy, dailyAverageAge, gens, genomes, csvExportEnabled), filename ->
-          safeFieldInit(exportStatisticsGroupError) {
-            StatisticsConfig(
-              Births(births),
-              Deaths(deaths),
-              Population(population),
-              PlantDensity(plantDensity),
-              DailyAverageEnergy(dailyAverageEnergy),
-              DailyAverageAge(dailyAverageAge),
-              Gens(gens),
-              Genomes(genomes),
-              CsvExportEnabled(csvExportEnabled),
-              Filename(filename ?: ""),
-            )
-          }
-        }.stateIn(this)
+        mix(
+          births,
+          deaths,
+          population,
+          plantDensity,
+          dailyAverageEnergy,
+          dailyAverageAge,
+          gens,
+          genomes,
+          csvExportEnabled,
+        ),
+        filename
+      ) { (births, deaths, population, plantDensity, dailyAverageEnergy, dailyAverageAge, gens, genomes, csvExportEnabled), filename ->
+        safeFieldInit(exportStatisticsGroupError) {
+          StatisticsConfig(
+            Births(births),
+            Deaths(deaths),
+            Population(population),
+            PlantDensity(plantDensity),
+            DailyAverageEnergy(dailyAverageEnergy),
+            DailyAverageAge(dailyAverageAge),
+            Gens(gens),
+            Genomes(genomes),
+            CsvExportEnabled(csvExportEnabled),
+            Filename(filename ?: ""),
+          )
+        }
+      }.stateIn(this)
 
       isValid = combine(mapGroup, plantGroup, animalGroup, genomeGroup, statisticsConfig) { args ->
         args.none { it == null }
