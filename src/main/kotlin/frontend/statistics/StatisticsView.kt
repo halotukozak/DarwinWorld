@@ -1,9 +1,12 @@
 package frontend.statistics
 
+import atlantafx.base.controls.Tile
 import backend.model.Gen
 import backend.statistics.MinMaxAvgTriple
 import backend.statistics.StatisticsService
 import frontend.components.View
+import frontend.components.card
+import frontend.components.fontIcon
 import javafx.scene.chart.NumberAxis
 import javafx.scene.chart.PieChart
 import javafx.scene.chart.XYChart
@@ -129,14 +132,24 @@ class StatisticsView(
         if (isGenomeCollectorEnabled) {
           tab("Genomes") {
             isClosable = false
-            label("Top 10 genomes")
-            tableview {
+            card {
+              header = Tile("Top 10 genomes", "")
+
               topGenomes.onUpdate {
-                items.setAll(it)
+                body = vbox {
+                  it.mapIndexed { i, genome ->
+                    borderpane {
+                      left = text("${i + 1}. ${genome.genome}")
+                      right = hbox {
+                        genome.arrow?.let(::fontIcon)
+                        text(genome.count.toString()) {
+                          fill = genome.color
+                        }
+                      }
+                    }
+                  }
+                }
               }
-              readonlyColumn("Genome", GenomeColumn::genome)
-              readonlyColumn("Count", GenomeColumn::count)
-              readonlyColumn("Diff", GenomeColumn::diff)
             }
           }
         }
