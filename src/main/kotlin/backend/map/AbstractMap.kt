@@ -86,22 +86,22 @@ abstract class AbstractMap(protected val config: Config) {
   }
 
   suspend fun consumePlants() = _plants.update { plants ->
-    val p = plants.toMutableSet()
+    val newPlants = plants.toMutableSet()
     _animals.update { animals ->
       animals.mapValuesAsync { position, set ->
-        set.mapMax {
-          if (position in plants) {
-            p.remove(position)
+        if (position in plants)
+          set.mapMax {
+            newPlants.remove(position)
             it.eat(config.nutritionScore)
-          } else it
-        }
+          }
+        else set
       }
     }
-    p//todo
+    newPlants
   }
 
 
-  suspend fun breedAnimals(callback:  (Animal) -> Unit = {}) = _animals.update { animals ->
+  suspend fun breedAnimals(callback: (Animal) -> Unit = {}) = _animals.update { animals ->
     animals.mapValuesAsync { set ->
       (set.size >= 2).ifTrue {
         val (animal1, animal2) = set.max().let { it to (set - it).max() }
