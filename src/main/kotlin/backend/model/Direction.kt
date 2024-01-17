@@ -1,6 +1,7 @@
 package backend.model
 
 import backend.map.Vector
+import kotlin.random.Random
 
 enum class Direction(x: Int, y: Int) {
   N(0, -1),
@@ -21,6 +22,6 @@ enum class Direction(x: Int, y: Int) {
   operator fun minus(i: Int): Direction = entries[(this.ordinal + entries.size - i) % entries.size]
 
   companion object {
-    fun random() = entries.random()
+    fun random(random: Random) = entries.random(random)
   }
 }

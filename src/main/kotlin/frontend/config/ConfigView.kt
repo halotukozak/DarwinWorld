@@ -1,9 +1,22 @@
 package frontend.config
 
+import atlantafx.base.theme.Styles
 import backend.config.*
+import backend.config.AnimalGroup.*
+import backend.config.GenomeGroup.*
+import backend.config.MapGroup.*
+import backend.config.PlantGroup.*
+import backend.config.StatisticsGroup.*
 import frontend.components.View
 import frontend.components.inputGroup
+import javafx.event.EventHandler
+import javafx.event.EventTarget
+import javafx.geometry.Pos
+import kotlinx.coroutines.flow.update
+import org.kordamp.ikonli.javafx.FontIcon
+import org.kordamp.ikonli.material2.Material2OutlinedMZ
 import tornadofx.*
+import kotlin.random.Random
 
 
 class ConfigView : View("Config editor") {
@@ -17,32 +30,33 @@ class ConfigView : View("Config editor") {
             errorLabel(configError)
             fieldset("Map") {
               errorLabel(mapGroupError)
-              input<MapGroup.MapWidth, _>(mapWidth)
-              input<MapGroup.MapHeight, _>(mapHeight)
+              input<MapWidth, _>(mapWidth)
+              input<MapHeight, _>(mapHeight)
+              seedInput()
             }
 
             fieldset("Plants") {
               errorLabel(plantGroupError)
-              input<PlantGroup.InitialPlants, _>(initialPlants)
-              input<PlantGroup.NutritionScore, _>(nutritionScore)
-              input<PlantGroup.PlantsPerDay, _>(plantsPerDay)
-              combobox<PlantGroup.PlantGrowthVariantField, _>(plantGrowthVariant)
+              input<InitialPlants, _>(initialPlants)
+              input<NutritionScore, _>(nutritionScore)
+              input<PlantsPerDay, _>(plantsPerDay)
+              combobox<PlantGrowthVariantField, _>(plantGrowthVariant)
             }
 
             fieldset("Animals") {
               errorLabel(animalGroupError)
-              input<AnimalGroup.InitialAnimals, _>(initialAnimals)
-              input<AnimalGroup.InitialAnimalEnergy, _>(initialAnimalEnergy)
-              input<AnimalGroup.SatietyEnergy, _>(satietyEnergy)
+              input<InitialAnimals, _>(initialAnimals)
+              input<InitialAnimalEnergy, _>(initialAnimalEnergy)
+              input<SatietyEnergy, _>(satietyEnergy)
             }
 
             fieldset("Genome") {
               errorLabel(genomeGroupError)
-              input<GenomeGroup.ReproductionEnergyRatio, _>(reproductionEnergyRatio)
-              input<GenomeGroup.MinMutations, _>(minMutations)
-              input<GenomeGroup.MaxMutations, _>(maxMutations)
-              input<GenomeGroup.MutationVariant, _>(mutationVariant)
-              input<GenomeGroup.GenomeLength, _>(genomeLength)
+              input<ReproductionEnergyRatio, _>(reproductionEnergyRatio)
+              input<MinMutations, _>(minMutations)
+              input<MaxMutations, _>(maxMutations)
+              input<MutationVariant, _>(mutationVariant)
+              input<GenomeLength, _>(genomeLength)
             }
 
             borderpane {
@@ -106,6 +120,39 @@ class ConfigView : View("Config editor") {
           }
         }
       }
+    }
+  }
+
+  private fun EventTarget.seedInput() = with(viewModel) {
+    field(ConfigField.label<Seed>()) {
+      inputContainer.style { alignment = Pos.CENTER }
+      helpTooltip(ConfigField.description<Seed>())
+
+      val left = textfield(seed.value.toString()) {
+        textProperty().addListener { _ ->
+          decorators.forEach { it.undecorate(this) }
+          decorators.clear()
+          when {
+            text.isNullOrBlank() -> "This field is required"
+            !text.isLong() -> "This field must be a long number"
+            !ConfigField.validate<Seed>(text) -> ConfigField.errorMessage<Seed>()
+            else -> null
+          }?.also { error ->
+            addDecorator(SimpleMessageDecorator(error, ValidationSeverity.Error))
+            seed.update { null }
+          } ?: seed.update {
+            text.toLong()
+          }
+        }
+      }
+      val right = button("", FontIcon(Material2OutlinedMZ.REFRESH)) {
+        onMouseClicked = EventHandler {
+          left.textProperty().set(Random.nextLong().toString())
+        }
+        addClass(Styles.BUTTON_ICON)
+      }
+
+      inputGroup(left, right)
     }
   }
 }

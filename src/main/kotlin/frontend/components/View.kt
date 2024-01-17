@@ -96,6 +96,7 @@ abstract class View(
           when (T::class) {
             Int::class -> text.toInt() as T
             Double::class -> text.toDouble() as T
+            Long::class -> text.toLong() as T
             String::class -> text as T
             else -> throw NotImplementedError()
           }
