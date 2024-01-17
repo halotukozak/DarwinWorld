@@ -41,17 +41,14 @@ class Simulation(
   private suspend fun nextDay() {
     println("${day.updateAndGet { it + 1 }} day!")
     map.growAnimals()
-    map.removeDeadAnimals { /*launchIO {*/ statisticsService.registerDeath(day.value, it) }
+    map.removeDeadAnimals { statisticsService.registerDeath(day.value, it) }
     map.rotateAnimals()
     map.moveAnimals()
     map.consumePlants()
     map.breedAnimals { launch { statisticsService.registerBirth(day.value) } }
     map.growPlants(config.plantsPerDay)
 
-//    launchIO {
-    statisticsService.registerPlants(plants.value.size)
-    statisticsService.registerAnimals(animals.value.flattenValues())
-//    }
+    statisticsService.registerEndOfDay(day.value, plants.value, animals.value.flattenValues())
   }
 
   private var simulationJob: Job = launch {

@@ -11,6 +11,8 @@ data class StatisticsConfig(
   val dailyAverageAge: DailyAverageAge = default(),
   val gens: Gens = default(),
   val genomes: Genomes = default(),
+  val csvExportEnabled: CsvExportEnabled = default(),
+  val filename: Filename = default(),
 )
 
 abstract class BooleanConfigFieldInfo : ConfigFieldInfo<Boolean>() {
@@ -87,5 +89,25 @@ class Genomes(
   companion object : BooleanConfigFieldInfo() {
     override val label = "Genomes"
     override val description = "Count genomes daily"
+  }
+}
+
+class CsvExportEnabled(
+  csvExportEnabled: Boolean = false,
+) : ConfigField<Boolean>(csvExportEnabled) {
+  companion object : BooleanConfigFieldInfo() {
+    override val label = "CSV Export Enabled"
+    override val description = "Export simulation statistics to CSV file"
+  }
+}
+
+class Filename(
+  filename: String = "simulation.csv",
+) : ConfigField<String>(filename) {
+  companion object : ConfigFieldInfo<String>() {
+    override val label = "Filename"
+    override val description = "Filename to save simulation statistics"
+    override val errorMessage = "Must be valid csv file"
+    override fun isValid(it: String) = it.endsWith(".csv") && it.trim().length > 4
   }
 }

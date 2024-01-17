@@ -8,48 +8,40 @@ import frontend.components.ViewModel
 import javafx.scene.paint.Color
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
-class SimulationViewModel(simulationConfig: Config) : ViewModel() {
+class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
 
   val statisticsService = StatisticsService(simulationConfig)
   val simulation = Simulation(simulationConfig, statisticsService)
+  val mapHeight = 800.0
+  val mapWidth = mapHeight * simulationConfig.mapWidth / simulationConfig.mapHeight
+  val objectRadius = mapHeight / (2 * simulationConfig.mapHeight)
 
   private val energyStep = simulationConfig.satietyEnergy / 4
 
-  lateinit var animals: Flow<List<AnimalModel>>
-    private set
-  lateinit var plants: Flow<List<PlantModel>>
-    private set
-
-
-  val fasterDisabled = simulation.dayDuration.map { it < 100 }
-
-  init {
-    launch {
-      animals = simulation.animals.map { animals ->
-        animals.flatMap { (vector, set) ->
-          set.map { animal ->
-            AnimalModel(
-              vector.x.toDouble(),
-              vector.y.toDouble(),
-              animal.energy,
-              animal.direction
-            )
-          }
-        }
-      }.stateIn(this)
-
-      plants = simulation.plants.map { plants ->
-        plants.map { plant ->
-          PlantModel(
-            plant.x.toDouble(),
-            plant.y.toDouble()
-          )
-        }
-      }.stateIn(this)
+  val animals: Flow<List<AnimalModel>> = simulation.animals.map { animals ->
+    animals.flatMap { (vector, set) ->
+      set.map { animal ->
+        AnimalModel(
+          vector.x.toDouble(),
+          vector.y.toDouble(),
+          animal.energy,
+          animal.direction
+        )
+      }
     }
   }
+
+  val plants: Flow<List<PlantModel>> = simulation.plants.map { plants ->
+    plants.map { plant ->
+      PlantModel(
+        plant.x.toDouble(),
+        plant.y.toDouble()
+      )
+    }
+  }
+
+  val fasterDisabled = simulation.dayDuration.map { it < 100 }
 
   override suspend fun clean() {
     simulation.close()
@@ -57,8 +49,8 @@ class SimulationViewModel(simulationConfig: Config) : ViewModel() {
   }
 
   inner class AnimalModel(
-    val x: Double,
-    val y: Double,
+    x: Double,
+    y: Double,
     energy: Int,
     direction: Direction,
   ) {
@@ -69,11 +61,15 @@ class SimulationViewModel(simulationConfig: Config) : ViewModel() {
       else -> Color.GREEN
     }
     val angle: Double = direction.ordinal * 45.0
+    val x: Double = (x + 0.5) / simulationConfig.mapWidth * mapWidth
+    val y: Double = (y + 0.5) / simulationConfig.mapHeight * mapHeight
   }
 
-  class PlantModel(
-    val x: Double,
-    val y: Double,
-  )
+  inner class PlantModel(
+    x: Double, y: Double
+  ) {
+    val x: Double = (x + 0.5) / simulationConfig.mapWidth * mapWidth
+    val y: Double = (y + 0.5) / simulationConfig.mapHeight * mapHeight
+  }
 }
 

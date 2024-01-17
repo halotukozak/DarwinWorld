@@ -23,6 +23,7 @@ class MutableACounter<T : Number>(private val range: Int) : ACounter<T>,
   }
 }
 
+@Suppress("UNCHECKED_CAST")
 operator fun <T : Number> T.plus(other: T): T = when (this) {
   is Int -> this + other.toInt()
   is Long -> this + other.toLong()

@@ -4,25 +4,23 @@ import backend.config.*
 import frontend.components.View
 import tornadofx.*
 
+
 class ConfigView : View("Config editor") {
   override val viewModel: ConfigViewModel by inject()
 
-  override val root = form {
-    with(viewModel) {
-      heading = ("configure your Darwin World")
-
-      drawer {
-        item("Simulation Config", expanded = true) {
-          padding = insets(10.0)
-          vbox {
+  override val root = with(viewModel) {
+    drawer {
+      item("Simulation Config", expanded = true) {
+        vbox {
+          form {
             fieldset("Map") {
-              errorLabel(mapFieldError)
+              errorLabel(mapGroupError)
               input<MapGroup.MapWidth, _>(mapWidth)
               input<MapGroup.MapHeight, _>(mapHeight)
             }
 
             fieldset("Plants") {
-              errorLabel(plantFieldError)
+              errorLabel(plantGroupError)
               input<PlantGroup.InitialPlants, _>(initialPlants)
               input<PlantGroup.NutritionScore, _>(nutritionScore)
               input<PlantGroup.PlantsPerDay, _>(plantsPerDay)
@@ -30,45 +28,62 @@ class ConfigView : View("Config editor") {
             }
 
             fieldset("Animals") {
-              errorLabel(animalFieldError)
+              errorLabel(animalGroupError)
               input<AnimalGroup.InitialAnimals, _>(initialAnimals)
               input<AnimalGroup.InitialAnimalEnergy, _>(initialAnimalEnergy)
               input<AnimalGroup.SatietyEnergy, _>(satietyEnergy)
             }
 
             fieldset("Genome") {
-              errorLabel(genomeFieldError)
+              errorLabel(genomeGroupError)
               input<GenomeGroup.ReproductionEnergyRatio, _>(reproductionEnergyRatio)
               input<GenomeGroup.MinMutations, _>(minMutations)
               input<GenomeGroup.MaxMutations, _>(maxMutations)
               input<GenomeGroup.MutationVariant, _>(mutationVariant)
               input<GenomeGroup.GenomeLength, _>(genomeLength)
             }
-          }
-        }
-        item("Statistics Config") {
-          padding = insets(10.0)
-          vbox {
-            fieldset {
-              checkbox<Births>(births)
-              checkbox<Deaths>(deaths)
-              checkbox<Population>(population)
-              checkbox<PlantDensity>(plantDensity)
-              checkbox<DailyAverageEnergy>(dailyAverageEnergy)
-              checkbox<DailyAverageAge>(dailyAverageAge)
-              checkbox<Gens>(gens)
-              checkbox<Genomes>(genomes)
+
+            borderpane {
+              right {
+                button("Save") {
+                  enableWhen(isValid)
+                  action { saveConfig() }
+                }
+              }
             }
           }
         }
-      }
+        item("Statistics Config") {
+          vbox {
+            form {
+              fieldset("Metrics") {
+                toggleSwitch<Births>(births)
+                toggleSwitch<Deaths>(deaths)
+                toggleSwitch<Population>(population)
+                toggleSwitch<PlantDensity>(plantDensity)
+                toggleSwitch<DailyAverageEnergy>(dailyAverageEnergy)
+                toggleSwitch<DailyAverageAge>(dailyAverageAge)
+                toggleSwitch<Gens>(gens)
+                toggleSwitch<Genomes>(genomes)
+              }
+
+              fieldset("Csv Export") {
+                toggleSwitch<CsvExportEnabled>(csvExportEnabled)
+                input<Filename, _>(filename) {
+                  enableWhen(csvExportEnabled)
+                }
+              }
 
 
-      buttonbar {
-        button("Save") {
-          enableWhen(isValid)
-          action {
-            saveConfig()
+              borderpane {
+                right {
+                  button("Save") {
+                    enableWhen(isValid)
+                    action { saveConfig() }
+                  }
+                }
+              }
+            }
           }
         }
       }

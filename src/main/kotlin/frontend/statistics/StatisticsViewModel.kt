@@ -5,7 +5,10 @@ import backend.statistics.StatisticsService
 import frontend.components.ViewModel
 import javafx.scene.paint.Color
 import kotlinx.coroutines.flow.map
-import tornadofx.*
+import org.kordamp.ikonli.Ikon
+import org.kordamp.ikonli.material2.Material2SharpAL
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 class StatisticsViewModel(val statisticsService: StatisticsService, private val maxPlants: Int) : ViewModel() {
   fun Number.ofAllPlants() = this.toDouble() * 100 / maxPlants
@@ -21,12 +24,19 @@ class StatisticsViewModel(val statisticsService: StatisticsService, private val 
   }
 }
 
- class GenomeColumn(val genome: Genome, val count: Int, previousCount: Int) {
-  val diff = when {
-    count > previousCount + 3 -> Color.GREEN
+class GenomeColumn(val genome: Genome, val count: Int, previousCount: Int) {
+
+  val color: Color = when {
+    count > previousCount + 2 -> Color.GREEN
     count > previousCount -> Color.LIGHTGREEN
     count == previousCount -> Color.BLACK
-    count < previousCount - 3 -> Color.RED
+    count < previousCount - 2 -> Color.RED
     else -> Color.ORANGE
-  }.toProperty()
+  }
+
+  val arrow: Ikon? = when {
+    count > previousCount -> Material2SharpAL.ARROW_UPWARD
+    count < previousCount -> Material2SharpAL.ARROW_DOWNWARD
+    else -> null
+  }
 }

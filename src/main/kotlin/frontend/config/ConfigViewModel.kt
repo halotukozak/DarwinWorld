@@ -4,11 +4,9 @@ import backend.config.*
 import frontend.components.ViewModel
 import frontend.simulation.SimulationView
 import kotlinx.coroutines.flow.*
-import shared.component6
-import shared.component7
-import shared.ifTrue
+import shared.*
 
-class ConfigViewModel(currentConfig: Config = Config.default) : ViewModel() {
+class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
 
   val mapWidth: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapWidth)
   val mapHeight: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapHeight)
@@ -34,22 +32,26 @@ class ConfigViewModel(currentConfig: Config = Config.default) : ViewModel() {
   val gens = MutableStateFlow(currentConfig.gens)
   val genomes = MutableStateFlow(currentConfig.genomes)
 
+  val csvExportEnabled = MutableStateFlow(currentConfig.csvExportEnabled)
+  val filename: MutableStateFlow<String?> = MutableStateFlow(currentConfig.filename)
+
   private lateinit var mapGroup: StateFlow<MapGroup?>
   private lateinit var plantGroup: StateFlow<PlantGroup?>
   private lateinit var animalGroup: StateFlow<AnimalGroup?>
   private lateinit var genomeGroup: StateFlow<GenomeGroup?>
 
-  private lateinit var statisticsConfig: StateFlow<StatisticsConfig>
+  private lateinit var statisticsConfig: StateFlow<StatisticsConfig?>
 
   lateinit var isValid: StateFlow<Boolean>
     private set
 
   private lateinit var simulationConfig: StateFlow<Config?>
 
-  val mapFieldError = MutableStateFlow("")
-  val plantFieldError = MutableStateFlow("")
-  val animalFieldError = MutableStateFlow("")
-  val genomeFieldError = MutableStateFlow("")
+  val mapGroupError = MutableStateFlow("")
+  val plantGroupError = MutableStateFlow("")
+  val animalGroupError = MutableStateFlow("")
+  val genomeGroupError = MutableStateFlow("")
+  val configFieldError = MutableStateFlow("")
 
   private inline fun <T> safeFieldInit(errorStateFlow: MutableStateFlow<String>, block: () -> T): T? = try {
     errorStateFlow.update { "" }
@@ -64,7 +66,7 @@ class ConfigViewModel(currentConfig: Config = Config.default) : ViewModel() {
   init {
     launch {
       mapGroup = combine(mapWidth, mapHeight) { mapWidth, mapHeight ->
-        safeFieldInit(mapFieldError) {
+        safeFieldInit(mapGroupError) {
           MapGroup(
             MapGroup.MapWidth(mapWidth!!),
             MapGroup.MapHeight(mapHeight!!),
@@ -75,7 +77,7 @@ class ConfigViewModel(currentConfig: Config = Config.default) : ViewModel() {
       plantGroup = combine(
         initialPlants, nutritionScore, plantsPerDay, plantGrowthVariant
       ) { initialPlants, nutritionScore, plantsPerDay, plantGrowthVariant ->
-        safeFieldInit(plantFieldError) {
+        safeFieldInit(plantGroupError) {
           PlantGroup(
             PlantGroup.InitialPlants(initialPlants!!),
             PlantGroup.NutritionScore(nutritionScore!!),
@@ -91,7 +93,7 @@ class ConfigViewModel(currentConfig: Config = Config.default) : ViewModel() {
         satietyEnergy
       )
       { initialAnimals, initialAnimalEnergy, satietyEnergy ->
-        safeFieldInit(animalFieldError) {
+        safeFieldInit(animalGroupError) {
           AnimalGroup(
             AnimalGroup.InitialAnimals(initialAnimals!!),
             AnimalGroup.InitialAnimalEnergy(initialAnimalEnergy!!),
@@ -103,7 +105,7 @@ class ConfigViewModel(currentConfig: Config = Config.default) : ViewModel() {
       genomeGroup = combine(
         reproductionEnergyRatio, minMutations, maxMutations, mutationVariant, genomeLength
       ) { reproductionEnergyRatio, minMutations, maxMutations, mutationVariant, genomeLength ->
-        safeFieldInit(genomeFieldError) {
+        safeFieldInit(genomeGroupError) {
           GenomeGroup(
             GenomeGroup.GenomeLength(genomeLength!!),
             GenomeGroup.MutationVariant(mutationVariant!!),
@@ -120,23 +122,29 @@ class ConfigViewModel(currentConfig: Config = Config.default) : ViewModel() {
 
       statisticsConfig = combine(
         births,
+        deaths,
         population,
         plantDensity,
         dailyAverageEnergy,
         dailyAverageAge,
         gens,
-        genomes
-      ) { (birthsAndDeaths, population, plantDensity, dailyAverageEnergy, dailyAverageAge, gens, genomes) ->
-        StatisticsConfig(
-          Births(birthsAndDeaths),
-          Deaths(birthsAndDeaths),
-          Population(population),
-          PlantDensity(plantDensity),
-          DailyAverageEnergy(dailyAverageEnergy),
-          DailyAverageAge(dailyAverageAge),
-          Gens(gens),
-          Genomes(genomes)
-        )
+        genomes,
+        csvExportEnabled,
+      ) { (births, deaths, population, plantDensity, dailyAverageEnergy, dailyAverageAge, gens, genomes, csvExportEnabled) ->
+        filename.value?.let {
+          StatisticsConfig(
+            Births(births),
+            Deaths(deaths),
+            Population(population),
+            PlantDensity(plantDensity),
+            DailyAverageEnergy(dailyAverageEnergy),
+            DailyAverageAge(dailyAverageAge),
+            Gens(gens),
+            Genomes(genomes),
+            CsvExportEnabled(csvExportEnabled),
+            Filename(it),
+          )
+        }
       }.stateIn(this)
 
       simulationConfig = combine(
@@ -147,37 +155,40 @@ class ConfigViewModel(currentConfig: Config = Config.default) : ViewModel() {
         statisticsConfig,
       ) { mapGroup, plantGroup, animalGroup, genomeGroup, statisticsConfig ->
         isValid.value.ifTrue {
-          Config(
-            mapWidth = mapGroup!!.mapWidth.value,
-            mapHeight = mapGroup.mapHeight.value,
-            initialPlants = plantGroup!!.initialPlants.value,
-            nutritionScore = plantGroup.nutritionScore.value,
-            plantsPerDay = plantGroup.plantsPerDay.value,
-            plantGrowthVariant = plantGroup.plantGrowthVariant.value,
-            initialAnimals = animalGroup!!.initialAnimals.value,
-            initialAnimalEnergy = animalGroup.initialAnimalEnergy.value,
-            satietyEnergy = animalGroup.satietyEnergy.value,
-            reproductionEnergyRatio = genomeGroup!!.reproductionEnergyRatio.value,
-            minMutations = genomeGroup.minMutations.value,
-            maxMutations = genomeGroup.maxMutations.value,
-            mutationVariant = genomeGroup.mutationVariant.value,
-            genomeLength = genomeGroup.genomeLength.value,
-            births = statisticsConfig.births.value,
-            deaths = statisticsConfig.deaths.value,
-            population = statisticsConfig.population.value,
-            plantDensity = statisticsConfig.plantDensity.value,
-            dailyAverageEnergy = statisticsConfig.dailyAverageEnergy.value,
-            dailyAverageAge = statisticsConfig.dailyAverageAge.value,
-            gens = statisticsConfig.gens.value,
-            genomes = statisticsConfig.genomes.value,
-          )
+          safeFieldInit(configFieldError) {
+            Config(
+              mapWidth = mapGroup!!.mapWidth.value,
+              mapHeight = mapGroup.mapHeight.value,
+              initialPlants = plantGroup!!.initialPlants.value,
+              nutritionScore = plantGroup.nutritionScore.value,
+              plantsPerDay = plantGroup.plantsPerDay.value,
+              plantGrowthVariant = plantGroup.plantGrowthVariant.value,
+              initialAnimals = animalGroup!!.initialAnimals.value,
+              initialAnimalEnergy = animalGroup.initialAnimalEnergy.value,
+              satietyEnergy = animalGroup.satietyEnergy.value,
+              reproductionEnergyRatio = genomeGroup!!.reproductionEnergyRatio.value,
+              minMutations = genomeGroup.minMutations.value,
+              maxMutations = genomeGroup.maxMutations.value,
+              mutationVariant = genomeGroup.mutationVariant.value,
+              genomeLength = genomeGroup.genomeLength.value,
+              births = statisticsConfig!!.births.value,
+              deaths = statisticsConfig.deaths.value,
+              population = statisticsConfig.population.value,
+              plantDensity = statisticsConfig.plantDensity.value,
+              dailyAverageEnergy = statisticsConfig.dailyAverageEnergy.value,
+              dailyAverageAge = statisticsConfig.dailyAverageAge.value,
+              gens = statisticsConfig.gens.value,
+              genomes = statisticsConfig.genomes.value,
+              csvExportEnabled = true,
+              filename = "statistics.csv",
+            )
+          }
         }
       }.stateIn(this)
     }
   }
 
   fun saveConfig() = simulationConfig.value?.let {
-    SimulationView(it).openWindow()
+    SimulationView(it).openWindow(resizable = false)
   }
-
 }
