@@ -1,12 +1,17 @@
 package backend.config
 
 import backend.config.ConfigField.Companion.default
+import backend.config.GenomeGroup.*
+import backend.config.MapGroup.*
+import backend.config.PlantGroup.*
 import backend.config.PlantGrowthVariant.EQUATOR
+import backend.config.StatisticsGroup.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import tornadofx.*
 import java.io.File
+import kotlin.random.Random
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.createInstance
 
@@ -26,6 +31,7 @@ data class Config(
   val maxMutations: Int,
   val mutationVariant: Double,
   val genomeLength: Int,
+  val seed: Long,
 
   val births: Boolean,
   val deaths: Boolean,
@@ -73,6 +79,7 @@ data class Config(
       genomes = false,
       csvExportEnabled = false,
       filename = "",
+      seed = 2137,
     )
     val debug = Config(
       mapWidth = 5,
@@ -99,22 +106,23 @@ data class Config(
       genomes = false,
       csvExportEnabled = false,
       filename = "stat.csv",
+      seed = 2137,
     )
     val default = Config(
-      mapWidth = default<MapGroup.MapWidth>().value,
-      mapHeight = default<MapGroup.MapHeight>().value,
-      initialPlants = default<PlantGroup.InitialPlants>().value,
-      nutritionScore = default<PlantGroup.NutritionScore>().value,
-      plantsPerDay = default<PlantGroup.PlantsPerDay>().value,
-      plantGrowthVariant = default<PlantGroup.PlantGrowthVariantField>().value,
+      mapWidth = default<MapWidth>().value,
+      mapHeight = default<MapHeight>().value,
+      initialPlants = default<InitialPlants>().value,
+      nutritionScore = default<NutritionScore>().value,
+      plantsPerDay = default<PlantsPerDay>().value,
+      plantGrowthVariant = default<PlantGrowthVariantField>().value,
       initialAnimals = default<AnimalGroup.InitialAnimals>().value,
       initialAnimalEnergy = default<AnimalGroup.InitialAnimalEnergy>().value,
       satietyEnergy = default<AnimalGroup.SatietyEnergy>().value,
-      reproductionEnergyRatio = default<GenomeGroup.ReproductionEnergyRatio>().value,
-      minMutations = default<GenomeGroup.MinMutations>().value,
-      maxMutations = default<GenomeGroup.MaxMutations>().value,
-      mutationVariant = default<GenomeGroup.MutationVariant>().value,
-      genomeLength = default<GenomeGroup.GenomeLength>().value,
+      reproductionEnergyRatio = default<ReproductionEnergyRatio>().value,
+      minMutations = default<MinMutations>().value,
+      maxMutations = default<MaxMutations>().value,
+      mutationVariant = default<MutationVariant>().value,
+      genomeLength = default<GenomeLength>().value,
       births = default<Births>().value,
       deaths = default<Deaths>().value,
       population = default<Population>().value,
@@ -125,6 +133,7 @@ data class Config(
       genomes = default<Genomes>().value,
       csvExportEnabled = default<CsvExportEnabled>().value,
       filename = default<Filename>().value,
+      seed = default<Seed>().value,
     )
 
     fun fromFile(file: File) = Json.decodeFromString<Config>(file.readText()) // catch exceptions
@@ -166,6 +175,7 @@ sealed class ConfigField<out T : Any>(
 class MapGroup(
   val mapWidth: MapWidth = default(),
   val mapHeight: MapHeight = default(),
+  val seed: Seed = default(),
 ) {
 
   class MapWidth(
@@ -191,6 +201,19 @@ class MapGroup(
       override val description = "Height of the map"
       override val errorMessage = "Must be between 0 and 1000"
       override fun isValid(it: String): Boolean = it.isInt() && it.toInt() in 0..1000
+    }
+  }
+
+  class Seed(
+    seed: Long = Random.nextLong(),
+  ) : ConfigField<Long>(
+    seed,
+  ) {
+    companion object : ConfigFieldInfo<Long>() {
+      override val label = "Seed"
+      override val description = "Seed for random generator"
+      override val errorMessage = "Must be Long type"
+      override fun isValid(it: String): Boolean = it.isLong()
     }
   }
 }

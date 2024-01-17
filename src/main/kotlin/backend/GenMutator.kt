@@ -6,18 +6,19 @@ import backend.model.Genome
 import kotlin.random.Random
 
 class GenMutator(private val config: Config) {
-  fun combine(genome1: Genome, genome2: Genome, ratio: Double): Genome {
-    val numberOfGenes = (ratio * config.genomeLength).toInt()
+  private val random = Random(config.seed)
+  fun combine(genome1: Genome, genome2: Genome, ratio: Double): Genome = with(config) {
+    val numberOfGenes = (ratio * genomeLength).toInt()
 
     val newGenes = (
-        if (Random.nextBoolean()) genome1.take(numberOfGenes) + genome2.drop(numberOfGenes)
-        else genome2.dropLast(numberOfGenes) + genome1.takeLast(numberOfGenes)
-        ).toMutableList()
+            if (random.nextBoolean()) genome1.take(numberOfGenes) + genome2.drop(numberOfGenes)
+            else genome2.dropLast(numberOfGenes) + genome1.takeLast(numberOfGenes)
+            ).toMutableList()
 
-    val numberOfMutations = Random.nextInt(config.minMutations, config.maxMutations + 1)
-    val switchMutations = (numberOfMutations * config.mutationVariant).toInt()
+    val numberOfMutations = random.nextInt(minMutations, maxMutations + 1)
+    val switchMutations = (numberOfMutations * mutationVariant).toInt()
 
-    generateSequence { Random.nextInt(config.genomeLength) }
+    generateSequence { random.nextInt(genomeLength) }
       .distinct()
       .take(2 * switchMutations)
       .windowed(2)
@@ -25,11 +26,11 @@ class GenMutator(private val config: Config) {
         newGenes[indicators[0]] = newGenes[indicators[1]].also { newGenes[indicators[1]] = newGenes[indicators[0]] }
       }
 
-    generateSequence { Random.nextInt(config.genomeLength) }
+    generateSequence { random.nextInt(genomeLength) }
       .distinct()
       .take(numberOfMutations - switchMutations)
-      .forEach { newGenes[it] = Gen.random() }
+      .forEach { newGenes[it] = Gen.random(random) }
 
-    return Genome(newGenes)
+    return Genome(newGenes, random.nextInt(genomeLength))
   }
 }

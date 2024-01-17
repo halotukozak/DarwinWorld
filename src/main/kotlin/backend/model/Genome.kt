@@ -2,7 +2,7 @@ package backend.model
 
 import kotlin.random.Random
 
-class Genome(val genes: List<Gen>, startPos: Int? = null) : Iterator<Gen> {
+class Genome(val genes: List<Gen>, private var curr: Int /*= Random.nextInt(genes.size)*/) : Iterator<Gen> {
   override fun toString(): String = genes.joinToString(", ")
 
   override fun equals(other: Any?): Boolean = when {
@@ -11,8 +11,6 @@ class Genome(val genes: List<Gen>, startPos: Int? = null) : Iterator<Gen> {
     genes != other.genes -> false
     else -> true
   }
-
-  private var curr = startPos ?: Random.nextInt(genes.size)
 
   override fun hasNext(): Boolean = true
 
@@ -30,10 +28,6 @@ class Genome(val genes: List<Gen>, startPos: Int? = null) : Iterator<Gen> {
     result = 31 * result + curr
     return result
   }
-
-  companion object {
-    fun random(size: Int): Genome = Genome(List(size) { Gen.random() })
-  }
 }
 
 @Suppress("EnumEntryName")
@@ -41,6 +35,6 @@ enum class Gen {
   SHH, DmNotch, MDM2, zCycD1, Frp, NAC, sdf, EGFR;
 
   companion object {
-    fun random() = entries.random()
+    fun random(random: Random) = entries.random(random)
   }
 }

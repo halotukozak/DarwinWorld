@@ -1,6 +1,11 @@
 package frontend.config
 
 import backend.config.*
+import backend.config.AnimalGroup.*
+import backend.config.GenomeGroup.*
+import backend.config.MapGroup.*
+import backend.config.PlantGroup.*
+import backend.config.StatisticsGroup.*
 import frontend.components.ViewModel
 import frontend.simulation.SimulationView
 import javafx.stage.FileChooser
@@ -12,6 +17,7 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
 
   val mapWidth: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapWidth)
   val mapHeight: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapHeight)
+  val seed: MutableStateFlow<Long?> = MutableStateFlow(currentConfig.seed)
   val initialPlants: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.initialPlants)
   val initialAnimals: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.initialAnimals)
   val satietyEnergy: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.satietyEnergy)
@@ -42,7 +48,7 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
   private lateinit var animalGroup: StateFlow<AnimalGroup?>
   private lateinit var genomeGroup: StateFlow<GenomeGroup?>
 
-  private lateinit var statisticsConfig: StateFlow<StatisticsConfig?>
+  private lateinit var statisticsGroup: StateFlow<StatisticsGroup?>
 
   lateinit var isValid: StateFlow<Boolean>
     private set
@@ -68,11 +74,12 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
 
   init {
     launch {
-      mapGroup = combine(mapWidth, mapHeight) { mapWidth, mapHeight ->
+      mapGroup = combine(mapWidth, mapHeight, seed) { mapWidth, mapHeight, seed ->
         safeFieldInit(mapGroupError) {
           MapGroup(
-            MapGroup.MapWidth(mapWidth!!),
-            MapGroup.MapHeight(mapHeight!!),
+            MapWidth(mapWidth!!),
+            MapHeight(mapHeight!!),
+            Seed(seed!!),
           )
         }
       }.stateIn(this)
@@ -82,10 +89,10 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
       ) { initialPlants, nutritionScore, plantsPerDay, plantGrowthVariant ->
         safeFieldInit(plantGroupError) {
           PlantGroup(
-            PlantGroup.InitialPlants(initialPlants!!),
-            PlantGroup.NutritionScore(nutritionScore!!),
-            PlantGroup.PlantsPerDay(plantsPerDay!!),
-            PlantGroup.PlantGrowthVariantField(plantGrowthVariant)
+            InitialPlants(initialPlants!!),
+            NutritionScore(nutritionScore!!),
+            PlantsPerDay(plantsPerDay!!),
+            PlantGrowthVariantField(plantGrowthVariant)
           )
         }
       }.stateIn(this)
@@ -98,9 +105,9 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
       { initialAnimals, initialAnimalEnergy, satietyEnergy ->
         safeFieldInit(animalGroupError) {
           AnimalGroup(
-            AnimalGroup.InitialAnimals(initialAnimals!!),
-            AnimalGroup.InitialAnimalEnergy(initialAnimalEnergy!!),
-            AnimalGroup.SatietyEnergy(satietyEnergy!!),
+            InitialAnimals(initialAnimals!!),
+            InitialAnimalEnergy(initialAnimalEnergy!!),
+            SatietyEnergy(satietyEnergy!!),
           )
         }
       }.stateIn(this)
@@ -110,16 +117,16 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
       ) { reproductionEnergyRatio, minMutations, maxMutations, mutationVariant, genomeLength ->
         safeFieldInit(genomeGroupError) {
           GenomeGroup(
-            GenomeGroup.GenomeLength(genomeLength!!),
-            GenomeGroup.MutationVariant(mutationVariant!!),
-            GenomeGroup.MinMutations(minMutations!!),
-            GenomeGroup.MaxMutations(maxMutations!!),
-            GenomeGroup.ReproductionEnergyRatio(reproductionEnergyRatio!!),
+            GenomeLength(genomeLength!!),
+            MutationVariant(mutationVariant!!),
+            MinMutations(minMutations!!),
+            MaxMutations(maxMutations!!),
+            ReproductionEnergyRatio(reproductionEnergyRatio!!),
           )
         }
       }.stateIn(this)
 
-      statisticsConfig = combine(
+      statisticsGroup = combine(
         births,
         deaths,
         population,
@@ -132,7 +139,7 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
       ) { arrayOf(*it) }
         .zip(filename) { (births, deaths, population, plantDensity, dailyAverageEnergy, dailyAverageAge, gens, genomes, csvExportEnabled), filename ->
           safeFieldInit(exportStatisticsGroupError) {
-            StatisticsConfig(
+            StatisticsGroup(
               Births(births),
               Deaths(deaths),
               Population(population),
@@ -147,7 +154,7 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
           }
         }.stateIn(this)
 
-      isValid = combine(mapGroup, plantGroup, animalGroup, genomeGroup, statisticsConfig) { args ->
+      isValid = combine(mapGroup, plantGroup, animalGroup, genomeGroup, statisticsGroup) { args ->
         args.none { it == null }
       }.stateIn(this)
 
@@ -156,7 +163,7 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
         plantGroup,
         animalGroup,
         genomeGroup,
-        statisticsConfig,
+        statisticsGroup,
       ) { mapGroup, plantGroup, animalGroup, genomeGroup, statisticsConfig ->
         isValid.value.ifTrue {
           safeFieldInit(configError) {
@@ -185,6 +192,7 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
               genomes = statisticsConfig.genomes.value,
               csvExportEnabled = statisticsConfig.csvExportEnabled.value,
               filename = statisticsConfig.filename.value,
+              seed = 0
             )
           }
         }

@@ -18,7 +18,7 @@ class EquatorMap(config: Config) : AbstractMap(config) {
       val dupa = plants.toMutableSet() //todo
       val addPlantsRandomly = { emptyFields: List<Vector>, numberOfPlants: Int ->
         emptyFields
-          .takeRandom(numberOfPlants)
+          .takeRandom(numberOfPlants, random)
           .forEach(dupa::add)
       }
 
@@ -38,9 +38,9 @@ class EquatorMap(config: Config) : AbstractMap(config) {
 }
 
 
-fun <T> List<T>.takeRandom(n: Int = 1) =
+fun <T> List<T>.takeRandom(n: Int = 1, random: Random) =
   generateSequence {
-    this[Random.nextInt(size)]
+    this[random.nextInt(size)]
   }
     .distinct()
     .take(n)
