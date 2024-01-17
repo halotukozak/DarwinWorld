@@ -2,10 +2,15 @@ package backend.config
 
 import backend.config.ConfigField.Companion.default
 import backend.config.PlantGrowthVariant.EQUATOR
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import tornadofx.*
+import java.io.File
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.createInstance
 
+@Serializable
 data class Config(
   val mapWidth: Int,
   val mapHeight: Int,
@@ -33,6 +38,9 @@ data class Config(
   val csvExportEnabled: Boolean,
   val filename: String,
 ) {
+  fun toFile(file: File) {
+    file.writeText(Json.encodeToString(this))
+  }
 
   init {
     require(initialPlants <= mapWidth * mapHeight) { "Initial plants must be less or equal to map size" }
@@ -90,7 +98,7 @@ data class Config(
       gens = false,
       genomes = false,
       csvExportEnabled = false,
-      filename = "",
+      filename = "stat.csv",
     )
     val default = Config(
       mapWidth = default<MapGroup.MapWidth>().value,
@@ -118,6 +126,8 @@ data class Config(
       csvExportEnabled = default<CsvExportEnabled>().value,
       filename = default<Filename>().value,
     )
+
+    fun fromFile(file: File) = Json.decodeFromString<Config>(file.readText()) // catch exceptions
   }
 }
 

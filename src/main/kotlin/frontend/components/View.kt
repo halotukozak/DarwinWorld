@@ -12,6 +12,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.javafx.JavaFx
 import org.kordamp.ikonli.material2.Material2SharpAL
@@ -74,6 +75,7 @@ abstract class View(
 
   protected inline fun <reified U : ConfigField<T>, reified T : Any> EventTarget.input(
     property: MutableStateFlow<T?>,
+    required: StateFlow<Boolean> = MutableStateFlow(true), //todo does not work
     crossinline op: TextField.() -> Unit = {},
   ) = field(ConfigField.label<U>()) {
     helpTooltip(ConfigField.description<U>())
@@ -82,7 +84,7 @@ abstract class View(
         decorators.forEach { it.undecorate(this) }
         decorators.clear()
         when {
-          text.isNullOrBlank() -> "This field is required"
+          required.value && text.isNullOrBlank() -> "This field is required"
           T::class == Int::class && !text.isInt() -> "This field must be an integer number"
           T::class == Double::class && !text.isDouble() -> "This field must be a double number"
           !ConfigField.validate<U>(text) -> ConfigField.errorMessage<U>()
