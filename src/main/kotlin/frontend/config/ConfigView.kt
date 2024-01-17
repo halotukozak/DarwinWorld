@@ -2,6 +2,7 @@ package frontend.config
 
 import backend.config.*
 import frontend.components.View
+import frontend.components.inputGroup
 import tornadofx.*
 
 
@@ -13,6 +14,7 @@ class ConfigView : View("Config editor") {
       item("Simulation Config", expanded = true) {
         vbox {
           form {
+            errorLabel(configError)
             fieldset("Map") {
               errorLabel(mapGroupError)
               input<MapGroup.MapWidth, _>(mapWidth)
@@ -44,6 +46,23 @@ class ConfigView : View("Config editor") {
             }
 
             borderpane {
+              left {
+                fieldset("Config File") {
+                  inputGroup {
+                    button("Import") {
+                      action {
+                        importConfig()
+                      }
+                    }
+
+                    button("Export") {
+                      action {
+                        exportConfig()
+                      }
+                    }
+                  }
+                }
+              }
               right {
                 button("Save") {
                   enableWhen(isValid)
@@ -68,12 +87,12 @@ class ConfigView : View("Config editor") {
               }
 
               fieldset("Csv Export") {
+                errorLabel(exportStatisticsGroupError)
                 toggleSwitch<CsvExportEnabled>(csvExportEnabled)
-                input<Filename, _>(filename) {
+                input<Filename, _>(filename, csvExportEnabled) {
                   enableWhen(csvExportEnabled)
                 }
               }
-
 
               borderpane {
                 right {

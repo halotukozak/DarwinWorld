@@ -3,8 +3,10 @@ package frontend.config
 import backend.config.*
 import frontend.components.ViewModel
 import frontend.simulation.SimulationView
+import javafx.stage.FileChooser
 import kotlinx.coroutines.flow.*
 import shared.*
+import tornadofx.*
 
 class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
 
@@ -51,7 +53,8 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
   val plantGroupError = MutableStateFlow("")
   val animalGroupError = MutableStateFlow("")
   val genomeGroupError = MutableStateFlow("")
-  val configFieldError = MutableStateFlow("")
+  val configError = MutableStateFlow("")
+  val exportStatisticsGroupError = MutableStateFlow("")
 
   private inline fun <T> safeFieldInit(errorStateFlow: MutableStateFlow<String>, block: () -> T): T? = try {
     errorStateFlow.update { "" }
@@ -116,10 +119,6 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
         }
       }.stateIn(this)
 
-      isValid = combine(mapGroup, plantGroup, animalGroup, genomeGroup) { args ->
-        args.none { it == null }
-      }.stateIn(this)
-
       statisticsConfig = combine(
         births,
         deaths,
@@ -130,21 +129,26 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
         gens,
         genomes,
         csvExportEnabled,
-      ) { (births, deaths, population, plantDensity, dailyAverageEnergy, dailyAverageAge, gens, genomes, csvExportEnabled) ->
-        filename.value?.let {
-          StatisticsConfig(
-            Births(births),
-            Deaths(deaths),
-            Population(population),
-            PlantDensity(plantDensity),
-            DailyAverageEnergy(dailyAverageEnergy),
-            DailyAverageAge(dailyAverageAge),
-            Gens(gens),
-            Genomes(genomes),
-            CsvExportEnabled(csvExportEnabled),
-            Filename(it),
-          )
-        }
+      ) { arrayOf(*it) }
+        .zip(filename) { (births, deaths, population, plantDensity, dailyAverageEnergy, dailyAverageAge, gens, genomes, csvExportEnabled), filename ->
+          safeFieldInit(exportStatisticsGroupError) {
+            StatisticsConfig(
+              Births(births),
+              Deaths(deaths),
+              Population(population),
+              PlantDensity(plantDensity),
+              DailyAverageEnergy(dailyAverageEnergy),
+              DailyAverageAge(dailyAverageAge),
+              Gens(gens),
+              Genomes(genomes),
+              CsvExportEnabled(csvExportEnabled),
+              Filename(filename ?: ""),
+            )
+          }
+        }.stateIn(this)
+
+      isValid = combine(mapGroup, plantGroup, animalGroup, genomeGroup, statisticsConfig) { args ->
+        args.none { it == null }
       }.stateIn(this)
 
       simulationConfig = combine(
@@ -155,7 +159,7 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
         statisticsConfig,
       ) { mapGroup, plantGroup, animalGroup, genomeGroup, statisticsConfig ->
         isValid.value.ifTrue {
-          safeFieldInit(configFieldError) {
+          safeFieldInit(configError) {
             Config(
               mapWidth = mapGroup!!.mapWidth.value,
               mapHeight = mapGroup.mapHeight.value,
@@ -179,14 +183,55 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
               dailyAverageAge = statisticsConfig.dailyAverageAge.value,
               gens = statisticsConfig.gens.value,
               genomes = statisticsConfig.genomes.value,
-              csvExportEnabled = true,
-              filename = "statistics.csv",
+              csvExportEnabled = statisticsConfig.csvExportEnabled.value,
+              filename = statisticsConfig.filename.value,
             )
           }
         }
       }.stateIn(this)
     }
   }
+
+  fun importConfig() =
+    chooseFile("Choose a file to import", arrayOf(FileChooser.ExtensionFilter("Json", "*.json"))).firstOrNull()?.let {
+      val config = Config.fromFile(it)
+
+      mapWidth.update { config.mapWidth } //todo it's duplicated again and again
+      mapHeight.update { config.mapHeight }
+      initialPlants.update { config.initialPlants }
+      nutritionScore.update { config.nutritionScore }
+      plantsPerDay.update { config.plantsPerDay }
+      plantGrowthVariant.update { config.plantGrowthVariant }
+      initialAnimals.update { config.initialAnimals }
+      initialAnimalEnergy.update { config.initialAnimalEnergy }
+      satietyEnergy.update { config.satietyEnergy }
+      reproductionEnergyRatio.update { config.reproductionEnergyRatio }
+      minMutations.update { config.minMutations }
+      maxMutations.update { config.maxMutations }
+      mutationVariant.update { config.mutationVariant }
+      genomeLength.update { config.genomeLength }
+      births.update { config.births }
+      deaths.update { config.deaths }
+      population.update { config.population }
+      plantDensity.update { config.plantDensity }
+      dailyAverageEnergy.update { config.dailyAverageEnergy }
+      dailyAverageAge.update { config.dailyAverageAge }
+      gens.update { config.gens }
+      genomes.update { config.genomes }
+      csvExportEnabled.update { config.csvExportEnabled }
+      filename.update { config.filename }
+    }
+
+  fun exportConfig() = chooseFile(
+    "Choose a file to export",
+    arrayOf(FileChooser.ExtensionFilter("Json", "*.json")),
+    mode = FileChooserMode.Save,
+  )
+    .firstOrNull()
+    ?.let {
+      simulationConfig.value?.toFile(it)
+    }
+
 
   fun saveConfig() = simulationConfig.value?.let {
     SimulationView(it).openWindow(resizable = false)

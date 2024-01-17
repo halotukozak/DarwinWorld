@@ -13,7 +13,13 @@ data class StatisticsConfig(
   val genomes: Genomes = default(),
   val csvExportEnabled: CsvExportEnabled = default(),
   val filename: Filename = default(),
-)
+) {
+  init {
+    require(!csvExportEnabled.value || Filename.isValid(filename.value)) {
+      "Filename must be valid when csv export is enabled"
+    }
+  }
+}
 
 abstract class BooleanConfigFieldInfo : ConfigFieldInfo<Boolean>() {
   override val errorMessage: String = ""
