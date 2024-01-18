@@ -3,7 +3,6 @@ package backend.map
 import backend.config.Config
 import kotlinx.coroutines.flow.update
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 
 class JungleMap(config: Config) : AbstractMap(config) {
@@ -39,7 +38,7 @@ class JungleMap(config: Config) : AbstractMap(config) {
 
 
   private fun seedRandomly(emptyFields: List<Vector>, numberOfSeeds: Int) =
-    generateSequence { emptyFields[Random.nextInt(emptyFields.size)] }
+    generateSequence { emptyFields[random.nextInt(emptyFields.size)] }
       .distinct()
       .take(numberOfSeeds)
 }

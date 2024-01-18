@@ -4,6 +4,7 @@ import backend.GenMutator
 import backend.config.Config
 import backend.model.Animal
 import backend.model.Direction
+import backend.model.Gen
 import backend.model.Genome
 import kotlinx.coroutines.flow.*
 import shared.*
@@ -11,6 +12,7 @@ import kotlin.random.Random
 
 @Suppress("PropertyName")
 abstract class AbstractMap(protected val config: Config) {
+  protected val random = Random(config.seed)
 
   private val mutator = GenMutator(config)
 
@@ -27,7 +29,7 @@ abstract class AbstractMap(protected val config: Config) {
   init {
     _animals.update {
       generateSequence {
-        Vector(Random.nextInt(config.mapWidth), Random.nextInt(config.mapHeight))
+        Vector(random.nextInt(config.mapWidth), random.nextInt(config.mapHeight))
       }
         .distinct()
         .take(config.initialAnimals)
@@ -38,8 +40,8 @@ abstract class AbstractMap(protected val config: Config) {
           List(n) {
             Animal(
               config.initialAnimalEnergy,
-              Genome.random(config.genomeLength),
-              Direction.random()
+              Genome(List(config.genomeLength) { Gen.random(random) }, random.nextInt(config.genomeLength)),
+              Direction.random(random)
             )
           }
         }

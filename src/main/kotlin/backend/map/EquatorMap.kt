@@ -25,14 +25,14 @@ class EquatorMap(config: Config) : AbstractMap(config) {
 
     val plantsBesideEquator = min(emptyFieldsBesideEquator.size, plantsCount - plantsOnEquator)
 
-    plants + emptyFieldsOnEquator.takeRandom(plantsOnEquator) + emptyFieldsBesideEquator.takeRandom(plantsBesideEquator)
+    plants + emptyFieldsOnEquator.takeRandom(plantsOnEquator, random) + emptyFieldsBesideEquator.takeRandom(plantsBesideEquator, random)
   }
 }
 
 
-fun <T> List<T>.takeRandom(n: Int = 1) =
+fun <T> List<T>.takeRandom(n: Int = 1, random: Random) =
   generateSequence {
-    this[Random.nextInt(size)]
+    this[random.nextInt(size)]
   }
     .distinct()
     .take(n)
