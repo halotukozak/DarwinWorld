@@ -13,28 +13,20 @@ class EquatorMap(config: Config) : AbstractMap(config) {
       .roundToInt()
       .let { equatorHeight -> ((config.mapHeight - equatorHeight) / 2)..<((config.mapHeight + equatorHeight) / 2) }
 
-  override fun growPlants(plantsCount: Int) =
-    _plants.update { plants ->
-      val dupa = plants.toMutableSet() //todo
-      val addPlantsRandomly = { emptyFields: List<Vector>, numberOfPlants: Int ->
-        emptyFields
-          .takeRandom(numberOfPlants, random)
-          .forEach(dupa::add)
-      }
+  override fun growPlants(plantsCount: Int) = _plants.update { plants ->
+    fun IntRange.emptyFields(x: Int) = fields.filter { it.x == x && it.y in this } - plants
 
-      fun IntRange.emptyFields(x: Int) = fields.filter { it.x == x && it.y in this } - plants
+    val emptyFieldsOnEquator = (0..<config.mapWidth).flatMap { equator.emptyFields(it) }
+    val plantsOnEquator = min(emptyFieldsOnEquator.size, (plantsCount * 0.8).roundToInt())
 
-      val emptyFieldsOnEquator = (0..<config.mapWidth).flatMap { equator.emptyFields(it) }
-      val plantsOnEquator = min(emptyFieldsOnEquator.size, (plantsCount * 0.8).roundToInt())
-      addPlantsRandomly(emptyFieldsOnEquator, plantsOnEquator)
-
-      val emptyFieldsBesideEquator = (0..<config.mapWidth).flatMap { x ->
-        (0..<equator.first).emptyFields(x) + (equator.last + 1..<config.mapHeight).emptyFields(x)
-      }
-      val plantsBesideEquator = min(emptyFieldsBesideEquator.size, plantsCount - plantsOnEquator)
-      addPlantsRandomly(emptyFieldsBesideEquator, plantsBesideEquator)
-      dupa
+    val emptyFieldsBesideEquator = (0..<config.mapWidth).flatMap { x ->
+      (0..<equator.first).emptyFields(x) + (equator.last + 1..<config.mapHeight).emptyFields(x)
     }
+
+    val plantsBesideEquator = min(emptyFieldsBesideEquator.size, plantsCount - plantsOnEquator)
+
+    plants + emptyFieldsOnEquator.takeRandom(plantsOnEquator, random) + emptyFieldsBesideEquator.takeRandom(plantsBesideEquator, random)
+  }
 }
 
 

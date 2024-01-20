@@ -1,16 +1,23 @@
 package shared
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 inline fun <T, U, V> Flow<Pair<T, U>>.mapValues(crossinline f: suspend (T, U) -> V) =
   map { (t, u) -> t to f(t, u) }
 
+inline fun <T, U, S> Flow<Pair<T, U>>.mapKeys(crossinline f: suspend (T, U) -> S) =
+  map { (t, u) -> f(t, u) to u }
+
 inline fun <T, U, V> Flow<Pair<T, U>>.mapValues(crossinline f: suspend (U) -> V): Flow<Pair<T, V>> =
   map { (t, u) -> t to f(u) }
 
-fun <K, V> Flow<Pair<K, V>>.group(): Flow<Pair<K, List<V>>> = flow {//todo idk if it works
+inline fun <T, U, S> Flow<Pair<T, U>>.mapKeys(crossinline f: suspend (T) -> S): Flow<Pair<S, U>> =
+  map { (t, u) -> f(t) to u }
+
+fun <K, V> Flow<Pair<K, V>>.group(): Flow<Pair<K, List<V>>> = flow {
   val storage = mutableMapOf<K, MutableList<V>>()
   collect { t -> storage.getOrPut(t.first) { mutableListOf() } += t.second }
   storage.forEach { (k, ts) -> emit(k to ts) }

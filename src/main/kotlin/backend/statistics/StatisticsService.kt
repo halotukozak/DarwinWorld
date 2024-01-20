@@ -5,8 +5,10 @@ import backend.map.Vector
 import backend.model.Animal
 import backend.model.Gen
 import backend.model.Genome
+import javafx.scene.chart.PieChart
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import metrics.Day
 import metrics.collector.Collector
 import metrics.collector.MutableCollector
@@ -89,6 +91,14 @@ class StatisticsService(simulationConfig: Config) {
   val isGenCollectorEnabled = simulationConfig.gens
   private val _genCollector by lazy { MutableCollector<Gen>(range) }
   val genCollector: Collector<Gen> by lazy { _genCollector }
+
+  val presentGens by lazy {
+    genCollector.map {
+      it.toList().lastOrNull()?.second?.sortedBy { it.first }?.map { (gen, count) ->
+        PieChart.Data(gen.name, count.toDouble())
+      }
+    }
+  }
 
   val isGenomeCollectorEnabled = simulationConfig.genomes
   private val _genomeCollector by lazy { MutableCollector<Genome>(range) }

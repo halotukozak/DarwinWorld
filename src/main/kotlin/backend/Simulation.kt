@@ -77,7 +77,7 @@ class Simulation(
   fun slower() = _dayDuration.updateAndGet { it + 100 }
 
 
-  override fun close() {
+  override fun close() { ///todo make it working
     launchMainImmediate { simulationJob.cancelAndJoin() }
   }
 

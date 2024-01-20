@@ -8,7 +8,6 @@ import frontend.components.View
 import frontend.components.card
 import frontend.components.fontIcon
 import javafx.scene.chart.NumberAxis
-import javafx.scene.chart.PieChart
 import javafx.scene.chart.XYChart
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -116,10 +115,8 @@ class StatisticsView(
             vbox {
               piechart("Present") {
                 animated = false
-                genCollector.onUpdate {
-                  data.setAll(it.toList().lastOrNull()?.second?.sortedBy { it.first }?.map { (gen, count) ->
-                    PieChart.Data(gen.name, count.toDouble()) //todo to view model
-                  })
+                presentGens.onUpdate {
+                  data.setAll(it)
                 }
               }
               linechart("Gens", NumberAxis(), NumberAxis()) {
