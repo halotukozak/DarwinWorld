@@ -25,7 +25,14 @@ class EquatorMap(config: Config) : AbstractMap(config) {
 
     val plantsBesideEquator = min(emptyFieldsBesideEquator.size, plantsCount - plantsOnEquator)
 
-    plants + emptyFieldsOnEquator.takeRandom(plantsOnEquator, random) + emptyFieldsBesideEquator.takeRandom(plantsBesideEquator, random)
+    plants + emptyFieldsOnEquator.takeRandom(plantsOnEquator, random) + emptyFieldsBesideEquator.takeRandom(
+      plantsBesideEquator,
+      random
+    )
+  }
+
+  override fun updatePreferredFields() = _preferredFields.update {
+    equator.flatMap { y -> (0..<config.mapWidth).map { x -> Vector(x, y) } }.toSet() - _plants.value
   }
 }
 
@@ -36,4 +43,3 @@ fun <T> List<T>.takeRandom(n: Int = 1, random: Random) =
   }
     .distinct()
     .take(n)
-

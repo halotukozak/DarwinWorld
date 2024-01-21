@@ -25,6 +25,11 @@ class JungleMap(config: Config) : AbstractMap(config) {
     }
   }
 
+  override fun updatePreferredFields() = _preferredFields.update {
+    _plants.value.flatMap(::getSurroundingPositions)
+      .filter { it.x in 0..<config.mapWidth && it.y in 0..<config.mapHeight }.toSet() - _plants.value
+  }
+
   private fun getSurroundingPositions(position: Vector) = listOf(
     Vector(position.x - 1, position.y - 1),
     Vector(position.x, position.y - 1),

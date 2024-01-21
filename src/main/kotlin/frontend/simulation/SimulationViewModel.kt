@@ -41,7 +41,29 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
     }
   }
 
+  val preferredFields: Flow<List<PreferredFieldModel>> = simulation.preferredFields.map { fields ->
+    fields.map { field ->
+      PreferredFieldModel(
+        field.x.toDouble(),
+        field.y.toDouble()
+      )
+    }
+  }
+
   val fasterDisabled = simulation.dayDuration.map { it < 100 }
+
+  val infoDisabled = with(simulationConfig) {
+    listOf(
+      births,
+      deaths,
+      population,
+      plantDensity,
+      dailyAverageEnergy,
+      dailyAverageAge,
+      gens,
+      genomes,
+    ).none { it }
+  }
 
   override suspend fun clean() {
     simulation.close()
@@ -70,6 +92,13 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
   ) {
     val x: Double = (x + 0.5) / simulationConfig.mapWidth * mapWidth
     val y: Double = (y + 0.5) / simulationConfig.mapHeight * mapHeight
+  }
+
+  inner class PreferredFieldModel(
+    x: Double, y: Double
+  ) {
+    val x: Double = x / simulationConfig.mapWidth * mapWidth
+    val y: Double = y / simulationConfig.mapHeight * mapHeight
   }
 }
 
