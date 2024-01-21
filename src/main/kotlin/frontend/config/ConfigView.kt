@@ -32,7 +32,6 @@ class ConfigView : View("Config editor") {
               errorLabel(mapGroupError)
               input<MapWidth, _>(mapWidth)
               input<MapHeight, _>(mapHeight)
-              seedInput()
             }
 
             fieldset("Plants") {
@@ -60,23 +59,6 @@ class ConfigView : View("Config editor") {
             }
 
             borderpane {
-              left {
-                fieldset("Config File") {
-                  inputGroup {
-                    button("Import") {
-                      action {
-                        importConfig()
-                      }
-                    }
-
-                    button("Export") {
-                      action {
-                        exportConfig()
-                      }
-                    }
-                  }
-                }
-              }
               right {
                 button("Save") {
                   enableWhen(isValid)
@@ -86,33 +68,59 @@ class ConfigView : View("Config editor") {
             }
           }
         }
-        item("Statistics Config") {
-          vbox {
-            form {
-              fieldset("Metrics") {
-                toggleSwitch<Births>(births)
-                toggleSwitch<Deaths>(deaths)
-                toggleSwitch<Population>(population)
-                toggleSwitch<PlantDensity>(plantDensity)
-                toggleSwitch<DailyAverageEnergy>(dailyAverageEnergy)
-                toggleSwitch<DailyAverageAge>(dailyAverageAge)
-                toggleSwitch<Gens>(gens)
-                toggleSwitch<Genomes>(genomes)
-              }
+      }
+      item("Statistics Config") {
+        vbox {
+          form {
+            fieldset("Metrics") {
+              toggleSwitch<Births>(births)
+              toggleSwitch<Deaths>(deaths)
+              toggleSwitch<Population>(population)
+              toggleSwitch<PlantDensity>(plantDensity)
+              toggleSwitch<DailyAverageEnergy>(dailyAverageEnergy)
+              toggleSwitch<DailyAverageAge>(dailyAverageAge)
+              toggleSwitch<Gens>(gens)
+              toggleSwitch<Genomes>(genomes)
+            }
 
-              fieldset("Csv Export") {
-                errorLabel(exportStatisticsGroupError)
-                toggleSwitch<CsvExportEnabled>(csvExportEnabled)
-                input<Filename, _>(filename, csvExportEnabled) {
-                  enableWhen(csvExportEnabled)
+            fieldset("Csv Export") {
+              errorLabel(exportStatisticsGroupError)
+              toggleSwitch<CsvExportEnabled>(csvExportEnabled)
+              input<Filename, _>(filename, csvExportEnabled) {
+                enableWhen(csvExportEnabled)
+              }
+            }
+
+            borderpane {
+              right {
+                button("Save") {
+                  enableWhen(isValid)
+                  action { saveConfig() }
                 }
               }
+            }
+          }
+        }
+      }
+      item("General Config") {
+        vbox {
+          form {
+            fieldset {
+              seedInput()
 
-              borderpane {
-                right {
-                  button("Save") {
-                    enableWhen(isValid)
-                    action { saveConfig() }
+              field("Import/Export") {
+                helpTooltip("You can import/export the current configuration as a json file.")
+                inputGroup {
+                  button("Import") {
+                    action {
+                      importConfig()
+                    }
+                  }
+
+                  button("Export") {
+                    action {
+                      exportConfig()
+                    }
                   }
                 }
               }

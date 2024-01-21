@@ -2,7 +2,7 @@ package backend.model
 
 import kotlin.random.Random
 
-class Genome(val genes: List<Gen>, private var curr: Int /*= Random.nextInt(genes.size)*/) : Iterator<Gen> {
+class Genome(val genes: List<Gen>, private var curr: Int) : Iterator<Gen> {
   override fun toString(): String = genes.joinToString(", ")
 
   override fun equals(other: Any?): Boolean = when {
