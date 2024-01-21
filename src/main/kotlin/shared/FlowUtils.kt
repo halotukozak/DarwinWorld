@@ -1,9 +1,6 @@
 package shared
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 
 inline fun <T, U, V> Flow<Pair<T, U>>.mapValues(crossinline f: suspend (T, U) -> V) =
   map { (t, u) -> t to f(t, u) }
@@ -27,3 +24,5 @@ inline fun <reified T> mix(vararg flows: Flow<T>): Flow<Array<T>> = combine(*flo
 
 val Flow<Boolean>.not
   get() = map { !it }
+
+fun <T> emptyMutableStateFlow(): MutableStateFlow<T?> = MutableStateFlow(null)

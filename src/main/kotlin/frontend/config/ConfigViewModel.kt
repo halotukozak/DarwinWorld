@@ -13,35 +13,68 @@ import kotlinx.coroutines.flow.*
 import shared.*
 import tornadofx.*
 
-class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
+class ConfigViewModel : ViewModel() {
 
-  val mapWidth: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapWidth)
-  val mapHeight: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.mapHeight)
-  val seed: MutableStateFlow<Long?> = MutableStateFlow(currentConfig.seed)
-  val initialPlants: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.initialPlants)
-  val initialAnimals: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.initialAnimals)
-  val satietyEnergy: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.satietyEnergy)
-  val initialAnimalEnergy: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.initialAnimalEnergy)
-  val nutritionScore: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.nutritionScore)
-  val plantsPerDay: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.plantsPerDay)
-  val plantGrowthVariant: MutableStateFlow<PlantGrowthVariant> = MutableStateFlow(currentConfig.plantGrowthVariant)
-  val reproductionEnergyRatio: MutableStateFlow<Double?> = MutableStateFlow(currentConfig.reproductionEnergyRatio)
-  val minMutations: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.minMutations)
-  val maxMutations: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.maxMutations)
-  val mutationVariant: MutableStateFlow<Double?> = MutableStateFlow(currentConfig.mutationVariant)
-  val genomeLength: MutableStateFlow<Int?> = MutableStateFlow(currentConfig.genomeLength)
+  val mapWidth = emptyMutableStateFlow<Int>()
+  val mapHeight = emptyMutableStateFlow<Int>()
+  val seed = emptyMutableStateFlow<Long>()
+  val initialPlants = emptyMutableStateFlow<Int>()
+  val initialAnimals = emptyMutableStateFlow<Int>()
+  val satietyEnergy = emptyMutableStateFlow<Int>()
+  val initialAnimalEnergy = emptyMutableStateFlow<Int>()
+  val nutritionScore = emptyMutableStateFlow<Int>()
+  val plantsPerDay = emptyMutableStateFlow<Int>()
+  val plantGrowthVariant = MutableStateFlow(PlantGrowthVariant.EQUATOR)
+  val reproductionEnergyRatio = emptyMutableStateFlow<Double>()
+  val minMutations = emptyMutableStateFlow<Int>()
+  val maxMutations = emptyMutableStateFlow<Int>()
+  val mutationVariant = emptyMutableStateFlow<Double>()
+  val genomeLength = emptyMutableStateFlow<Int>()
 
-  val births = MutableStateFlow(currentConfig.births)
-  val deaths = MutableStateFlow(currentConfig.deaths)
-  val population = MutableStateFlow(currentConfig.population)
-  val plantDensity = MutableStateFlow(currentConfig.plantDensity)
-  val dailyAverageEnergy = MutableStateFlow(currentConfig.dailyAverageEnergy)
-  val dailyAverageAge = MutableStateFlow(currentConfig.dailyAverageAge)
-  val gens = MutableStateFlow(currentConfig.gens)
-  val genomes = MutableStateFlow(currentConfig.genomes)
+  val births = MutableStateFlow(false)
+  val deaths = MutableStateFlow(false)
+  val population = MutableStateFlow(false)
+  val plantDensity = MutableStateFlow(false)
+  val dailyAverageEnergy = MutableStateFlow(false)
+  val dailyAverageAge = MutableStateFlow(false)
+  val gens = MutableStateFlow(false)
+  val genomes = MutableStateFlow(false)
 
-  val csvExportEnabled = MutableStateFlow(currentConfig.csvExportEnabled)
-  val filename: MutableStateFlow<String?> = MutableStateFlow(currentConfig.filename)
+  val csvExportEnabled = MutableStateFlow(false)
+  val filename = emptyMutableStateFlow<String>()
+
+  private fun setConfig(config: Config) {
+    mapWidth.value = config.mapWidth
+    mapHeight.value = config.mapHeight
+    seed.value = config.seed
+    initialPlants.value = config.initialPlants
+    nutritionScore.value = config.nutritionScore
+    plantsPerDay.value = config.plantsPerDay
+    plantGrowthVariant.value = config.plantGrowthVariant
+    initialAnimals.value = config.initialAnimals
+    initialAnimalEnergy.value = config.initialAnimalEnergy
+    satietyEnergy.value = config.satietyEnergy
+    reproductionEnergyRatio.value = config.reproductionEnergyRatio
+    minMutations.value = config.minMutations
+    maxMutations.value = config.maxMutations
+    mutationVariant.value = config.mutationVariant
+    genomeLength.value = config.genomeLength
+    births.value = config.births
+    deaths.value = config.deaths
+    population.value = config.population
+    plantDensity.value = config.plantDensity
+    dailyAverageEnergy.value = config.dailyAverageEnergy
+    dailyAverageAge.value = config.dailyAverageAge
+    gens.value = config.gens
+    genomes.value = config.genomes
+    csvExportEnabled.value = config.csvExportEnabled
+    filename.value = config.filename
+  }
+
+  init {
+    setConfig(Config.default)
+  }
+
 
   private lateinit var mapGroup: StateFlow<MapGroup?>
   private lateinit var plantGroup: StateFlow<PlantGroup?>
@@ -205,31 +238,7 @@ class ConfigViewModel(currentConfig: Config = Config.debug) : ViewModel() {
   fun importConfig() =
     chooseFile("Choose a file to import", arrayOf(FileChooser.ExtensionFilter("Json", "*.json"))).firstOrNull()?.let {
       val config = Config.fromFile(it)
-
-      mapWidth.update { config.mapWidth } //todo it's duplicated again and again
-      mapHeight.update { config.mapHeight }
-      initialPlants.update { config.initialPlants }
-      nutritionScore.update { config.nutritionScore }
-      plantsPerDay.update { config.plantsPerDay }
-      plantGrowthVariant.update { config.plantGrowthVariant }
-      initialAnimals.update { config.initialAnimals }
-      initialAnimalEnergy.update { config.initialAnimalEnergy }
-      satietyEnergy.update { config.satietyEnergy }
-      reproductionEnergyRatio.update { config.reproductionEnergyRatio }
-      minMutations.update { config.minMutations }
-      maxMutations.update { config.maxMutations }
-      mutationVariant.update { config.mutationVariant }
-      genomeLength.update { config.genomeLength }
-      births.update { config.births }
-      deaths.update { config.deaths }
-      population.update { config.population }
-      plantDensity.update { config.plantDensity }
-      dailyAverageEnergy.update { config.dailyAverageEnergy }
-      dailyAverageAge.update { config.dailyAverageAge }
-      gens.update { config.gens }
-      genomes.update { config.genomes }
-      csvExportEnabled.update { config.csvExportEnabled }
-      filename.update { config.filename }
+      setConfig(config)
     }
 
   fun exportConfig() = chooseFile(
