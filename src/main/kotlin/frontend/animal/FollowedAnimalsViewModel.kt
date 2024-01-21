@@ -7,7 +7,7 @@ import backend.model.Genome
 import frontend.components.ViewModel
 import frontend.components.fontIcon
 import javafx.event.EventHandler
-import javafx.scene.layout.Pane
+import javafx.scene.layout.HBox
 import javafx.scene.paint.Color
 import javafx.scene.text.Text
 import kotlinx.coroutines.flow.Flow
@@ -64,7 +64,7 @@ class FollowedAnimalsViewModel(
       }
     )
 
-    val age = Pane().apply {
+    val age = HBox().apply {
       text(animal.age.toString())
       fontIcon(
         when {
