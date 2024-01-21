@@ -7,11 +7,12 @@ import javafx.scene.paint.Color
 import kotlinx.coroutines.flow.map
 import org.kordamp.ikonli.Ikon
 import org.kordamp.ikonli.material2.Material2SharpAL
+import shared.mapValues
 import kotlin.collections.component1
 import kotlin.collections.component2
 
 class StatisticsViewModel(val statisticsService: StatisticsService, private val maxPlants: Int) : ViewModel() {
-  fun Number.ofAllPlants() = this.toDouble() * 100 / maxPlants
+  private fun Number.ofAllPlants() = this.toDouble() * 100 / maxPlants
 
   val topGenomes = statisticsService.genomeCollector.map {
     it.takeLast(2).let { (previous, current) ->
@@ -20,7 +21,13 @@ class StatisticsViewModel(val statisticsService: StatisticsService, private val 
         GenomeColumn(genome, count, previousCount)
       }
     }
+  }
 
+  val plantDensityMetricsPercent = statisticsService.plantDensityMetrics.map {
+    it.mapValues { value -> value.ofAllPlants() }
+  }
+  val plantDensityTriplePercent = statisticsService.plantDensityTriple.map {
+    Triple(it.first.ofAllPlants(), it.second.ofAllPlants(), it.third.ofAllPlants())
   }
 }
 
