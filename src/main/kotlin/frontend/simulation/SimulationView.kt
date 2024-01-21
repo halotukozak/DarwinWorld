@@ -2,7 +2,7 @@ package frontend.simulation
 
 import backend.config.Config
 import frontend.components.View
-import frontend.statistics.StatisticsView
+import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.paint.Color
 import javafx.scene.shape.ArcType
@@ -32,11 +32,7 @@ class SimulationView(simulationConfig: Config) : View() {
         }
         button("info") {
           action {
-            StatisticsView(
-              statisticsService,
-              simulationConfig.mapWidth * simulationConfig.mapHeight,
-              simulation.day,
-            ).openWindow()
+            openStatisticsWindow()
           }
         }
 
@@ -72,6 +68,8 @@ class SimulationView(simulationConfig: Config) : View() {
             length = 250.0
             type = ArcType.ROUND
             fill = animal.color
+
+            onMouseClicked = EventHandler { selectAnimal(animal) }
           }
         }
       }

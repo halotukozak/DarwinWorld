@@ -200,7 +200,7 @@ class ConfigViewModel : ViewModel() {
         genomeGroup,
         statisticsGroup,
       ) { mapGroup, plantGroup, animalGroup, genomeGroup, statisticsConfig ->
-        isValid.value.ifTrue {
+        isValid.value.ifTake {
           safeFieldInit(configError) {
             Config(
               mapWidth = mapGroup!!.mapWidth.value,

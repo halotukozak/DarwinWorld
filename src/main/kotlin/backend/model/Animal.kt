@@ -9,9 +9,8 @@ data class Animal(
   val direction: Direction,
   val age: Int = 0,
   val children: Set<Animal> = setOf(),
+  val id: UUID = UUID.randomUUID()
 ) : Comparable<Animal> {
-
-  private val id: UUID = UUID.randomUUID()
 
   fun isDead() = energy <= 0
 
@@ -48,21 +47,5 @@ data class Animal(
     this.energy.compareTo(other.energy) != 0 -> this.energy.compareTo(other.energy)
     this.age.compareTo(other.age) != 0 -> this.age.compareTo(other.age)
     else -> this.children.size.compareTo(other.children.size)
-  }
-
-  override fun equals(other: Any?): Boolean = when {
-    this === other -> true
-    other !is Animal -> false
-    else -> id == other.id
-  }
-
-  override fun hashCode(): Int {
-    var result = energy
-    result = 31 * result + genome.hashCode()
-    result = 31 * result + direction.hashCode()
-    result = 31 * result + age
-    result = 31 * result + children.hashCode()
-    result = 31 * result + id.hashCode()
-    return result
   }
 }

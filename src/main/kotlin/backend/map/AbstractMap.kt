@@ -110,9 +110,9 @@ abstract class AbstractMap(protected val config: Config) {
 
   suspend fun breedAnimals(callback: (Animal) -> Unit = {}) = _animals.update { animals ->
     animals.mapValuesAsync { set ->
-      (set.size >= 2).ifTrue {
+      (set.size >= 2).ifTake {
         val (animal1, animal2) = set.max().let { it to (set - it).max() }
-        (animal2.energy >= config.satietyEnergy).ifTrue {
+        (animal2.energy >= config.satietyEnergy).ifTake {
           set - animal1 - animal2 + animal1.cover(
             animal2,
             config.reproductionEnergyRatio,
