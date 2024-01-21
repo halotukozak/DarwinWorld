@@ -2,8 +2,7 @@ package frontend.animal
 
 import backend.map.Vector
 import backend.model.Animal
-import backend.model.Direction
-import backend.model.Genome
+import backend.model.Direction.*
 import frontend.components.ViewModel
 import frontend.components.fontIcon
 import javafx.event.EventHandler
@@ -17,13 +16,14 @@ import kotlinx.coroutines.flow.update
 import org.kordamp.ikonli.javafx.FontIcon
 import org.kordamp.ikonli.material2.Material2SharpAL
 import org.kordamp.ikonli.material2.Material2SharpMZ
+import shared.truncated
 import tornadofx.*
 import java.util.*
 
 class FollowedAnimalsViewModel(
   val energyStep: Int,
   val followedIds: MutableStateFlow<List<UUID>>,
-  followedAnimals: Flow<List<Pair<Vector, Animal>>>,
+  followedAnimals: Flow<List<Pair<Vector?, Animal>>>,
 ) : ViewModel() {
 
   val animalsInfo = followedAnimals.map { animals ->
@@ -33,11 +33,11 @@ class FollowedAnimalsViewModel(
   }
 
   inner class FollowedAnimal(
-    vector: Vector,
+    vector: Vector?,
     animal: Animal,
   ) {
-    val x: Int = vector.x
-    val y: Int = vector.y
+    val x: Int? = vector?.x
+    val y: Int? = vector?.y
     val energy: Text = Text(animal.energy.toString()).apply {
       style {
         textFill = when (animal.energy) { //todo change to row background if u can
@@ -50,17 +50,20 @@ class FollowedAnimalsViewModel(
       }
     }
 
-    val genome: Genome = animal.genome
+    val genome: Text = Text(animal.genome.toString().truncated(25)).apply {
+      tooltip { text = animal.genome.toString() }
+    }
+
     val direction: FontIcon = FontIcon(
       when (animal.direction) {
-        Direction.N -> Material2SharpMZ.NORTH
-        Direction.S -> Material2SharpMZ.SOUTH
-        Direction.E -> Material2SharpAL.EAST
-        Direction.W -> Material2SharpMZ.WEST
-        Direction.NE -> Material2SharpMZ.NORTH_EAST
-        Direction.NW -> Material2SharpMZ.NORTH_WEST
-        Direction.SE -> Material2SharpMZ.SOUTH_EAST
-        Direction.SW -> Material2SharpMZ.SOUTH_WEST
+        N -> Material2SharpMZ.NORTH
+        S -> Material2SharpMZ.SOUTH
+        E -> Material2SharpAL.EAST
+        W -> Material2SharpMZ.WEST
+        NE -> Material2SharpMZ.NORTH_EAST
+        NW -> Material2SharpMZ.NORTH_WEST
+        SE -> Material2SharpMZ.SOUTH_EAST
+        SW -> Material2SharpMZ.SOUTH_WEST
       }
     )
 
@@ -68,8 +71,9 @@ class FollowedAnimalsViewModel(
       text(animal.age.toString())
       fontIcon(
         when {
+          animal.isDead() -> Material2SharpMZ.WIFI_OFF
           animal.age < 5 -> Material2SharpAL.CHILD_CARE
-          animal.age < 10 -> Material2SharpAL.CHILD_FRIENDLY
+          animal.age < 100 -> Material2SharpAL.CHILD_FRIENDLY
           animal.age > 400 -> Material2SharpAL.ELDERLY
           else -> Material2SharpMZ.PERSON
         }

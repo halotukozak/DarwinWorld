@@ -17,18 +17,18 @@ import java.util.*
 class FollowedAnimalsView(
   energyStep: Int,
   followedIds: MutableStateFlow<List<UUID>>,
-  followedAnimals: Flow<List<Pair<Vector, Animal>>>,
+  followedAnimals: Flow<List<Pair<Vector?, Animal>>>,
 ) : View() {
 
-  override val viewModel: FollowedAnimalsViewModel = FollowedAnimalsViewModel(energyStep,followedIds, followedAnimals)
+  override val viewModel: FollowedAnimalsViewModel = FollowedAnimalsViewModel(energyStep, followedIds, followedAnimals)
 
   override val root = with(viewModel) {
     card {
       styleClass += (Styles.ELEVATED_1)
 
       header = Tile(
-        "Followed animals information",
-        "This is a description",
+        "Followed animals",
+        "Information about the animals you follow.",//todo
       )
 
       body = tableview {
