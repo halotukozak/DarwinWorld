@@ -82,10 +82,10 @@ abstract class AbstractMap(protected val config: Config) {
           }
         }
         .map { (newPosition, animal) ->
-          if (newPosition.y in 0..<config.mapHeight)
-            newPosition to animal
-          else
-            newPosition.copy(y = newPosition.y) to animal.turnBack()
+          when (newPosition.y) {
+            in 0..<config.mapHeight -> newPosition to animal
+            else -> newPosition.copy(y = position.y) to animal.turnBack()
+          }
         }
         .group()
         .toList()
