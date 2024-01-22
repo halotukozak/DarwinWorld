@@ -1,11 +1,9 @@
 package backend.map
 
-import backend.GenMutator
+import backend.GenomeManager
 import backend.config.Config
 import backend.model.Animal
 import backend.model.Direction
-import backend.model.Gen
-import backend.model.Genome
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import shared.*
@@ -15,48 +13,47 @@ import kotlin.random.Random
 abstract class AbstractMap(protected val config: Config) {
   protected val random = Random(config.seed)
 
-  private val mutator = GenMutator(config)
+  private val mutator = GenomeManager(config)
 
   val fields = (0..<config.mapWidth).flatMap { x ->
     (0..<config.mapHeight).map { y -> Vector(x, y) }
   }
 
-  protected val _animals = MutableStateFlow(fields.map { it to emptyList<Animal>() })
+  protected val _animals = MutableStateFlow(generateSequence {
+    Vector(random.nextInt(config.mapWidth), random.nextInt(config.mapHeight))
+  }
+    .take(config.initialAnimals)
+    .groupingBy { it }
+    .eachCount()
+    .toList()
+    .let { generated ->
+      generated + (fields - generated.map { it.first }.toSet()).map { it to 0 }
+    }
+    .mapValues { n ->
+      List(n) {
+        Animal(
+          config.initialAnimalEnergy,
+          mutator.random(),
+          Direction.random(random)
+        )
+      }
+    })
   protected val _plants = MutableStateFlow(emptySet<Vector>())
+  protected val _preferredFields = MutableStateFlow(emptySet<Vector>())
 
   val animals: StateFlow<List<Pair<Vector, List<Animal>>>> = _animals
   val plants: StateFlow<Set<Vector>> = _plants
-
-  init {
-    _animals.update {
-      generateSequence {
-        Vector(random.nextInt(config.mapWidth), random.nextInt(config.mapHeight))
-      }
-        .distinct()
-        .take(config.initialAnimals)
-        .groupBy { it }
-        .toList()
-        .mapValues { vectors -> vectors.size }
-        .mapValues { n ->
-          List(n) {
-            Animal(
-              config.initialAnimalEnergy,
-              Genome(List(config.genomeLength) { Gen.random(random) }, random.nextInt(config.genomeLength)),
-              Direction.random(random)
-            )
-          }
-        }
-    }
-  }
+  val preferredFields: StateFlow<Set<Vector>> = _preferredFields
 
   private suspend fun updateAnimals(f: Animal.() -> Animal, callback: suspend (List<Animal>) -> Unit) =
-    _animals.update {
-      it.mapValuesAsync { set -> set.map(f) }.also {
-        callback(it.flattenValues()) //todo maybe launch?
+    _animals.update { animals ->
+      animals.mapValuesAsync { set -> set.map(f) }.also {
+        callback(it.flattenValues())
       }
     }
 
   suspend fun growAnimals(callback: suspend (List<Animal>) -> Unit = {}) = updateAnimals(Animal::grow, callback)
+
   suspend fun rotateAnimals(callback: suspend (List<Animal>) -> Unit = {}) = updateAnimals(Animal::rotate, callback)
 
   suspend fun removeDeadAnimals(callback: suspend (List<Animal>) -> Unit = {}) = _animals.update {
@@ -127,5 +124,6 @@ abstract class AbstractMap(protected val config: Config) {
     }
   }
 
-  abstract fun growPlants(plantsCount: Int)
+  abstract suspend fun growPlants(plantsCount: Int)
+
 }

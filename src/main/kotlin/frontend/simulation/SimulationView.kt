@@ -1,61 +1,84 @@
 package frontend.simulation
 
 import backend.config.Config
+import frontend.DarwinStyles
 import frontend.components.View
+import frontend.components.toggleSwitch
+import frontend.components.toolBar
 import javafx.event.EventHandler
+import javafx.geometry.Orientation
 import javafx.geometry.Pos
-import javafx.scene.paint.Color
 import javafx.scene.shape.ArcType
+import javafx.stage.StageStyle
+import org.kordamp.ikonli.javafx.FontIcon
+import org.kordamp.ikonli.material2.Material2AL
+import org.kordamp.ikonli.material2.Material2SharpAL
 import tornadofx.*
 
 class SimulationView(simulationConfig: Config) : View() {
-
   override val viewModel: SimulationViewModel = SimulationViewModel(simulationConfig)
 
   override val root = with(viewModel) {
+    val pauseResumeButton = toggleSwitch {
+      selectedProperty().addListener { _, _, isRunning ->
+        if (isRunning) simulation.resume() else simulation.pause()
+      }
+    }
+
     vbox {
-      buttonbar {
-        button("run") {
-          hiddenWhen(simulation.isRunning)
-          action { simulation.resume() }
-        }
-        button("pause") {
-          visibleWhen(simulation.isRunning)
-          action { simulation.pause() }
-        }
-        button("faster") {
+      toolBar(
+        button("", FontIcon(Material2AL.FAST_REWIND)) {
+          action { simulation.slower() }
+        },
+        button("", FontIcon(Material2AL.FAST_FORWARD)) {
           disableWhen(fasterDisabled)
           action { simulation.faster() }
-        }
-        button("slower") {
-          action { simulation.slower() }
-        }
-        button("info") {
+        },
+        separator(Orientation.VERTICAL),
+        pauseResumeButton,
+        separator(Orientation.VERTICAL),
+        button("Legend", FontIcon(Material2SharpAL.INFO)) {
+          action {
+            find<LegendView>().openWindow(StageStyle.UTILITY, resizable = false)
+          }
+        },
+        button("Statistics", FontIcon(Material2AL.BAR_CHART)) {
+          disableWhen(statisticsDisabled)
           action {
             openStatisticsWindow()
           }
-        }
-
+        },
+        separator(Orientation.VERTICAL),
         label {
           simulation.dayDuration.onUpdate {
             text = "Day duration: $it ms"
           }
         }
-      }
+      )
 
       stackpane {
         alignment = Pos.TOP_LEFT
         rectangle {
           width = mapWidth
           height = mapHeight
-          fill = Color.WHITE
+          fill = c(DarwinStyles.WHITE)
         }
-        forEach(plants) { plant ->
-          circle {
-            centerX = plant.x
-            centerY = plant.y
-            radius = objectRadius
-            fill = Color.BLUE
+        forEach(preferredFields) { field ->
+          rectangle {
+            x = field.x
+            y = field.y
+            width = 2 * objectRadius
+            height = 2 * objectRadius
+            fill = c(DarwinStyles.LIGHTGREEN)
+          }
+        }
+        forEach(plants) { field ->
+          rectangle {
+            x = field.x
+            y = field.y
+            width = 2 * objectRadius
+            height = 2 * objectRadius
+            fill = c(DarwinStyles.GREEN)
           }
         }
         forEach(animals) { animal ->
@@ -75,4 +98,6 @@ class SimulationView(simulationConfig: Config) : View() {
       }
     }
   }
+
+  fun onClose() = viewModel.simulation.close()
 }

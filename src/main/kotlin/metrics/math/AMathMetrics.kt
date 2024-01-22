@@ -39,10 +39,10 @@ class MutableAAverageMetrics : AAverageMetrics, MutableStateFlow<Double> by Muta
   private var sum = 0.0
 
   override fun register(day: Day, value: Double) = update {
-    val newValue = days.getOrDefault(day, 0.0) + value
-    days[day] = newValue
-    size++
-    sum += newValue
+    val oldValue = days[day]
+    if (oldValue == null) size++
+    days[day] = (oldValue ?: 0.0) + value
+    sum += value
     sum / size
   }
 }

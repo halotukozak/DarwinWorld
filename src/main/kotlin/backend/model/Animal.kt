@@ -1,6 +1,6 @@
 package backend.model
 
-import backend.GenMutator
+import backend.GenomeManager
 import java.util.*
 
 data class Animal(
@@ -9,10 +9,10 @@ data class Animal(
   val direction: Direction,
   val age: Int = 0,
   val children: Set<Animal> = setOf(),
-  val id: UUID = UUID.randomUUID()
+  val id: UUID = UUID.randomUUID(),
 ) : Comparable<Animal> {
 
-  fun isDead() = energy <= 0
+  val isDead by lazy { energy <= 0 }
 
   fun rotate(): Animal = this.copy(direction = direction + genome.next())
   fun turnBack(): Animal = this.copy(direction = direction.opposite)
@@ -22,7 +22,7 @@ data class Animal(
   private fun decreaseEnergy(energy: Int): Animal = this.copy(energy = this.energy - energy)
   private fun withChild(child: Animal): Animal = this.copy(children = children + child)
 
-  fun cover(other: Animal, reproductionEnergyRatio: Double, mutator: GenMutator): List<Animal> {
+  fun cover(other: Animal, reproductionEnergyRatio: Double, mutator: GenomeManager): List<Animal> {
     val (energyLoss1, parent1) = (this.energy * reproductionEnergyRatio).toInt().let {
       it to this.decreaseEnergy(it)
     }

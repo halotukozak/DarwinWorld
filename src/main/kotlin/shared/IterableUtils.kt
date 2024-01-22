@@ -1,8 +1,11 @@
+@file:Suppress("unused")
+
 package shared
 
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
+import kotlin.random.Random
 
 inline fun <T, U, V> List<Pair<T, U>>.mapValues(crossinline f: (T, U) -> V): List<Pair<T, V>> =
   map { (t, u) -> t to f(t, u) }
@@ -42,3 +45,10 @@ suspend inline fun <T, U, V> Iterable<Pair<T, U>>.mapValuesAsync(crossinline f: 
 
 suspend inline fun <T, U, S> Iterable<Pair<T, U>>.mapKeysAsync(crossinline f: suspend (T) -> S): List<Pair<S, U>> =
   asFlow().mapKeys(f).toList()
+
+fun <T> List<T>.takeRandom(n: Int = 1, random: Random) =
+  generateSequence {
+    this[random.nextInt(size)]
+  }
+    .distinct()
+    .take(n)

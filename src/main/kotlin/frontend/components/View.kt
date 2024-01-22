@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.javafx.JavaFx
-import org.kordamp.ikonli.material2.Material2SharpAL
 import shared.CoroutineHandler
 import tornadofx.*
 import kotlin.enums.enumEntries
@@ -78,8 +77,11 @@ abstract class View(
     required: StateFlow<Boolean> = MutableStateFlow(true), //todo does not work
     crossinline op: TextField.() -> Unit = {},
   ) = field(ConfigField.label<U>()) {
-    helpTooltip(ConfigField.description<U>())
+    tooltip(ConfigField.description<U>())
     textfield(property.value.toString()) {
+      property.onUpdate {
+        text = it?.toString() ?: ""
+      }
       textProperty().addListener { _ ->
         decorators.forEach { it.undecorate(this) }
         decorators.clear()
@@ -108,7 +110,7 @@ abstract class View(
   protected inline fun <reified U : ConfigField<Boolean>> EventTarget.toggleSwitch(
     property: MutableStateFlow<Boolean>,
   ) = field(ConfigField.label<U>()) {
-    helpTooltip(ConfigField.description<U>())
+    tooltip(ConfigField.description<U>())
     toggleSwitch {
       isSelected = property.value
       selectedProperty().addListener { _, _, newValue ->
@@ -121,7 +123,7 @@ abstract class View(
   protected inline fun <reified U : ConfigField<T>, reified T : Enum<T>> EventTarget.combobox(
     property: MutableStateFlow<T>,
   ) = field(ConfigField.label<U>()) {
-    helpTooltip(ConfigField.description<U>())
+    tooltip(ConfigField.description<U>())
     val values = enumEntries<T>()
     combobox(SimpleObjectProperty(values.first()), values) {
       valueProperty().addListener { _ ->
@@ -130,18 +132,12 @@ abstract class View(
     }
   }
 
-  fun Node.helpTooltip(text: String) {
-    fontIcon(Material2SharpAL.INFO)
-    tooltip(text)
-  }
-
-
   protected fun Node.errorLabel(error: Flow<String>) = text("") {
     style {
       fill = Color.RED
     }
     error.onUpdate {
-      textProperty().set(it)
+      text = it
     }
   }
 }

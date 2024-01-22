@@ -23,8 +23,8 @@ import kotlin.collections.component2
 
 class StatisticsService(simulationConfig: Config) {
 
-  val simulationExporter by lazy { SimulationExporter(simulationConfig) }
-  val isCsvExportEnabled = simulationConfig.csvExportEnabled
+  private val simulationExporter by lazy { SimulationExporter(simulationConfig) }
+  private val isCsvExportEnabled = simulationConfig.csvExportEnabled
 
   val range = 20
 
@@ -122,7 +122,7 @@ class StatisticsService(simulationConfig: Config) {
     }
   }
 
-  fun registerPlants(n: Int) {
+  private fun registerPlants(n: Int) {
     if (isPlantDensityMetricsEnabled) {
       _plantDensityMetrics.register(n)
       _minPlantDensityMetrics.register(n)
@@ -131,17 +131,27 @@ class StatisticsService(simulationConfig: Config) {
     }
   }
 
-  fun registerAnimals(animals: List<Animal>) {
+  private fun registerAnimals(animals: List<Animal>) {
     if (isPopulationMetricsEnabled) {
       _populationMetrics.register(animals.size)
       _minPopulationMetrics.register(animals.size)
       _maxPopulationMetrics.register(animals.size)
       _avgPopulationMetrics.register(animals.size)
     }
-    if (isDailyAverageEnergyMetricsEnabled)
-      _dailyAverageAgeMetrics.register(animals.map(Animal::age).average())
-    if (isDailyAverageAgeMetricsEnabled)
-      _dailyAverageEnergyMetrics.register(animals.map(Animal::energy).average())
+    if (isDailyAverageEnergyMetricsEnabled) {
+      val avg = animals.map(Animal::age).average()
+      _dailyAverageAgeMetrics.register(avg)
+      _minDailyAverageAgeMetrics.register(avg)
+      _maxDailyAverageAgeMetrics.register(avg)
+      _avgDailyAverageAgeMetrics.register(avg)
+    }
+    if (isDailyAverageAgeMetricsEnabled){
+      val avg = animals.map(Animal::energy).average()
+      _dailyAverageEnergyMetrics.register(avg)
+      _minDailyAverageEnergyMetrics.register(avg)
+      _maxDailyAverageEnergyMetrics.register(avg)
+      _avgDailyAverageEnergyMetrics.register(avg)
+    }
 
     if (isGenCollectorEnabled)
       _genCollector.register(
@@ -152,34 +162,35 @@ class StatisticsService(simulationConfig: Config) {
       )
     if (isGenomeCollectorEnabled)
       _genomeCollector.register(
-        animals.map(Animal::genome).groupingBy { it }.eachCount().toList()
-          .sortedByDescending { it.second }) //extractFromHere
+        animals
+          .map(Animal::genome)
+          .groupingBy { it }
+          .eachCount()
+          .toList()
+          .sortedByDescending { it.second })
   }
 
   fun registerEndOfDay(day: Day, plants: Set<Vector>, animals: List<Animal>) {
     registerPlants(plants.size)
     registerAnimals(animals)
 
-    if (isCsvExportEnabled)
-      export(day)
+    if (isCsvExportEnabled) export(day)
   }
 
-  private fun export(day: Day) {
-    simulationExporter.writeCsv(
-      DailyStatistics(
-        day = day,
-        births = _birthMetrics.value.lastOrNull()?.second,
-        deaths = _deathMetrics.value.lastOrNull()?.second,
-        population = _populationMetrics.value.lastOrNull()?.second,
-        plantDensity = _plantDensityMetrics.value.lastOrNull()?.second,
-        averageAge = _dailyAverageAgeMetrics.value.lastOrNull()?.second,
-        averageEnergy = _dailyAverageEnergyMetrics.value.lastOrNull()?.second,
-        mostPopularGen = _genCollector.value.lastOrNull()?.second?.maxByOrNull { it.second }?.first,
-        mostPopularGenome = _genomeCollector.value.lastOrNull()?.second?.maxByOrNull { it.second }?.first,
-      )
+  private fun export(day: Day) = simulationExporter.writeCsv(
+    DailyStatistics(
+      day = day,
+      births = _birthMetrics.value.lastOrNull()?.second,
+      deaths = _deathMetrics.value.lastOrNull()?.second,
+      population = _populationMetrics.value.lastOrNull()?.second,
+      plantDensity = _plantDensityMetrics.value.lastOrNull()?.second,
+      averageAge = _dailyAverageAgeMetrics.value.lastOrNull()?.second,
+      averageEnergy = _dailyAverageEnergyMetrics.value.lastOrNull()?.second,
+      mostPopularGen = _genCollector.value.lastOrNull()?.second?.maxByOrNull { it.second }?.first,
+      mostPopularGenome = _genomeCollector.value.lastOrNull()?.second?.maxByOrNull { it.second }?.first,
     )
-  }
-}
+  )
 
+}
 
 typealias MinMaxAvgTriple = Triple<Double, Double, Double>

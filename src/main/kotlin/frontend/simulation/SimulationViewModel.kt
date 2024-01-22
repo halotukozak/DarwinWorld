@@ -23,9 +23,7 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
   val mapWidth = mapHeight * simulationConfig.mapWidth / simulationConfig.mapHeight
   val objectRadius = mapHeight / (2 * simulationConfig.mapHeight)
 
-  private val energyStep = simulationConfig.satietyEnergy / 4
-
-  val animals: Flow<List<AnimalModel>> = simulation.animals.map { animals ->
+  val animals = simulation.animals.map { animals ->
     animals.flatMap { (vector, set) ->
       set.map { animal ->
         AnimalModel(
@@ -39,16 +37,30 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
     }
   }
 
-  val plants: Flow<List<PlantModel>> = simulation.plants.map { plants ->
-    plants.map { plant ->
-      PlantModel(
-        plant.x.toDouble(),
-        plant.y.toDouble(),
-      )
-    }
+  val plants = simulation.plants.map { plants ->
+    plants.map { PlantModel(it.x, it.y) }
+  }
+
+  val preferredFields = simulation.preferredFields.map { fields ->
+    fields.map { PlantModel(it.x, it.y) }
   }
 
   val fasterDisabled = simulation.dayDuration.map { it < 100 }
+
+  val statisticsDisabled = simulation.day.map {
+    it < 5 || with(simulationConfig) {
+      listOf(
+        births,
+        deaths,
+        population,
+        plantDensity,
+        dailyAverageEnergy,
+        dailyAverageAge,
+        gens,
+        genomes,
+      ).none { it }
+    }
+  }
 
   fun openStatisticsWindow() = StatisticsView(
     statisticsService,
@@ -82,6 +94,8 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
     }.start()
   }
 
+  private val energyStep = simulationConfig.satietyEnergy / 6
+
 
   private val followedAnimalsView = FollowedAnimalsView(
     energyStep,
@@ -99,6 +113,7 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
     super.clean()
   }
 
+
   inner class AnimalModel(
     val id: UUID,
     x: Double,
@@ -107,10 +122,12 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
     direction: Direction,
   ) {
     val color: Color = when (energy) {
-      in 0..<energyStep -> Color.RED
-      in energyStep..<energyStep * 2 -> Color.ORANGE
-      in energyStep * 2..<energyStep * 3 -> Color.SPRINGGREEN
-      else -> Color.GREEN
+      in 0..<energyStep -> Color.web("#190303")
+      in energyStep..<energyStep * 2 -> Color.web("#450920")
+      in energyStep * 2..<energyStep * 3 -> Color.web("#A53860")
+      in energyStep * 3..<energyStep * 4 -> Color.web("#DA627D")
+      in energyStep * 4..<energyStep * 5 -> Color.web("#30BCED")
+      else -> Color.web("#355070")
     }
     val angle: Double = direction.ordinal * 45.0
     val x: Double = (x + 0.5) / simulationConfig.mapWidth * mapWidth
@@ -118,10 +135,11 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
   }
 
   inner class PlantModel(
-    x: Double, y: Double,
+    x: Int, y: Int,
   ) {
-    val x: Double = (x + 0.5) / simulationConfig.mapWidth * mapWidth
-    val y: Double = (y + 0.5) / simulationConfig.mapHeight * mapHeight
+    val x: Double = x.toDouble() / simulationConfig.mapWidth * mapWidth
+    val y: Double = y.toDouble() / simulationConfig.mapHeight * mapHeight
   }
+
 }
 

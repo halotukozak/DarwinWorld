@@ -71,7 +71,7 @@ class FollowedAnimalsViewModel(
       text(animal.age.toString())
       fontIcon(
         when {
-          animal.isDead() -> Material2SharpMZ.WIFI_OFF
+          animal.isDead -> Material2SharpMZ.WIFI_OFF
           animal.age < 5 -> Material2SharpAL.CHILD_CARE
           animal.age < 100 -> Material2SharpAL.CHILD_FRIENDLY
           animal.age > 400 -> Material2SharpAL.ELDERLY
