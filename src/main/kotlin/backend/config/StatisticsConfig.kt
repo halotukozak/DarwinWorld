@@ -20,7 +20,7 @@ data class StatisticsConfig(
   ) : ConfigField<Boolean>(births) {
     companion object : BooleanConfigFieldInfo() {
       override val label = "Births"
-      override val description = "Count births dailt"
+      override val description = "Count births daily"
     }
   }
 

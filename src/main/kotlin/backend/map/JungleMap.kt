@@ -1,16 +1,19 @@
 package backend.map
 
 import backend.config.Config
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlin.math.roundToInt
 
 
 class JungleMap(config: Config) : AbstractMap(config) {
-  override fun growPlants(plantsCount: Int) {
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override suspend fun growPlants(plantsCount: Int) {
     _plants.update { plants ->
       val preferredPositions = plants
-        .flatMap(::getSurroundingPositions)
-        .filter { it.x in 0..<config.mapWidth && it.y in 0..<config.mapHeight }
+        .asFlow()
+        .flatMapMerge { it.surroundingPositions }
+        .filter { it.inMap() }
         .toSet()
 
       val otherPositions = (fields - preferredPositions)
@@ -18,28 +21,34 @@ class JungleMap(config: Config) : AbstractMap(config) {
       val plantsOnPreferredPositions = minOf(preferredPositions.size, (plantsCount * 0.8).roundToInt())
       val plantsOnOtherPositions = minOf(otherPositions.size, plantsCount - plantsOnPreferredPositions)
 
-      plants + seedRandomly(preferredPositions.toList(), plantsOnPreferredPositions) + seedRandomly(
+      (plants + seedRandomly(preferredPositions.toList(), plantsOnPreferredPositions) + seedRandomly(
         otherPositions,
-        plantsOnOtherPositions
-      )
+        plantsOnOtherPositions,
+      )).also { fields ->
+        _preferredFields.update {
+          fields
+            .asFlow()
+            .flatMapMerge { it.surroundingPositions }
+            .filter { it.inMap() }
+            .toSet() - fields
+        }
+      }
     }
   }
 
-  override fun updatePreferredFields() = _preferredFields.update {
-    _plants.value.flatMap(::getSurroundingPositions)
-      .filter { it.x in 0..<config.mapWidth && it.y in 0..<config.mapHeight }.toSet() - _plants.value
-  }
+  private fun Vector.inMap() = x in 0..<config.mapWidth && y in 0..<config.mapHeight
 
-  private fun getSurroundingPositions(position: Vector) = listOf(
-    Vector(position.x - 1, position.y - 1),
-    Vector(position.x, position.y - 1),
-    Vector(position.x + 1, position.y - 1),
-    Vector(position.x - 1, position.y),
-    Vector(position.x + 1, position.y),
-    Vector(position.x - 1, position.y + 1),
-    Vector(position.x, position.y + 1),
-    Vector(position.x + 1, position.y + 1)
-  )
+  private val Vector.surroundingPositions
+    get() = flowOf(
+      Vector(x - 1, y - 1),
+      Vector(x, y - 1),
+      Vector(x + 1, y - 1),
+      Vector(x - 1, y),
+      Vector(x + 1, y),
+      Vector(x - 1, y + 1),
+      Vector(x, y + 1),
+      Vector(x + 1, y + 1)
+    )
 
 
   private fun seedRandomly(emptyFields: List<Vector>, numberOfSeeds: Int) =

@@ -48,14 +48,12 @@ class Simulation(
     map.consumePlants()
     map.breedAnimals { launch { statisticsService.registerBirth(day.value) } }
     map.growPlants(config.plantsPerDay)
-    map.updatePreferredFields()
 
     statisticsService.registerEndOfDay(day.value, plants.value, animals.value.flattenValues())
   }
 
   private var simulationJob: Job = launch {
     map.growPlants(config.initialPlants)
-    map.updatePreferredFields()
   }
 
   private fun launchSimulation() = launch {
@@ -66,7 +64,6 @@ class Simulation(
   }
 
   fun pause() = _isRunning.update {
-
     simulationJob.cancel()
     false
   }

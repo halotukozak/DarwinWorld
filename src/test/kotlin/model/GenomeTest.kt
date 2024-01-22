@@ -10,6 +10,7 @@ import io.kotest.matchers.shouldNotBe
 import kotlin.random.Random
 
 class GenomeTest : FunSpec({
+
   test("iterator") {
     Genome(listOf(Frp, NAC, Frp, DmNotch, Frp, Frp, NAC, MDM2), 3)
       .iterator()
@@ -32,7 +33,7 @@ class GenomeTest : FunSpec({
         Genome(listOf(NAC, Frp, Frp, DmNotch, Frp, Frp, NAC, MDM2), 2)
   }
 
-  test("random gene") {
+  test("random gen") {
     generateSequence {
       Gen.random(Random)
     }

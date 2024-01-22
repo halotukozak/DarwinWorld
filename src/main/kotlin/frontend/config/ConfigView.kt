@@ -15,6 +15,7 @@ import org.kordamp.ikonli.material2.Material2OutlinedMZ
 import tornadofx.*
 import kotlin.random.Random
 
+
 class ConfigView : View("Config editor") {
   override val viewModel: ConfigViewModel by inject()
 
@@ -156,7 +157,7 @@ class ConfigView : View("Config editor") {
       }
       val right = button("", FontIcon(Material2OutlinedMZ.REFRESH)) {
         onMouseClicked = EventHandler {
-          left.textProperty().set(Random.nextInt().toString())
+          left.text = Random.nextInt().toString()
         }
         addClass(Styles.BUTTON_ICON)
         padding = insets(7, 6, 6, 6)

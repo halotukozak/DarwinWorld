@@ -9,7 +9,7 @@ import io.kotest.matchers.shouldBe
 class GenomeManagerTest : FunSpec({
   fun differences(genome1: List<Gen>, genome2: List<Gen>): Int = genome1.zip(genome2).count { (a, b) -> a != b }
 
-  fun valid_genes(genome1: List<Gen>, genome2: List<Gen>): Boolean =
+  fun validGenes(genome1: List<Gen>, genome2: List<Gen>): Boolean =
     genome1.groupingBy { it }.eachCount() == genome2.groupingBy { it }.eachCount()
 
   test("combine without switching") {
@@ -31,7 +31,7 @@ class GenomeManagerTest : FunSpec({
     result.genes.size shouldBe 12
     val expected1 = genome1.genes.take(4) + genome2.genes.drop(4)
     val expected2 = genome2.genes.dropLast(4) + genome1.genes.takeLast(4)
-    valid_genes(result.genes, expected1) || valid_genes(result.genes, expected2) shouldBe true
+    validGenes(result.genes, expected1) || validGenes(result.genes, expected2) shouldBe true
     differences(result.genes, expected1) == 4 || differences(result.genes, expected2) == 4 shouldBe true
   }
 })

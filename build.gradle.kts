@@ -18,7 +18,7 @@ application {
   )
 }
 
-group = "org.oolab"
+group = "org.darwinWorld"
 version = "1.0-SNAPSHOT"
 
 repositories {

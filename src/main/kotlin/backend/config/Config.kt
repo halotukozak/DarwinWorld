@@ -44,11 +44,11 @@ data class Config(
   }
 
   init {
-    require(initialPlants <= mapWidth * mapHeight) { "Initial plants must be less or equal to map size" }
-    require(minMutations <= maxMutations) { "Min mutations must be less or equal to max mutations" }
-    require(maxMutations <= genomeLength) { "Max mutations must be less or equal to genome length" }
-    require(plantsPerDay <= mapWidth * mapHeight) { "Plants per day must be less or equal to map size" }
-    require(!csvExportEnabled || StatisticsConfig.Filename.isValid(filename)) { "Filename must be valid when csv export is enabled" }
+    requireField(initialPlants <= mapWidth * mapHeight) { "Initial plants must be less or equal to map size" }
+    requireField(minMutations <= maxMutations) { "Min mutations must be less or equal to max mutations" }
+    requireField(maxMutations <= genomeLength) { "Max mutations must be less or equal to genome length" }
+    requireField(plantsPerDay <= mapWidth * mapHeight) { "Plants per day must be less or equal to map size" }
+    requireField(!csvExportEnabled || Filename.isValid(filename)) { "Filename must be valid when csv export is enabled" }
   }
 
   companion object {
@@ -144,12 +144,13 @@ abstract class ConfigFieldInfo<T> {
   abstract val errorMessage: String
 
   abstract fun isValid(it: String): Boolean
-  fun validate(it: String) = kotlin.require(isValid(it)) { errorMessage }
+  fun validate(it: String) = requireField(isValid(it)) { errorMessage }
 }
 
 sealed class ConfigField<out T : Any>(
   val value: T,
 ) {
+
   companion object {
     inline fun <reified U : ConfigField<*>> find() = ConfigField::class.sealedSubclasses.first { it == U::class }
 
@@ -176,6 +177,6 @@ abstract class BooleanConfigFieldInfo : ConfigFieldInfo<Boolean>() {
 
 class InvalidFieldException(message: String) : Exception(message)
 
-private fun require(predicate: Boolean, lazyMessage: () -> String) {
+private fun requireField(predicate: Boolean, lazyMessage: () -> String) {
   if (!predicate) throw InvalidFieldException(lazyMessage())
 }

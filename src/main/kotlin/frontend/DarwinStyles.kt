@@ -6,11 +6,11 @@ class DarwinStyles : Stylesheet() {
 
   init {
     fieldset {
-      padding = CssBox(0.px, 0.px, 0.px, 0.px)
+      padding = box(0.0.px)
     }
 
     textField {
-      padding = CssBox(6.px, 6.px, 6.px, 6.px)
+      padding = box(6.0.px)
     }
 
     comboBox {

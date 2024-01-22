@@ -28,6 +28,7 @@ abstract class AbstractMap(protected val config: Config) {
   val preferredFields: StateFlow<Set<Vector>> = _preferredFields
 
   init {
+    //todo: move to _animals and validate if all fields (also empty) are present
     _animals.update {
       generateSequence {
         Vector(random.nextInt(config.mapWidth), random.nextInt(config.mapHeight))
@@ -127,7 +128,5 @@ abstract class AbstractMap(protected val config: Config) {
     }
   }
 
-  abstract fun growPlants(plantsCount: Int)
-
-  abstract fun updatePreferredFields()
+  abstract suspend fun growPlants(plantsCount: Int)
 }

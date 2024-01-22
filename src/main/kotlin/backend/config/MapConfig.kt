@@ -1,25 +1,7 @@
 package backend.config
 
-import backend.config.ConfigField.Companion.default
 import tornadofx.*
 import kotlin.random.Random
-
-data class MapConfig(
-  val mapWidth: MapWidth = default(),
-  val mapHeight: MapHeight = default(),
-  val initialPlants: InitialPlants = default(),
-  val nutritionScore: NutritionScore = default(),
-  val plantsPerDay: PlantsPerDay = default(),
-  val plantGrowthVariant: PlantGrowthVariantField = default(),
-  val initialAnimals: InitialAnimals = default(),
-  val initialAnimalEnergy: InitialAnimalEnergy = default(),
-  val satietyEnergy: SatietyEnergy = default(),
-  val reproductionEnergyRatio: ReproductionEnergyRatio = default(),
-  val minMutations: MinMutations = default(),
-  val maxMutations: MaxMutations = default(),
-  val mutationVariant: MutationVariant = default(),
-  val genomeLength: GenomeLength = default(),
-)
 
 class MapWidth(
   mapWidth: Int = 50,

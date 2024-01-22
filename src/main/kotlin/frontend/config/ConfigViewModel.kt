@@ -72,7 +72,6 @@ class ConfigViewModel : ViewModel() {
     setConfig(Config.default)
   }
 
-
   private lateinit var simulationConfig: StateFlow<Config?>
 
   val errorMessage = MutableStateFlow("")
