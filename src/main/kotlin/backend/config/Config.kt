@@ -1,6 +1,7 @@
 package backend.config
 
 import backend.config.ConfigField.Companion.default
+import backend.config.ConfigField.Companion.validate
 import backend.config.PlantGrowthVariant.EQUATOR
 import backend.config.StatisticsConfig.*
 import kotlinx.serialization.Serializable
@@ -48,7 +49,7 @@ data class Config(
     requireField(minMutations <= maxMutations) { "Min mutations must be less or equal to max mutations" }
     requireField(maxMutations <= genomeLength) { "Max mutations must be less or equal to genome length" }
     requireField(plantsPerDay <= mapWidth * mapHeight) { "Plants per day must be less or equal to map size" }
-    requireField(!csvExportEnabled || Filename.isValid(filename)) { "Filename must be valid when csv export is enabled" }
+    requireField(!csvExportEnabled || validate<Filename>(filename)) { "Filename must be valid when csv export is enabled" }
   }
 
   companion object {
@@ -152,11 +153,14 @@ sealed class ConfigField<out T : Any>(
 ) {
 
   companion object {
-    inline fun <reified U : ConfigField<*>> find() = ConfigField::class.sealedSubclasses.first { it == U::class }
+    inline fun <reified U : ConfigField<*>> find() =
+      ConfigField::class.sealedSubclasses.first { it == U::class }
 
-    inline fun <reified U : ConfigField<*>> default(): U = find<U>().createInstance() as U
+    inline fun <reified U : ConfigField<*>> default() =
+      find<U>().createInstance() as U
 
-    inline fun <reified U : ConfigField<*>> label() = (find<U>().companionObjectInstance as ConfigFieldInfo<*>).label
+    inline fun <reified U : ConfigField<*>> label() =
+      (find<U>().companionObjectInstance as ConfigFieldInfo<*>).label
 
     inline fun <reified U : ConfigField<*>> description() =
       (find<U>().companionObjectInstance as ConfigFieldInfo<*>).description
@@ -175,7 +179,7 @@ abstract class BooleanConfigFieldInfo : ConfigFieldInfo<Boolean>() {
   override fun isValid(it: String) = true
 }
 
-class InvalidFieldException(message: String) : Exception(message)
+internal class InvalidFieldException(message: String) : Exception(message)
 
 private fun requireField(predicate: Boolean, lazyMessage: () -> String) {
   if (!predicate) throw InvalidFieldException(lazyMessage())

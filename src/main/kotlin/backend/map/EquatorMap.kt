@@ -3,7 +3,6 @@ package backend.map
 import backend.config.Config
 import kotlinx.coroutines.flow.update
 import shared.takeRandom
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 class EquatorMap(config: Config) : AbstractMap(config) {
@@ -17,13 +16,13 @@ class EquatorMap(config: Config) : AbstractMap(config) {
     fun IntRange.emptyFields(x: Int) = fields.filter { it.x == x && it.y in this } - plants
 
     val emptyFieldsOnEquator = (0..<config.mapWidth).flatMap { equator.emptyFields(it) }
-    val plantsOnEquator = min(emptyFieldsOnEquator.size, (plantsCount * 0.8).roundToInt())
+    val plantsOnEquator = minOf(emptyFieldsOnEquator.size, (plantsCount * 0.8).roundToInt())
 
     val emptyFieldsBesideEquator = (0..<config.mapWidth).flatMap { x ->
       (0..<equator.first).emptyFields(x) + (equator.last + 1..<config.mapHeight).emptyFields(x)
     }
 
-    val plantsBesideEquator = min(emptyFieldsBesideEquator.size, plantsCount - plantsOnEquator)
+    val plantsBesideEquator = minOf(emptyFieldsBesideEquator.size, plantsCount - plantsOnEquator)
 
     (plants + emptyFieldsOnEquator.takeRandom(plantsOnEquator, random) + emptyFieldsBesideEquator.takeRandom(
       plantsBesideEquator,

@@ -21,8 +21,8 @@ class AnimalTest : FunSpec() {
 
   init {
     test("isDead") {
-      randomAnimal.copy(energy = 0).isDead() shouldBe true
-      randomAnimal.copy(energy = 1).isDead() shouldBe false
+      randomAnimal.copy(energy = 0).isDead shouldBe true
+      randomAnimal.copy(energy = 1).isDead shouldBe false
     }
 
     test("turnBack") {

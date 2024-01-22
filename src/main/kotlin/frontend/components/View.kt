@@ -72,7 +72,6 @@ abstract class View(
     }
   }
 
-  //todo bind change of property to change of text
   protected inline fun <reified U : ConfigField<T>, reified T : Any> EventTarget.input(
     property: MutableStateFlow<T?>,
     required: StateFlow<Boolean> = MutableStateFlow(true), //todo does not work
@@ -80,6 +79,9 @@ abstract class View(
   ) = field(ConfigField.label<U>()) {
     tooltip(ConfigField.description<U>())
     textfield(property.value.toString()) {
+      property.onUpdate {
+        text = it?.toString() ?: ""
+      }
       textProperty().addListener { _ ->
         decorators.forEach { it.undecorate(this) }
         decorators.clear()

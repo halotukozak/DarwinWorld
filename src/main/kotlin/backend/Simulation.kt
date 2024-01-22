@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.updateAndGet
 import shared.CoroutineHandler
 import shared.flattenValues
 import java.io.Closeable
-import kotlin.math.max
 
 class Simulation(
   private val config: Config,
@@ -74,9 +73,13 @@ class Simulation(
     true
   }
 
-  fun faster() = _dayDuration.updateAndGet { max(50, it - 100) }
-  fun slower() = _dayDuration.updateAndGet { it + 100 }
-
+  fun faster() = _dayDuration.updateAndGet { maxOf(50, it - 100) }
+  fun slower() = _dayDuration.updateAndGet {
+    when {
+      it < 100 -> 0
+      else -> it
+    } + 100
+  }
 
   override fun close() { ///todo make it working
     launchMainImmediate { simulationJob.cancelAndJoin() }

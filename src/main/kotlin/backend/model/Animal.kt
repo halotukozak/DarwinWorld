@@ -12,7 +12,7 @@ data class Animal(
   val id: UUID = UUID.randomUUID(),
 ) : Comparable<Animal> {
 
-  fun isDead() = energy <= 0
+  val isDead by lazy { energy <= 0 }
 
   fun rotate(): Animal = this.copy(direction = direction + genome.next())
   fun turnBack(): Animal = this.copy(direction = direction.opposite)

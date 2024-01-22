@@ -22,6 +22,8 @@ class StatisticsView(
 
   override val viewModel: StatisticsViewModel = StatisticsViewModel(statisticsService, maxPlants)
 
+
+  //todo stylize the charts
   override val root = with(viewModel) {
     with(statisticsService) {
       tabpane {
@@ -60,7 +62,7 @@ class StatisticsView(
         if (isPlantDensityMetricsEnabled) {
           tab("Flora") {
             isClosable = false
-            linechart("Plant Density", NumberAxis(), NumberAxis()) {
+            areachart("Plant Density", NumberAxis(), NumberAxis()) {
               xAxis.isAutoRanging = false
               yAxis.isAutoRanging = false
               day.onUpdate {

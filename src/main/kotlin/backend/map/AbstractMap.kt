@@ -19,7 +19,25 @@ abstract class AbstractMap(protected val config: Config) {
     (0..<config.mapHeight).map { y -> Vector(x, y) }
   }
 
-  protected val _animals = MutableStateFlow(fields.map { it to emptyList<Animal>() })
+  protected val _animals = MutableStateFlow(generateSequence {
+    Vector(random.nextInt(config.mapWidth), random.nextInt(config.mapHeight))
+  }
+    .take(config.initialAnimals)
+    .groupingBy { it }
+    .eachCount()
+    .toList()
+    .let { generated ->
+      generated + (fields - generated.map { it.first }.toSet()).map { it to 0 }
+    }
+    .mapValues { n ->
+      List(n) {
+        Animal(
+          config.initialAnimalEnergy,
+          mutator.random(),
+          Direction.random(random)
+        )
+      }
+    })
   protected val _plants = MutableStateFlow(emptySet<Vector>())
   protected val _preferredFields = MutableStateFlow(emptySet<Vector>())
 
@@ -27,37 +45,15 @@ abstract class AbstractMap(protected val config: Config) {
   val plants: StateFlow<Set<Vector>> = _plants
   val preferredFields: StateFlow<Set<Vector>> = _preferredFields
 
-  init {
-    //todo: move to _animals and validate if all fields (also empty) are present
-    _animals.update {
-      generateSequence {
-        Vector(random.nextInt(config.mapWidth), random.nextInt(config.mapHeight))
-      }
-        .distinct()
-        .take(config.initialAnimals)
-        .groupBy { it }
-        .toList()
-        .mapValues { vectors -> vectors.size }
-        .mapValues { n ->
-          List(n) {
-            Animal(
-              config.initialAnimalEnergy,
-              mutator.random(),
-              Direction.random(random)
-            )
-          }
-        }
-    }
-  }
-
   private suspend fun updateAnimals(f: Animal.() -> Animal, callback: suspend (List<Animal>) -> Unit) =
-    _animals.update {
-      it.mapValuesAsync { set -> set.map(f) }.also {
-        callback(it.flattenValues()) //todo maybe launch?
+    _animals.update { animals ->
+      animals.mapValuesAsync { set -> set.map(f) }.also {
+        callback(it.flattenValues())
       }
     }
 
   suspend fun growAnimals(callback: suspend (List<Animal>) -> Unit = {}) = updateAnimals(Animal::grow, callback)
+
   suspend fun rotateAnimals(callback: suspend (List<Animal>) -> Unit = {}) = updateAnimals(Animal::rotate, callback)
 
   suspend fun removeDeadAnimals(callback: suspend (List<Animal>) -> Unit = {}) = _animals.update {
@@ -113,9 +109,9 @@ abstract class AbstractMap(protected val config: Config) {
 
   suspend fun breedAnimals(callback: (Animal) -> Unit = {}) = _animals.update { animals ->
     animals.mapValuesAsync { set ->
-      (set.size >= 2).ifTrue {
+      (set.size >= 2).ifTake {
         val (animal1, animal2) = set.max().let { it to (set - it).max() }
-        (animal2.energy >= config.satietyEnergy).ifTrue {
+        (animal2.energy >= config.satietyEnergy).ifTake {
           set - animal1 - animal2 + animal1.cover(
             animal2,
             config.reproductionEnergyRatio,
@@ -129,4 +125,5 @@ abstract class AbstractMap(protected val config: Config) {
   }
 
   abstract suspend fun growPlants(plantsCount: Int)
+
 }

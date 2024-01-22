@@ -29,6 +29,6 @@ enum class Gen {
   SHH, DmNotch, MDM2, zCycD1, Frp, NAC, sdf, EGFR;
 
   companion object {
-    fun random(random: Random, excluded: Gen? = null) = entries.filter { it != excluded }.random(random)
+    fun random(random: Random, excluded: Gen? = null) = entries.filterNot { it == excluded }.random(random)
   }
 }

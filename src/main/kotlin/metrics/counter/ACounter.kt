@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.update
 import metrics.AMetrics
 import metrics.Daily
 import metrics.Day
-import shared.ifTrue
+import shared.ifTake
 
 interface ACounter<T : Number> : AMetrics<T, List<Daily<T>>>
 
@@ -15,7 +15,7 @@ class MutableACounter<T : Number>(private val range: Int) : ACounter<T>,
   override fun register(day: Day, value: T) = update {
     it.takeLast(range).let { truncated ->
       truncated.lastOrNull()?.let { (d, v) ->
-        (d == day).ifTrue {
+        (d == day).ifTake {
           truncated.dropLast(1) + (d to v + value)
         }
       } ?: (truncated + (day to value))

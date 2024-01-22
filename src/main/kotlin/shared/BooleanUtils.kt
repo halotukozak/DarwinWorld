@@ -2,4 +2,4 @@
 
 package shared
 
-fun <T> Boolean.ifTrue(f: () -> T): T? = if (this) f() else null
+fun <T> Boolean.ifTake(f: () -> T): T? = if (this) f() else null

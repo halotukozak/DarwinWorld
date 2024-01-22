@@ -8,6 +8,7 @@ import atlantafx.base.theme.Styles
 import javafx.event.EventHandler
 import javafx.event.EventTarget
 import javafx.scene.Node
+import javafx.scene.control.ToolBar
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import org.kordamp.ikonli.Ikon
@@ -37,3 +38,5 @@ fun Pane.notify(message: String) {
     this@notify.children.removeIf { it is Notification }
   }
 }
+
+fun EventTarget.toolBar(vararg children: Node, op: ToolBar.() -> Unit = {}) = opcr(this, ToolBar(*children), op)

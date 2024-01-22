@@ -174,7 +174,9 @@ class ConfigViewModel : ViewModel() {
 
   fun saveConfig() = simulationConfig.value?.let {
     SimulationView(it).let { view ->
-      view.openWindow(resizable = false)?.apply { setOnCloseRequest { view.onClose() } }
+      view.openWindow(resizable = false)?.apply {
+        setOnCloseRequest { view.onClose() }
+      }
     }
   }
 }

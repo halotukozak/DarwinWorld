@@ -138,10 +138,20 @@ class StatisticsService(simulationConfig: Config) {
       _maxPopulationMetrics.register(animals.size)
       _avgPopulationMetrics.register(animals.size)
     }
-    if (isDailyAverageEnergyMetricsEnabled)
-      _dailyAverageAgeMetrics.register(animals.map(Animal::age).average())
-    if (isDailyAverageAgeMetricsEnabled)
-      _dailyAverageEnergyMetrics.register(animals.map(Animal::energy).average())
+    if (isDailyAverageEnergyMetricsEnabled) {
+      val avg = animals.map(Animal::age).average()
+      _dailyAverageAgeMetrics.register(avg)
+      _minDailyAverageAgeMetrics.register(avg)
+      _maxDailyAverageAgeMetrics.register(avg)
+      _avgDailyAverageAgeMetrics.register(avg)
+    }
+    if (isDailyAverageAgeMetricsEnabled){
+      val avg = animals.map(Animal::energy).average()
+      _dailyAverageEnergyMetrics.register(avg)
+      _minDailyAverageEnergyMetrics.register(avg)
+      _maxDailyAverageEnergyMetrics.register(avg)
+      _avgDailyAverageEnergyMetrics.register(avg)
+    }
 
     if (isGenCollectorEnabled)
       _genCollector.register(
@@ -152,8 +162,12 @@ class StatisticsService(simulationConfig: Config) {
       )
     if (isGenomeCollectorEnabled)
       _genomeCollector.register(
-        animals.map(Animal::genome).groupingBy { it }.eachCount().toList()
-          .sortedByDescending { it.second }) //extractFromHere
+        animals
+          .map(Animal::genome)
+          .groupingBy { it }
+          .eachCount()
+          .toList()
+          .sortedByDescending { it.second })
   }
 
   fun registerEndOfDay(day: Day, plants: Set<Vector>, animals: List<Animal>) {
@@ -178,6 +192,5 @@ class StatisticsService(simulationConfig: Config) {
   )
 
 }
-
 
 typealias MinMaxAvgTriple = Triple<Double, Double, Double>
