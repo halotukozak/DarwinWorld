@@ -8,18 +8,12 @@ class Genome(val genes: List<Gen>, private var curr: Int) : Iterator<Gen> {
   override fun equals(other: Any?): Boolean = when {
     this === other -> true
     other !is Genome -> false
-    genes != other.genes -> false
-    else -> true
+    else -> genes == other.genes
   }
 
   override fun hasNext(): Boolean = true
 
   override fun next(): Gen = genes[(curr++) % genes.size]
-
-  fun take(numberOfGenes: Int) = this.genes.take(numberOfGenes)
-  fun takeLast(numberOfGenes: Int) = this.genes.takeLast(numberOfGenes)
-  fun drop(numberOfGenes: Int) = this.genes.drop(numberOfGenes)
-  fun dropLast(numberOfGenes: Int) = this.genes.dropLast(numberOfGenes)
 
   val frequencyMap by lazy { this.genes.groupingBy { it }.eachCount() }
 
@@ -35,6 +29,6 @@ enum class Gen {
   SHH, DmNotch, MDM2, zCycD1, Frp, NAC, sdf, EGFR;
 
   companion object {
-    fun random(random: Random) = entries.random(random)
+    fun random(random: Random, excluded: Gen? = null) = entries.filter { it != excluded }.random(random)
   }
 }

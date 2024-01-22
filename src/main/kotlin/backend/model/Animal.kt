@@ -1,6 +1,6 @@
 package backend.model
 
-import backend.GenMutator
+import backend.GenomeManager
 import java.util.*
 
 data class Animal(
@@ -9,9 +9,8 @@ data class Animal(
   val direction: Direction,
   val age: Int = 0,
   val children: Set<Animal> = setOf(),
+  val id: UUID = UUID.randomUUID(),
 ) : Comparable<Animal> {
-
-  private val id: UUID = UUID.randomUUID()
 
   fun isDead() = energy <= 0
 
@@ -23,7 +22,7 @@ data class Animal(
   private fun decreaseEnergy(energy: Int): Animal = this.copy(energy = this.energy - energy)
   private fun withChild(child: Animal): Animal = this.copy(children = children + child)
 
-  fun cover(other: Animal, reproductionEnergyRatio: Double, mutator: GenMutator): List<Animal> {
+  fun cover(other: Animal, reproductionEnergyRatio: Double, mutator: GenomeManager): List<Animal> {
     val (energyLoss1, parent1) = (this.energy * reproductionEnergyRatio).toInt().let {
       it to this.decreaseEnergy(it)
     }
@@ -48,21 +47,5 @@ data class Animal(
     this.energy.compareTo(other.energy) != 0 -> this.energy.compareTo(other.energy)
     this.age.compareTo(other.age) != 0 -> this.age.compareTo(other.age)
     else -> this.children.size.compareTo(other.children.size)
-  }
-
-  override fun equals(other: Any?): Boolean = when {
-    this === other -> true
-    other !is Animal -> false
-    else -> id == other.id
-  }
-
-  override fun hashCode(): Int {
-    var result = energy
-    result = 31 * result + genome.hashCode()
-    result = 31 * result + direction.hashCode()
-    result = 31 * result + age
-    result = 31 * result + children.hashCode()
-    result = 31 * result + id.hashCode()
-    return result
   }
 }

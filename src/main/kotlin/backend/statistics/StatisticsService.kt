@@ -23,8 +23,8 @@ import kotlin.collections.component2
 
 class StatisticsService(simulationConfig: Config) {
 
-  val simulationExporter by lazy { SimulationExporter(simulationConfig) }
-  val isCsvExportEnabled = simulationConfig.csvExportEnabled
+  private val simulationExporter by lazy { SimulationExporter(simulationConfig) }
+  private val isCsvExportEnabled = simulationConfig.csvExportEnabled
 
   val range = 20
 
@@ -122,7 +122,7 @@ class StatisticsService(simulationConfig: Config) {
     }
   }
 
-  fun registerPlants(n: Int) {
+  private fun registerPlants(n: Int) {
     if (isPlantDensityMetricsEnabled) {
       _plantDensityMetrics.register(n)
       _minPlantDensityMetrics.register(n)
@@ -131,7 +131,7 @@ class StatisticsService(simulationConfig: Config) {
     }
   }
 
-  fun registerAnimals(animals: List<Animal>) {
+  private fun registerAnimals(animals: List<Animal>) {
     if (isPopulationMetricsEnabled) {
       _populationMetrics.register(animals.size)
       _minPopulationMetrics.register(animals.size)
@@ -160,25 +160,23 @@ class StatisticsService(simulationConfig: Config) {
     registerPlants(plants.size)
     registerAnimals(animals)
 
-    if (isCsvExportEnabled)
-      export(day)
+    if (isCsvExportEnabled) export(day)
   }
 
-  private fun export(day: Day) {
-    simulationExporter.writeCsv(
-      DailyStatistics(
-        day = day,
-        births = _birthMetrics.value.lastOrNull()?.second,
-        deaths = _deathMetrics.value.lastOrNull()?.second,
-        population = _populationMetrics.value.lastOrNull()?.second,
-        plantDensity = _plantDensityMetrics.value.lastOrNull()?.second,
-        averageAge = _dailyAverageAgeMetrics.value.lastOrNull()?.second,
-        averageEnergy = _dailyAverageEnergyMetrics.value.lastOrNull()?.second,
-        mostPopularGen = _genCollector.value.lastOrNull()?.second?.maxByOrNull { it.second }?.first,
-        mostPopularGenome = _genomeCollector.value.lastOrNull()?.second?.maxByOrNull { it.second }?.first,
-      )
+  private fun export(day: Day) = simulationExporter.writeCsv(
+    DailyStatistics(
+      day = day,
+      births = _birthMetrics.value.lastOrNull()?.second,
+      deaths = _deathMetrics.value.lastOrNull()?.second,
+      population = _populationMetrics.value.lastOrNull()?.second,
+      plantDensity = _plantDensityMetrics.value.lastOrNull()?.second,
+      averageAge = _dailyAverageAgeMetrics.value.lastOrNull()?.second,
+      averageEnergy = _dailyAverageEnergyMetrics.value.lastOrNull()?.second,
+      mostPopularGen = _genCollector.value.lastOrNull()?.second?.maxByOrNull { it.second }?.first,
+      mostPopularGenome = _genomeCollector.value.lastOrNull()?.second?.maxByOrNull { it.second }?.first,
     )
-  }
+  )
+
 }
 
 

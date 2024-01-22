@@ -2,9 +2,9 @@ package backend.map
 
 import backend.config.Config
 import kotlinx.coroutines.flow.update
+import shared.takeRandom
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 class EquatorMap(config: Config) : AbstractMap(config) {
 
@@ -13,7 +13,7 @@ class EquatorMap(config: Config) : AbstractMap(config) {
       .roundToInt()
       .let { equatorHeight -> ((config.mapHeight - equatorHeight) / 2)..<((config.mapHeight + equatorHeight) / 2) }
 
-  override fun growPlants(plantsCount: Int) = _plants.update { plants ->
+  override suspend fun growPlants(plantsCount: Int) = _plants.update { plants ->
     fun IntRange.emptyFields(x: Int) = fields.filter { it.x == x && it.y in this } - plants
 
     val emptyFieldsOnEquator = (0..<config.mapWidth).flatMap { equator.emptyFields(it) }
@@ -25,15 +25,15 @@ class EquatorMap(config: Config) : AbstractMap(config) {
 
     val plantsBesideEquator = min(emptyFieldsBesideEquator.size, plantsCount - plantsOnEquator)
 
-    plants + emptyFieldsOnEquator.takeRandom(plantsOnEquator, random) + emptyFieldsBesideEquator.takeRandom(plantsBesideEquator, random)
+    (plants + emptyFieldsOnEquator.takeRandom(plantsOnEquator, random) + emptyFieldsBesideEquator.takeRandom(
+      plantsBesideEquator,
+      random,
+    )).also {
+      _preferredFields.update {
+        equator
+          .flatMap { y -> (0..<config.mapWidth).map { x -> Vector(x, y) } }
+          .toSet() - _plants.value
+      }
+    }
   }
 }
-
-
-fun <T> List<T>.takeRandom(n: Int = 1, random: Random) =
-  generateSequence {
-    this[random.nextInt(size)]
-  }
-    .distinct()
-    .take(n)
-

@@ -1,10 +1,12 @@
+package model
+
 import backend.map.Vector
 import backend.model.Direction
 import backend.model.Direction.*
 import backend.model.Gen.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlin.random.Random
 
 class DirectionTest : FunSpec({
 
@@ -55,7 +57,11 @@ class DirectionTest : FunSpec({
   }
 
   test("random") {
-    Direction.random().shouldBeInstanceOf<Direction>()
+    generateSequence {
+      Direction.random(Random)
+    }
+      .take(1000)
+      .toSet() shouldBe setOf(N, NE, E, SE, S, SW, W, NW)
   }
 
   test("getVector") {

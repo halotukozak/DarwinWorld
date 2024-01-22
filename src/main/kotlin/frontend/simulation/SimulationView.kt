@@ -9,7 +9,6 @@ import javafx.scene.shape.ArcType
 import tornadofx.*
 
 class SimulationView(simulationConfig: Config) : View() {
-
   override val viewModel: SimulationViewModel = SimulationViewModel(simulationConfig)
 
   override val root = with(viewModel) {
@@ -31,6 +30,7 @@ class SimulationView(simulationConfig: Config) : View() {
           action { simulation.slower() }
         }
         button("info") {
+          disableProperty().set(infoDisabled)
           action {
             StatisticsView(
               statisticsService,
@@ -53,6 +53,15 @@ class SimulationView(simulationConfig: Config) : View() {
           width = mapWidth
           height = mapHeight
           fill = Color.WHITE
+        }
+        forEach(preferredFields) { field ->
+          rectangle {
+            x = field.x
+            y = field.y
+            width = 2 * objectRadius
+            height = 2 * objectRadius
+            fill = Color.rgb(255, 255, 0, 0.2)
+          }
         }
         forEach(plants) { plant ->
           circle {
@@ -77,4 +86,6 @@ class SimulationView(simulationConfig: Config) : View() {
       }
     }
   }
+
+  fun onClose() = viewModel.simulation.close()
 }

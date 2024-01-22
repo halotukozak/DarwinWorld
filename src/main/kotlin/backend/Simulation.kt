@@ -37,6 +37,7 @@ class Simulation(
 
   val plants = map.plants
   val animals = map.animals
+  val preferredFields = map.preferredFields
 
   private suspend fun nextDay() {
     println("${day.updateAndGet { it + 1 }} day!")

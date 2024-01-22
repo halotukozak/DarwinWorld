@@ -2,7 +2,7 @@ package backend.config
 
 import backend.config.ConfigField.Companion.default
 
-data class StatisticsGroup(
+data class StatisticsConfig(
   val births: Births = default(),
   val deaths: Deaths = default(),
   val population: Population = default(),
@@ -14,24 +14,13 @@ data class StatisticsGroup(
   val csvExportEnabled: CsvExportEnabled = default(),
   val filename: Filename = default(),
 ) {
-  init {
-    require(!csvExportEnabled.value || Filename.isValid(filename.value)) {
-      "Filename must be valid when csv export is enabled"
-    }
-  }
-
-
-  abstract class BooleanConfigFieldInfo : ConfigFieldInfo<Boolean>() {
-    override val errorMessage: String = ""
-    override fun isValid(it: String) = true
-  }
 
   class Births(
     births: Boolean = true,
   ) : ConfigField<Boolean>(births) {
     companion object : BooleanConfigFieldInfo() {
       override val label = "Births"
-      override val description = "Count births dailt"
+      override val description = "Count births daily"
     }
   }
 

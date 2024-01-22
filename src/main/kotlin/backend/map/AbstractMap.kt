@@ -1,11 +1,9 @@
 package backend.map
 
-import backend.GenMutator
+import backend.GenomeManager
 import backend.config.Config
 import backend.model.Animal
 import backend.model.Direction
-import backend.model.Gen
-import backend.model.Genome
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import shared.*
@@ -15,7 +13,7 @@ import kotlin.random.Random
 abstract class AbstractMap(protected val config: Config) {
   protected val random = Random(config.seed)
 
-  private val mutator = GenMutator(config)
+  private val mutator = GenomeManager(config)
 
   val fields = (0..<config.mapWidth).flatMap { x ->
     (0..<config.mapHeight).map { y -> Vector(x, y) }
@@ -23,11 +21,14 @@ abstract class AbstractMap(protected val config: Config) {
 
   protected val _animals = MutableStateFlow(fields.map { it to emptyList<Animal>() })
   protected val _plants = MutableStateFlow(emptySet<Vector>())
+  protected val _preferredFields = MutableStateFlow(emptySet<Vector>())
 
   val animals: StateFlow<List<Pair<Vector, List<Animal>>>> = _animals
   val plants: StateFlow<Set<Vector>> = _plants
+  val preferredFields: StateFlow<Set<Vector>> = _preferredFields
 
   init {
+    //todo: move to _animals and validate if all fields (also empty) are present
     _animals.update {
       generateSequence {
         Vector(random.nextInt(config.mapWidth), random.nextInt(config.mapHeight))
@@ -41,7 +42,7 @@ abstract class AbstractMap(protected val config: Config) {
           List(n) {
             Animal(
               config.initialAnimalEnergy,
-              Genome(List(config.genomeLength) { Gen.random(random) }, random.nextInt(config.genomeLength)),
+              mutator.random(),
               Direction.random(random)
             )
           }
@@ -127,5 +128,5 @@ abstract class AbstractMap(protected val config: Config) {
     }
   }
 
-  abstract fun growPlants(plantsCount: Int)
+  abstract suspend fun growPlants(plantsCount: Int)
 }
