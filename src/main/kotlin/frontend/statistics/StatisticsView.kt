@@ -11,8 +11,6 @@ import javafx.scene.chart.NumberAxis
 import javafx.scene.chart.XYChart
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import shared.mapValues
 import tornadofx.*
 import kotlin.math.max
 
@@ -73,14 +71,8 @@ class StatisticsView(
               }
               (xAxis as NumberAxis).tickUnit = 1.0
               animated = false
-              series("plants", plantDensityMetrics.map { //todo move to viewmodel
-                it.mapValues { v -> v.ofAllPlants() }
-              }) {
-                tripleLegend("plants", plantDensityTriple.map {
-                  Triple(
-                    it.first.ofAllPlants(), it.second.ofAllPlants(), it.third.ofAllPlants()
-                  )
-                })
+              series("plants", plantDensityMetricsPercent) {
+                tripleLegend("plants", plantDensityTriplePercent)
               }
             }
           }

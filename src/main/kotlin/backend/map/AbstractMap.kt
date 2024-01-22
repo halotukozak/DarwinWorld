@@ -4,6 +4,7 @@ import backend.GenomeManager
 import backend.config.Config
 import backend.model.Animal
 import backend.model.Direction
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import shared.*
 import kotlin.random.Random
@@ -67,29 +68,31 @@ abstract class AbstractMap(protected val config: Config) {
     }
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   suspend fun moveAnimals() = _animals.update {
-    it.flatMap { (position, set) ->
-      set
-        .asFlow()
-        .map { animal ->
-          position + animal.direction.vector to animal
-        }
-        .mapKeys { newPosition ->
-          when {
-            newPosition.x < 0 -> newPosition.copy(x = config.mapWidth - 1)
-            newPosition.x >= config.mapWidth -> newPosition.copy(x = 0)
-            else -> newPosition
+    it.asFlow()
+      .flatMapMerge { (position, set) ->
+        set
+          .asFlow()
+          .map { animal ->
+            position + animal.direction.vector to animal
           }
-        }
-        .map { (newPosition, animal) ->
-          if (newPosition.y in 0..<config.mapHeight)
-            newPosition to animal
-          else
-            newPosition.copy(y = newPosition.y) to animal.turnBack()
-        }
-        .group()
-        .toList()
-    }
+          .mapKeys { newPosition ->
+            when {
+              newPosition.x < 0 -> newPosition.copy(x = config.mapWidth - 1)
+              newPosition.x >= config.mapWidth -> newPosition.copy(x = 0)
+              else -> newPosition
+            }
+          }
+          .map { (newPosition, animal) ->
+            when (newPosition.y) {
+              in 0..<config.mapHeight -> newPosition to animal
+              else -> newPosition.copy(y = position.y) to animal.turnBack()
+            }
+          }
+      }
+      .group()
+      .toList()
   }
 
   suspend fun consumePlants() = _plants.update { plants ->
@@ -106,7 +109,6 @@ abstract class AbstractMap(protected val config: Config) {
     }
     newPlants
   }
-
 
   suspend fun breedAnimals(callback: (Animal) -> Unit = {}) = _animals.update { animals ->
     animals.mapValuesAsync { set ->

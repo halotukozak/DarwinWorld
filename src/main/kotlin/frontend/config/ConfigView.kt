@@ -29,7 +29,7 @@ class ConfigView : View("Config editor") {
               fieldset("Map") {
                 input<MapWidth, _>(mapWidth)
                 input<MapHeight, _>(mapHeight)
-                seedInput()
+
               }
 
               fieldset("Plants") {
@@ -54,25 +54,12 @@ class ConfigView : View("Config editor") {
               }
 
               borderpane {
-                left {
-                  hbox(10) {
-                    button("Import") {
-                      action {
-                        importConfig()
-                      }
-                    }
-
-                    button("Export") {
-                      action {
-                        exportConfig()
-                      }
-                    }
-                  }
-                }
                 right {
-                  button("Save") {
-                    enableWhen(isValid)
-                    action { saveConfig() }
+                  hbox(10) {
+                    button("Save") {
+                      enableWhen(isValid)
+                      action { saveConfig() }
+                    }
                   }
                 }
               }
@@ -105,6 +92,32 @@ class ConfigView : View("Config editor") {
                   button("Save") {
                     enableWhen(isValid)
                     action { saveConfig() }
+                  }
+                }
+              }
+            }
+          }
+        }
+        item("General Config") {
+          vbox {
+            form {
+              fieldset {
+                seedInput()
+
+                field("Import/Export") {
+                  tooltip("You can import/export the current configuration as a json file.")
+                  inputGroup {
+                    button("Import") {
+                      action {
+                        importConfig()
+                      }
+                    }
+
+                    button("Export") {
+                      action {
+                        exportConfig()
+                      }
+                    }
                   }
                 }
               }
