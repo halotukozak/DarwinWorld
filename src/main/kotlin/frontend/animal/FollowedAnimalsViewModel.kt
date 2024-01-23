@@ -92,7 +92,7 @@ class FollowedAnimalsViewModel(
         }
       ),
       age = VBox().apply {
-
+        alignment = javafx.geometry.Pos.CENTER
         fontIcon(
           when {
             animal.isDead -> Material2SharpMZ.WIFI_OFF

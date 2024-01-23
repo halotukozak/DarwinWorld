@@ -1,7 +1,5 @@
 package frontend.animal
 
-import atlantafx.base.controls.Tile
-import atlantafx.base.theme.Styles
 import backend.map.Vector
 import backend.model.Animal
 import frontend.animal.FollowedAnimalsViewModel.FollowedAnimal
@@ -23,7 +21,7 @@ class FollowedAnimalsView(
   aliveAnimals: StateFlow<List<Pair<Vector, List<Animal>>>>,
   deadAnimals: StateFlow<List<Animal>>,
   familyTree: FamilyRoot,
-  descendantsEnabled: Boolean,
+  descendantsEnabled: Boolean
 ) : View("Followed animals") {
 
   override val viewModel =
