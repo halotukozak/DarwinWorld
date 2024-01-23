@@ -8,8 +8,8 @@ import frontend.animal.FollowedAnimalsViewModel.FollowedAnimal
 import frontend.components.View
 import frontend.components.card
 import javafx.scene.text.Text
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import tornadofx.*
 import java.util.*
 
@@ -17,10 +17,10 @@ import java.util.*
 class FollowedAnimalsView(
   energyStep: Int,
   followedIds: MutableStateFlow<List<UUID>>,
-  followedAnimals: Flow<List<Pair<Vector?, Animal>>>,
+  animals: StateFlow<List<Pair<Vector, List<Animal>>>>,
 ) : View() {
 
-  override val viewModel: FollowedAnimalsViewModel = FollowedAnimalsViewModel(energyStep, followedIds, followedAnimals)
+  override val viewModel = FollowedAnimalsViewModel(energyStep, followedIds, animals)
 
   override val root = with(viewModel) {
     card {
@@ -32,7 +32,7 @@ class FollowedAnimalsView(
       )
 
       body = tableview {
-        animalsInfo.onUpdate {
+        followedAnimals.onUpdate {
           items.setAll(it)
         }
 
