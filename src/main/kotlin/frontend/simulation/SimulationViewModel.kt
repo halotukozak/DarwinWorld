@@ -19,7 +19,7 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
   val mapWidth = mapHeight * simulationConfig.mapWidth / simulationConfig.mapHeight
   val objectRadius = mapHeight / (2 * simulationConfig.mapHeight)
 
-  val animals = simulation.animals.map { animals ->
+  val animals = simulation.aliveAnimals.map { animals ->
     animals.flatMap { (vector, set) ->
       set.map { animal ->
         AnimalModel(
@@ -77,7 +77,9 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
   private val followedAnimalsView = FollowedAnimalsView(
     energyStep,
     selectedIds,
-    simulation.animals,
+    simulation.aliveAnimals,
+    simulation.deadAnimals,
+    simulation.familyTree,
   )
 
   fun selectAnimal(animal: AnimalModel) {

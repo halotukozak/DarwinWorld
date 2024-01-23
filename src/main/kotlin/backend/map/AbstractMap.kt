@@ -4,9 +4,16 @@ import backend.GenomeManager
 import backend.config.Config
 import backend.model.Animal
 import backend.model.Direction
+import frontend.simulation.FamilyTree
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import shared.*
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.component3
+import kotlin.coroutines.coroutineContext
 import kotlin.random.Random
 
 @Suppress("PropertyName")
@@ -19,7 +26,7 @@ abstract class AbstractMap(protected val config: Config) {
     (0..<config.mapHeight).map { y -> Vector(x, y) }
   }
 
-  protected val _animals = MutableStateFlow(generateSequence {
+  protected val _aliveAnimals = MutableStateFlow(generateSequence {
     Vector(random.nextInt(config.mapWidth), random.nextInt(config.mapHeight))
   }
     .take(config.initialAnimals)
@@ -38,15 +45,20 @@ abstract class AbstractMap(protected val config: Config) {
         )
       }
     })
+
+  private val _deadAnimals = MutableStateFlow(emptySet<Animal>())
   protected val _plants = MutableStateFlow(emptySet<Vector>())
   protected val _preferredFields = MutableStateFlow(emptySet<Vector>())
 
-  val animals: StateFlow<List<Pair<Vector, List<Animal>>>> = _animals
+  val aliveAnimals: StateFlow<List<Pair<Vector, List<Animal>>>> = _aliveAnimals
+  val deadAnimals: StateFlow<Set<Animal>> = _deadAnimals
   val plants: StateFlow<Set<Vector>> = _plants
   val preferredFields: StateFlow<Set<Vector>> = _preferredFields
 
+  val familyTree = FamilyTree(_aliveAnimals.value.flattenValues().map { it.id })
+
   private suspend fun updateAnimals(f: Animal.() -> Animal, callback: suspend (List<Animal>) -> Unit) =
-    _animals.update { animals ->
+    _aliveAnimals.update { animals ->
       animals.mapValuesAsync { set -> set.map(f) }.also {
         callback(it.flattenValues())
       }
@@ -56,17 +68,18 @@ abstract class AbstractMap(protected val config: Config) {
 
   suspend fun rotateAnimals(callback: suspend (List<Animal>) -> Unit = {}) = updateAnimals(Animal::rotate, callback)
 
-  suspend fun removeDeadAnimals(callback: suspend (List<Animal>) -> Unit = {}) = _animals.update {
-    it.mapValuesAsync { set ->
+  suspend fun removeDeadAnimals(callback: suspend (List<Animal>) -> Unit = {}) = _aliveAnimals.update { animals ->
+    animals.mapValuesAsync { set ->
       set.partition(Animal::isDead).let { (dead, alive) ->
         callback(dead)
+        _deadAnimals.update { it + dead }
         alive
       }
     }
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  suspend fun moveAnimals() = _animals.update {
+  suspend fun moveAnimals() = _aliveAnimals.update {
     it.asFlow()
       .flatMapMerge { (position, set) ->
         set
@@ -94,7 +107,7 @@ abstract class AbstractMap(protected val config: Config) {
 
   suspend fun consumePlants() = _plants.update { plants ->
     val newPlants = plants.toMutableSet()
-    _animals.update { animals ->
+    _aliveAnimals.update { animals ->
       animals.mapValuesAsync { position, set ->
         if (position in plants)
           set.mapMax {
@@ -107,7 +120,8 @@ abstract class AbstractMap(protected val config: Config) {
     newPlants
   }
 
-  suspend fun breedAnimals(callback: (Animal) -> Unit = {}) = _animals.update { animals ->
+  suspend fun breedAnimals(callback: (Animal) -> Unit = {}) = _aliveAnimals.update { animals ->
+    val scope = CoroutineScope(coroutineContext)
     animals.mapValuesAsync { set ->
       (set.size >= 2).ifTake {
         val (animal1, animal2) = set.max().let { it to (set - it).max() }
@@ -116,8 +130,11 @@ abstract class AbstractMap(protected val config: Config) {
             animal2,
             config.reproductionEnergyRatio,
             mutator,
-          ).also { (_, _, child) ->
+          ).also { (parent1, parent2, child) ->
+            scope.launch {
+            familyTree.add(child.id, parent1.id, parent2.id)
             callback(child)
+            }
           }
         }
       } ?: set

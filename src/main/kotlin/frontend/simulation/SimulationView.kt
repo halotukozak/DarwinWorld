@@ -13,6 +13,7 @@ import javafx.stage.StageStyle
 import org.kordamp.ikonli.javafx.FontIcon
 import org.kordamp.ikonli.material2.Material2AL
 import org.kordamp.ikonli.material2.Material2SharpAL
+import shared.flattenValues
 import tornadofx.*
 
 class SimulationView(simulationConfig: Config) : View() {
@@ -29,6 +30,11 @@ class SimulationView(simulationConfig: Config) : View() {
       toolBar(
         button("", FontIcon(Material2AL.FAST_REWIND)) {
           action { simulation.slower() }
+        },
+        label {
+          simulation.dayDuration.onUpdate {
+            text = "$it ms"
+          }
         },
         button("", FontIcon(Material2AL.FAST_FORWARD)) {
           disableWhen(fasterDisabled)
@@ -50,10 +56,21 @@ class SimulationView(simulationConfig: Config) : View() {
         },
         separator(Orientation.VERTICAL),
         label {
-          simulation.dayDuration.onUpdate {
-            text = "Day duration: $it ms"
+          simulation.day.onUpdate {
+            text = "Day: $it"
           }
-        }
+        },
+        separator(Orientation.VERTICAL),
+        label {
+          simulation.aliveAnimals.onUpdate {
+            text = "Animals: ${it.flattenValues().size}"
+          }
+        },
+        label {
+          simulation.plants.onUpdate {
+            text = "Plants: ${it.size}"
+          }
+        },
       )
 
       stackpane {

@@ -23,9 +23,6 @@ class Simulation(
 
   val day = MutableStateFlow(0)
 
-  private val _isRunning = MutableStateFlow(false)
-  val isRunning: StateFlow<Boolean> = _isRunning
-
   private var _dayDuration = MutableStateFlow(1000L)
   val dayDuration: StateFlow<Long> = _dayDuration
 
@@ -35,8 +32,11 @@ class Simulation(
   }
 
   val plants = map.plants
-  val animals = map.animals
+  val aliveAnimals = map.aliveAnimals
+  val deadAnimals = map.deadAnimals
   val preferredFields = map.preferredFields
+
+  val familyTree = map.familyTree
 
   private suspend fun nextDay() {
     println("${day.updateAndGet { it + 1 }} day!")
@@ -48,7 +48,7 @@ class Simulation(
     map.breedAnimals { launch { statisticsService.registerBirth(day.value) } }
     map.growPlants(config.plantsPerDay)
 
-    statisticsService.registerEndOfDay(day.value, plants.value, animals.value.flattenValues())
+    statisticsService.registerEndOfDay(day.value, plants.value, aliveAnimals.value.flattenValues())
   }
 
   private var simulationJob: Job = launch {
@@ -62,28 +62,22 @@ class Simulation(
     }
   }
 
-  fun pause() = _isRunning.update {
-    simulationJob.cancel()
-    false
+  fun pause() = simulationJob.cancel()
+
+  fun resume() {
+    simulationJob = launchSimulation().apply(Job::start)
   }
 
-  fun resume() = _isRunning.update {
-    simulationJob = launchSimulation()
-    simulationJob.start()
-    true
-  }
-
-  fun faster() = _dayDuration.updateAndGet { maxOf(50, it - 100) }
-  fun slower() = _dayDuration.updateAndGet {
+  fun faster() = _dayDuration.update { maxOf(50, it - 100) }
+  fun slower() = _dayDuration.update {
     when {
       it < 100 -> 0
       else -> it
     } + 100
   }
 
-  override fun close() { ///todo make it working
+  override fun close() {
     launchMainImmediate { simulationJob.cancelAndJoin() }
   }
 
 }
-
