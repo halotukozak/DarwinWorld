@@ -25,20 +25,22 @@ class LegendView : View("Legend") {
     listProperty(
       Rectangle(30.0, 30.0, c(DarwinStyles.LIGHTGREEN)) to "Field preferred by plants to grow",
       Rectangle(30.0, 30.0, c(DarwinStyles.GREEN)) to "Plant",
-      animalArc("#355070") to "Animal over 10 satiety energy",
-      animalArc("#30BCED") to "Animal up to 10 satiety energy",
-      animalArc("#DA627D") to "Animal up to 5 satiety energy",
-      animalArc("#A53860") to "Animal up to 2 satiety energy",
-      animalArc("#450920") to "Animal under satiety energy",
-      animalArc("#190303") to "Animal under 50% satiety energy",
+      animalArc(DarwinStyles.YINMN_BLUE) to "Animal with more than 10 times satiety energy",
+      animalArc(DarwinStyles.PROCESS_CYAN) to "Animal with 5-10 times satiety energy",
+      animalArc(DarwinStyles.BLUSH) to "Animal with 2-5 times satiety energy",
+      animalArc(DarwinStyles.RASPBERRY_ROSE) to "Animal with 1-2 times satiety energy",
+      animalArc(DarwinStyles.CHOCOLATE_COSMOS) to "Animal with 0.5-1 times satiety energy",
+      animalArc(DarwinStyles.LICORICE) to "Animal with less than 0.5 times satiety energy",
+      animalArc(DarwinStyles.PROCESS_CYAN).apply { stroke = c(DarwinStyles.BLACK); strokeWidth = 3.0 } to "Followed animal"
     )
   ) {
+    minWidth = 402.0
     readonlyColumn("Object", Pair<Shape, String>::first) {
       prefWidth = 75.0
       styleClass.add("centered")
     }
     readonlyColumn("Description", Pair<Shape, String>::second) {
-      prefWidth = 225.0
+      prefWidth = 325.0
     }
   }
 }

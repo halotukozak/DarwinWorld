@@ -2,15 +2,20 @@ package frontend.simulation
 
 import backend.Simulation
 import backend.config.Config
+import backend.map.Vector
+import backend.model.Animal
 import backend.model.Direction
 import backend.statistics.StatisticsService
+import frontend.DarwinStyles
 import frontend.animal.FollowedAnimalsView
 import frontend.components.ViewModel
 import frontend.statistics.StatisticsView
 import javafx.scene.paint.Color
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import java.util.*
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
 
   private val statisticsService = StatisticsService(simulationConfig)
@@ -18,20 +23,6 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
   val mapHeight = 800.0
   val mapWidth = mapHeight * simulationConfig.mapWidth / simulationConfig.mapHeight
   val objectRadius = mapHeight / (2 * simulationConfig.mapHeight)
-
-  val animals = simulation.aliveAnimals.map { animals ->
-    animals.flatMap { (vector, set) ->
-      set.map { animal ->
-        AnimalModel(
-          animal.id,
-          vector.x.toDouble(),
-          vector.y.toDouble(),
-          animal.energy,
-          animal.direction,
-        )
-      }
-    }
-  }
 
   val plants = simulation.plants.map { plants ->
     plants.map { PlantModel(it.x, it.y) }
@@ -61,7 +52,6 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
     allDisabled || day < 5
   }
 
-
   fun openStatisticsWindow() = StatisticsView(
     statisticsService,
     simulationConfig.mapWidth * simulationConfig.mapHeight,
@@ -70,6 +60,44 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
 
   private val selectedIds = MutableStateFlow<List<UUID>>(emptyList())
 
+  private var selectedAnimals = MutableStateFlow(emptyList<Pair<Vector?, Animal>>())
+
+  val animals = combine(simulation.aliveAnimals, selectedIds) { animals, ids ->
+    animals.flatMap { (vector, set) ->
+      set.map { animal ->
+        AnimalModel(
+          animal.id,
+          vector.x,
+          vector.y,
+          animal.energy,
+          animal.direction,
+          animal.id in ids,
+        )
+      }
+    }
+  }
+
+  init {
+    combine(simulation.animals, selectedIds) { animals, ids ->
+      if (ids.isNotEmpty()) selectedAnimals.update { oldAnimals ->
+        animals
+          .asFlow()
+          .flatMapMerge { (position, set) ->
+            set
+              .asFlow()
+              .filter { it.id in ids }
+              .map { position to it }
+          }.let { newAnimals ->
+            val remainingIds = newAnimals.map { it.second.id }.toList()
+            oldAnimals
+              .asFlow()
+              .filter { it.second.id !in remainingIds }
+              .map { (_, animal) -> null to animal.copy(energy = 0) }
+              .toList() + newAnimals.toList()
+          }
+      }
+    }.start()
+  }
 
   private val followedAnimalsView = FollowedAnimalsView(
     simulationConfig.satietyEnergy,
@@ -93,18 +121,19 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
 
   inner class AnimalModel(
     val id: UUID,
-    x: Double,
-    y: Double,
+    x: Int,
+    y: Int,
     energy: Int,
     direction: Direction,
+    val selected: Boolean,
   ) {
     val color: Color = when (energy) {
-      in 0..<simulationConfig.satietyEnergy / 2 -> Color.web("#190303")
-      in simulationConfig.satietyEnergy / 2..<simulationConfig.satietyEnergy -> Color.web("#450920")
-      in simulationConfig.satietyEnergy..<simulationConfig.satietyEnergy * 2 -> Color.web("#A53860")
-      in simulationConfig.satietyEnergy * 2..<simulationConfig.satietyEnergy * 5 -> Color.web("#DA627D")
-      in simulationConfig.satietyEnergy * 5..<simulationConfig.satietyEnergy * 10 -> Color.web("#30BCED")
-      else -> Color.web("#355070")
+      in 0..<simulationConfig.satietyEnergy / 2 -> Color.web(DarwinStyles.LICORICE)
+      in simulationConfig.satietyEnergy / 2..<simulationConfig.satietyEnergy -> Color.web(DarwinStyles.CHOCOLATE_COSMOS)
+      in simulationConfig.satietyEnergy..<simulationConfig.satietyEnergy * 2 -> Color.web(DarwinStyles.RASPBERRY_ROSE)
+      in simulationConfig.satietyEnergy * 2..<simulationConfig.satietyEnergy * 5 -> Color.web(DarwinStyles.BLUSH)
+      in simulationConfig.satietyEnergy * 5..<simulationConfig.satietyEnergy * 10 -> Color.web(DarwinStyles.PROCESS_CYAN)
+      else -> Color.web(DarwinStyles.YINMN_BLUE)
     }
     val angle: Double = direction.ordinal * 45.0
     val x: Double = (x + 0.5) / simulationConfig.mapWidth * mapWidth

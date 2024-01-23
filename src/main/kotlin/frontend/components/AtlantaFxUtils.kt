@@ -45,13 +45,16 @@ fun Pane.notify(message: String) {
 
 fun EventTarget.toolBar(vararg children: Node, op: ToolBar.() -> Unit = {}) = opcr(this, ToolBar(*children), op)
 
-inline fun <reified S, T> TableView<S>.readonlyColumn(title: String, prop: KProperty1<S, T>, noinline op: TableColumn<S, T>.() -> Unit = {}): TableColumn<S, T> {
-  val column = TableColumn<S, T>(title)
-  column.isEditable = false
-  column.isResizable = false
-  column.isReorderable = false
-  column.isSortable = false
-  column.cellValueFactory = Callback { observable(it.value, prop) }
-  addColumnInternal(column)
-  return column.also(op)
+inline fun <reified S, T> TableView<S>.readonlyColumn(
+  title: String,
+  prop: KProperty1<S, T>,
+  noinline op: TableColumn<S, T>.() -> Unit = {},
+) = TableColumn<S, T>(title).apply {
+  isEditable = false
+  isResizable = false
+  isReorderable = false
+  isSortable = false
+  cellValueFactory = Callback { observable(it.value, prop) }
+  addColumnInternal(this)
+  op()
 }

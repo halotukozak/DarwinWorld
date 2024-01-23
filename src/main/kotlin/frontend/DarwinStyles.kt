@@ -12,6 +12,12 @@ class DarwinStyles : Stylesheet() {
     const val LIGHTGREEN = "#b8c9b8"
     const val WHITE = "#f2f2f2"
     const val BLACK = "#2f2f2f"
+    const val LICORICE = "#190303"
+    const val CHOCOLATE_COSMOS = "#450920"
+    const val RASPBERRY_ROSE = "#A53860"
+    const val BLUSH = "#DA627D"
+    const val PROCESS_CYAN = "#30BCED"
+    const val YINMN_BLUE = "#355070"
   }
 
   init {
