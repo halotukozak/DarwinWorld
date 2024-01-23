@@ -11,17 +11,14 @@ class Genome(val genes: List<Gen>, private var curr: Int) : Iterator<Gen> {
     else -> genes == other.genes
   }
 
+  override fun hashCode() = genes.hashCode()
+
   override fun hasNext(): Boolean = true
 
   override fun next(): Gen = genes[(curr++) % genes.size]
 
   val frequencyMap by lazy { this.genes.groupingBy { it }.eachCount() }
 
-  override fun hashCode(): Int {
-    var result = genes.hashCode()
-    result = 31 * result + curr
-    return result
-  }
 }
 
 @Suppress("EnumEntryName")

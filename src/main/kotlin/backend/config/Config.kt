@@ -3,7 +3,6 @@ package backend.config
 import backend.config.ConfigField.Companion.default
 import backend.config.ConfigField.Companion.validate
 import backend.config.PlantGrowthVariant.EQUATOR
-import backend.config.StatisticsConfig.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -37,6 +36,7 @@ data class Config(
   val dailyAverageAge: Boolean,
   val gens: Boolean,
   val genomes: Boolean,
+  val descendantsEnabled: Boolean,
   val csvExportEnabled: Boolean,
   val filename: String,
 ) {
@@ -76,6 +76,7 @@ data class Config(
       dailyAverageAge = false,
       gens = false,
       genomes = false,
+      descendantsEnabled = false,
       csvExportEnabled = false,
       filename = "",
       seed = 2137,
@@ -103,6 +104,7 @@ data class Config(
       dailyAverageAge = false,
       gens = false,
       genomes = false,
+      descendantsEnabled = false,
       csvExportEnabled = false,
       filename = "stat.csv",
       seed = 2137,
@@ -130,6 +132,7 @@ data class Config(
       dailyAverageAge = default<DailyAverageAge>().value,
       gens = default<Gens>().value,
       genomes = default<Genomes>().value,
+      descendantsEnabled = default<Descendants>().value,
       csvExportEnabled = default<CsvExportEnabled>().value,
       filename = default<Filename>().value,
       seed = default<Seed>().value,

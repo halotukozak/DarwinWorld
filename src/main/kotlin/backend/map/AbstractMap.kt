@@ -4,7 +4,7 @@ import backend.GenomeManager
 import backend.config.Config
 import backend.model.Animal
 import backend.model.Direction
-import frontend.simulation.FamilyTree
+import frontend.simulation.FamilyRoot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -46,16 +46,16 @@ abstract class AbstractMap(protected val config: Config) {
       }
     })
 
-  private val _deadAnimals = MutableStateFlow(emptySet<Animal>())
+  private val _deadAnimals = MutableStateFlow(emptyList<Animal>())
   protected val _plants = MutableStateFlow(emptySet<Vector>())
   protected val _preferredFields = MutableStateFlow(emptySet<Vector>())
 
   val aliveAnimals: StateFlow<List<Pair<Vector, List<Animal>>>> = _aliveAnimals
-  val deadAnimals: StateFlow<Set<Animal>> = _deadAnimals
+  val deadAnimals: StateFlow<List<Animal>> = _deadAnimals
   val plants: StateFlow<Set<Vector>> = _plants
   val preferredFields: StateFlow<Set<Vector>> = _preferredFields
 
-  val familyTree = FamilyTree(_aliveAnimals.value.flattenValues().map { it.id })
+  val familyTree = FamilyRoot(_aliveAnimals.value.flattenValues().map { it.id })
 
   private suspend fun updateAnimals(f: Animal.() -> Animal, callback: suspend (List<Animal>) -> Unit) =
     _aliveAnimals.update { animals ->
@@ -69,10 +69,13 @@ abstract class AbstractMap(protected val config: Config) {
   suspend fun rotateAnimals(callback: suspend (List<Animal>) -> Unit = {}) = updateAnimals(Animal::rotate, callback)
 
   suspend fun removeDeadAnimals(callback: suspend (List<Animal>) -> Unit = {}) = _aliveAnimals.update { animals ->
+    val scope = CoroutineScope(coroutineContext)
     animals.mapValuesAsync { set ->
       set.partition(Animal::isDead).let { (dead, alive) ->
-        callback(dead)
-        _deadAnimals.update { it + dead }
+        scope.launch {
+          callback(dead)
+          _deadAnimals.update { it + dead }
+        }
         alive
       }
     }
@@ -132,8 +135,8 @@ abstract class AbstractMap(protected val config: Config) {
             mutator,
           ).also { (parent1, parent2, child) ->
             scope.launch {
-            familyTree.add(child.id, parent1.id, parent2.id)
-            callback(child)
+              familyTree.add(child.id, parent1.id, parent2.id)
+              callback(child)
             }
           }
         }

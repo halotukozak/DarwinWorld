@@ -5,7 +5,7 @@ import backend.model.Animal
 import backend.model.Direction.*
 import frontend.components.ViewModel
 import frontend.components.fontIcon
-import frontend.simulation.FamilyTree
+import frontend.simulation.FamilyRoot
 import javafx.event.EventHandler
 import javafx.scene.layout.HBox
 import javafx.scene.paint.Color
@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.*
 import org.kordamp.ikonli.javafx.FontIcon
 import org.kordamp.ikonli.material2.Material2SharpAL
 import org.kordamp.ikonli.material2.Material2SharpMZ
+import shared.ifTake
 import shared.truncated
 import tornadofx.*
 import java.util.*
@@ -23,9 +24,10 @@ import java.util.*
 class FollowedAnimalsViewModel(
   private val energyStep: Int,
   val followedIds: MutableStateFlow<List<UUID>>,
-  val familyTree: FamilyTree,
+  private val familyTree: FamilyRoot,
   aliveAnimals: StateFlow<List<Pair<Vector, List<Animal>>>>,
-  deadAnimals: StateFlow<Set<Animal>>,
+  deadAnimals: StateFlow<List<Animal>>,
+  val descendantsEnabled: Boolean,
 ) : ViewModel() {
 
   val followedAnimals = combine(aliveAnimals, deadAnimals, followedIds) { aliveAnimals, deadAnimals, ids ->
@@ -53,7 +55,7 @@ class FollowedAnimalsViewModel(
     val direction: FontIcon,
     val age: HBox,
     val children: Int,
-    val descendants: Int,
+    val descendants: Int?,
     val unfollowButton: FontIcon,
   ) {
 
@@ -102,17 +104,10 @@ class FollowedAnimalsViewModel(
         )
       },
       children = animal.children,
-      descendants = findDescendants(animal.id),
+      descendants = descendantsEnabled.ifTake { familyTree.find(animal.id)?.descendants },
       unfollowButton = FontIcon(Material2SharpAL.DELETE).apply {
         onMouseClicked = EventHandler { followedIds.update { it - animal.id } }
       }
     )
   }
-
-  private val descendantsMap = MutableStateFlow(mapOf<UUID, FamilyTree>())
-
-  private fun findDescendants(id: UUID) = descendantsMap.updateAndGet {
-    if (id in it) it else it + (id to familyTree.find(id)!!)
-  }[id]!!.descendants
-  
 }

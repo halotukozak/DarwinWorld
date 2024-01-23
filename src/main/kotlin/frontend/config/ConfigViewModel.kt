@@ -37,6 +37,8 @@ class ConfigViewModel : ViewModel() {
   val gens = MutableStateFlow(false)
   val genomes = MutableStateFlow(false)
 
+  val descendantsEnabled = MutableStateFlow(false)
+
   val csvExportEnabled = MutableStateFlow(false)
   val filename = emptyMutableStateFlow<String>()
 
@@ -64,6 +66,7 @@ class ConfigViewModel : ViewModel() {
     dailyAverageAge.value = config.dailyAverageAge
     gens.value = config.gens
     genomes.value = config.genomes
+    descendantsEnabled.value = config.descendantsEnabled
     csvExportEnabled.value = config.csvExportEnabled
     filename.value = config.filename
   }
@@ -105,6 +108,7 @@ class ConfigViewModel : ViewModel() {
           dailyAverageAge,
           gens,
           genomes,
+          descendantsEnabled,
           csvExportEnabled
         )
       ) {
@@ -112,7 +116,7 @@ class ConfigViewModel : ViewModel() {
           plantGrowthVariant,
           (reproductionEnergyRatio, mutationVariant),
           (mapWidth, mapHeight, seed, initialPlants, nutritionScore, plantsPerDay, initialAnimals, initialAnimalEnergy, satietyEnergy, minMutations, maxMutations, genomeLength),
-          (births, deaths, population, plantDensity, dailyAverageEnergy, dailyAverageAge, gens, genomes, csvExportEnabled),
+          (births, deaths, population, plantDensity, dailyAverageEnergy, dailyAverageAge, gens, genomes, descendantsEnabled, csvExportEnabled),
         ->
         errorMessage.update { "" }
         try {
@@ -139,6 +143,7 @@ class ConfigViewModel : ViewModel() {
             dailyAverageAge = dailyAverageAge,
             gens = gens,
             genomes = genomes,
+            descendantsEnabled = descendantsEnabled,
             csvExportEnabled = csvExportEnabled,
             filename = filename!!,
             seed = seed!!

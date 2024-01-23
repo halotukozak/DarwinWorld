@@ -1,26 +1,39 @@
 package frontend.simulation
 
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import java.util.*
 
-class FamilyTree private constructor(
-  private val id: UUID? = null,
-  private val children: MutableStateFlow<Set<FamilyTree>> = MutableStateFlow(setOf()),
-) {
-  constructor(children: List<UUID>) : this(children = MutableStateFlow(children.map(::FamilyTree).toSet()))
+sealed interface Family {
+  val children: StateFlow<Set<FamilyNode>>
+}
 
-  fun add(childId: UUID, vararg parentIds: UUID) = FamilyTree(id = childId).let { child ->
-    parentIds.forEach { id ->
-      find(id)?.children?.update { it + child } //shit, it can be null
-    }
+class FamilyRoot(
+  children: List<UUID>,
+) : Family {
+
+  private val descendantsMap = MutableStateFlow(children.associateWith { FamilyNode() })
+  override val children: StateFlow<Set<FamilyNode>> = MutableStateFlow(descendantsMap.value.values.toSet())
+
+  fun find(id: UUID): FamilyNode? = descendantsMap.value[id]
+
+  fun add(childId: UUID, vararg parentIds: UUID) = FamilyNode().let { child ->
+    descendantsMap.update { it + (childId to child) }
+    parentIds
+      .mapNotNull(::find)
+      .forEach { parent -> parent.children.update { it + child } }
   }
+}
 
-  fun find(id: UUID): FamilyTree? = if (this.id == id) this else children.value.firstNotNullOfOrNull { it.find(id) }
+
+class FamilyNode : Family {
+
+  override val children: MutableStateFlow<Set<FamilyNode>> = MutableStateFlow(setOf())
 
   val descendants: Int
     get() {
-      tailrec fun loop(visited: Set<FamilyTree>, acc: Set<FamilyTree>): Int =
+      tailrec fun loop(visited: Set<FamilyNode>, acc: Set<FamilyNode>): Int =
         if (acc.isEmpty()) visited.size
         else {
           val current = acc.first()
@@ -28,5 +41,4 @@ class FamilyTree private constructor(
         }
       return loop(setOf(), children.value)
     }
-
 }

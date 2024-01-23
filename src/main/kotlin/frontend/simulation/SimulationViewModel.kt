@@ -80,6 +80,7 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
     simulation.aliveAnimals,
     simulation.deadAnimals,
     simulation.familyTree,
+    simulationConfig.descendantsEnabled,
   )
 
   fun selectAnimal(animal: AnimalModel) {
@@ -121,4 +122,3 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
   }
 
 }
-

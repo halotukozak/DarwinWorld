@@ -69,7 +69,7 @@ class NutritionScore(
 }
 
 class PlantsPerDay(
-  plantsPerDay: Int = 200,
+  plantsPerDay: Int = 20,
 ) : ConfigField<Int>(
   plantsPerDay,
 ) {
