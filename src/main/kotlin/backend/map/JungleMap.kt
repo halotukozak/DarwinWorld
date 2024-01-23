@@ -1,12 +1,13 @@
 package backend.map
 
 import backend.config.Config
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.update
 import shared.takeRandom
 import kotlin.math.roundToInt
 
 
 class JungleMap(config: Config) : AbstractMap(config) {
+
   override suspend fun growPlants(plantsCount: Int) {
     _plants.update { plants ->
       val preferredPositions = _preferredFields.value
@@ -16,12 +17,12 @@ class JungleMap(config: Config) : AbstractMap(config) {
       val plantsOnOtherPositions = minOf(otherPositions.size, plantsCount - plantsOnPreferredPositions)
 
       (plants +
-          preferredPositions.toList().takeRandom(plantsOnPreferredPositions, random) +
-          otherPositions.takeRandom(plantsOnOtherPositions, random)).also { fields ->
+              preferredPositions.toList().takeRandom(plantsOnPreferredPositions, random) +
+              otherPositions.takeRandom(plantsOnOtherPositions, random)).also { fields ->
         _preferredFields.update {
           fields
-            .flatMap { it.surroundingPositions() }
-            .filter { it.inMap(config.mapWidth, config.mapHeight) }
+            .flatMap { it.surroundingPositions }
+            .filter { it.x in 0..<config.mapWidth && it.y in 0..<config.mapHeight }
             .toSet() - fields
         }
       }
