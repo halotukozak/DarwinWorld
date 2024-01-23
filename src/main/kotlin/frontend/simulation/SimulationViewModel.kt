@@ -2,15 +2,22 @@ package frontend.simulation
 
 import backend.Simulation
 import backend.config.Config
+import backend.map.Vector
+import backend.model.Animal
 import backend.model.Direction
 import backend.statistics.StatisticsService
+import frontend.animal.FollowedAnimalsView
 import frontend.components.ViewModel
+import frontend.statistics.StatisticsView
 import javafx.scene.paint.Color
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
+import java.util.*
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
 
-  val statisticsService = StatisticsService(simulationConfig)
+  private val statisticsService = StatisticsService(simulationConfig)
   val simulation = Simulation(simulationConfig, statisticsService)
   val mapHeight = 800.0
   val mapWidth = mapHeight * simulationConfig.mapWidth / simulationConfig.mapHeight
@@ -20,10 +27,11 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
     animals.flatMap { (vector, set) ->
       set.map { animal ->
         AnimalModel(
+          animal.id,
           vector.x.toDouble(),
           vector.y.toDouble(),
           animal.energy,
-          animal.direction
+          animal.direction,
         )
       }
     }
@@ -54,14 +62,60 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
     }
   }
 
+  fun openStatisticsWindow() = StatisticsView(
+    statisticsService,
+    simulationConfig.mapWidth * simulationConfig.mapHeight,
+    simulation.day,
+  ).openWindow(resizable = false)
+
+  private val selectedIds = MutableStateFlow<List<UUID>>(emptyList())
+
+  private var selectedAnimals = MutableStateFlow(emptyList<Pair<Vector?, Animal>>())
+
+  init {
+    combine(simulation.animals, selectedIds) { animals, ids ->
+      if (ids.isNotEmpty()) selectedAnimals.update { oldAnimals ->
+        animals
+          .asFlow()
+          .flatMapMerge { (position, set) ->
+            set
+              .asFlow()
+              .filter { it.id in ids }
+              .map { position to it }
+          }.let { newAnimals ->
+            val remainingIds = newAnimals.map { it.second.id }.toList()
+            oldAnimals
+              .asFlow()
+              .filter { it.second.id !in remainingIds }
+              .map { (_, animal) -> null to animal.copy(energy = 0) }
+              .toList() + newAnimals.toList()
+          }
+      }
+    }.start()
+  }
+
+  private val energyStep = simulationConfig.satietyEnergy / 6
+
+
+  private val followedAnimalsView = FollowedAnimalsView(
+    energyStep,
+    selectedIds,
+    selectedAnimals,
+  )
+
+  fun selectAnimal(animal: AnimalModel) {
+    selectedIds.update { it + animal.id }
+    followedAnimalsView.openWindow(resizable = false)
+  }
+
   override suspend fun clean() {
     simulation.close()
     super.clean()
   }
 
-  private val energyStep = simulationConfig.satietyEnergy / 6
 
   inner class AnimalModel(
+    val id: UUID,
     x: Double,
     y: Double,
     energy: Int,

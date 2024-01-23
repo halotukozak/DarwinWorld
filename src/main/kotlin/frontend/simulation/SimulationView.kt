@@ -5,7 +5,7 @@ import frontend.DarwinStyles
 import frontend.components.View
 import frontend.components.toggleSwitch
 import frontend.components.toolBar
-import frontend.statistics.StatisticsView
+import javafx.event.EventHandler
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
 import javafx.scene.shape.ArcType
@@ -45,11 +45,7 @@ class SimulationView(simulationConfig: Config) : View() {
         button("Statistics", FontIcon(Material2AL.BAR_CHART)) {
           disableWhen(statisticsDisabled)
           action {
-            StatisticsView(
-              statisticsService,
-              simulationConfig.mapWidth * simulationConfig.mapHeight,
-              simulation.day,
-            ).openWindow()
+            openStatisticsWindow()
           }
         },
         separator(Orientation.VERTICAL),
@@ -95,6 +91,8 @@ class SimulationView(simulationConfig: Config) : View() {
             length = 250.0
             type = ArcType.ROUND
             fill = animal.color
+
+            onMouseClicked = EventHandler { selectAnimal(animal) }
           }
         }
       }
