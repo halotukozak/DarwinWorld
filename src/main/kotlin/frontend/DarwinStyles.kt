@@ -30,20 +30,29 @@ class DarwinStyles : Stylesheet() {
     }
 
     thumbArea {
-      backgroundColor += c(LIGHTGREEN)
-      and(selected) {
-        backgroundColor += c(GREEN)
+      backgroundColor = multi(c(LIGHTGREEN))
+    }
+
+    selected {
+      thumbArea {
+        backgroundColor = multi(c(GREEN))
+      }
+    }
+
+    selected {
+      thumb {
+        backgroundColor = multi(c(GREEN), c(WHITE))
       }
     }
 
     drawer {
       toggleButton {
         and(selected) {
-          backgroundColor += c(GREEN)
+          backgroundColor = multi(c(GREEN))
         }
       }
       contentArea {
-        backgroundColor += c(WHITE)
+        backgroundColor = multi(c(WHITE))
       }
     }
 
