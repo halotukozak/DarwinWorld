@@ -6,7 +6,7 @@ import tornadofx.DrawerStyles.Companion.drawer
 
 class DarwinStyles : Stylesheet() {
   private val thumbArea by cssclass()
-
+  private val centered by cssclass()
   companion object Colors {
     const val GREEN = "#4e6d4e"
     const val LIGHTGREEN = "#b8c9b8"
@@ -42,6 +42,26 @@ class DarwinStyles : Stylesheet() {
     selected {
       thumb {
         backgroundColor = multi(c(GREEN), c(WHITE))
+      }
+    }
+
+    tab {
+      and(selected) {
+        backgroundColor = multi(c(GREEN), c(WHITE))
+      }
+    }
+
+    centered {
+      alignment = javafx.geometry.Pos.CENTER
+      label {
+        alignment = javafx.geometry.Pos.CENTER
+      }
+    }
+
+    scrollBar {
+      and(horizontal) {
+        visibility = FXVisibility.HIDDEN
+        backgroundColor = multi(c(GREEN))
       }
     }
 

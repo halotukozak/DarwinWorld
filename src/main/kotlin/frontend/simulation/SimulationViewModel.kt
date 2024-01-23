@@ -71,11 +71,8 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
   private val selectedIds = MutableStateFlow<List<UUID>>(emptyList())
 
 
-  private val energyStep = simulationConfig.satietyEnergy / 6
-
-
   private val followedAnimalsView = FollowedAnimalsView(
-    energyStep,
+    simulationConfig.satietyEnergy,
     selectedIds,
     simulation.aliveAnimals,
     simulation.deadAnimals,
@@ -102,11 +99,11 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
     direction: Direction,
   ) {
     val color: Color = when (energy) {
-      in 0..<energyStep -> Color.web("#190303")
-      in energyStep..<energyStep * 2 -> Color.web("#450920")
-      in energyStep * 2..<energyStep * 3 -> Color.web("#A53860")
-      in energyStep * 3..<energyStep * 4 -> Color.web("#DA627D")
-      in energyStep * 4..<energyStep * 5 -> Color.web("#30BCED")
+      in 0..<simulationConfig.satietyEnergy / 2 -> Color.web("#190303")
+      in simulationConfig.satietyEnergy / 2..<simulationConfig.satietyEnergy -> Color.web("#450920")
+      in simulationConfig.satietyEnergy..<simulationConfig.satietyEnergy * 2 -> Color.web("#A53860")
+      in simulationConfig.satietyEnergy * 2..<simulationConfig.satietyEnergy * 5 -> Color.web("#DA627D")
+      in simulationConfig.satietyEnergy * 5..<simulationConfig.satietyEnergy * 10 -> Color.web("#30BCED")
       else -> Color.web("#355070")
     }
     val angle: Double = direction.ordinal * 45.0

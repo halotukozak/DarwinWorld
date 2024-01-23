@@ -6,6 +6,8 @@ import backend.map.Vector
 import backend.model.Animal
 import frontend.animal.FollowedAnimalsViewModel.FollowedAnimal
 import frontend.components.View
+import frontend.components.readonlyColumn
+import kotlinx.coroutines.flow.Flow
 import frontend.components.card
 import frontend.simulation.FamilyRoot
 import javafx.scene.text.Text
@@ -16,42 +18,32 @@ import java.util.*
 
 
 class FollowedAnimalsView(
-  energyStep: Int,
+  satietyEnergy: Int,
   followedIds: MutableStateFlow<List<UUID>>,
   aliveAnimals: StateFlow<List<Pair<Vector, List<Animal>>>>,
   deadAnimals: StateFlow<List<Animal>>,
   familyTree: FamilyRoot,
   descendantsEnabled: Boolean,
-) : View() {
+) : View("Followed animals") {
 
-  override val viewModel = FollowedAnimalsViewModel(energyStep, followedIds, familyTree, aliveAnimals, deadAnimals, descendantsEnabled)
+  override val viewModel =
+    FollowedAnimalsViewModel(satietyEnergy, followedIds, familyTree, aliveAnimals, deadAnimals, descendantsEnabled)
 
   override val root = with(viewModel) {
-    card {
-      styleClass += (Styles.ELEVATED_1)
-
-      header = Tile(
-        "Followed animals",
-        "Information about the animals you follow.",//todo
-      )
-
-      body = tableview {
-        followedAnimals.onUpdate {
-          items.setAll(it)
-        }
-
-        readonlyColumn("X", FollowedAnimal::x)
-        readonlyColumn("Y", FollowedAnimal::y)
-        readonlyColumn("Energy", FollowedAnimal::energy)
-        readonlyColumn("Genome", FollowedAnimal::genome)
-        readonlyColumn("Direction", FollowedAnimal::direction)
-        readonlyColumn("Age", FollowedAnimal::age)
-        readonlyColumn("Children", FollowedAnimal::children)
-        if (descendantsEnabled) readonlyColumn("Descendants", FollowedAnimal::descendants)
-        readonlyColumn("Unfollow", FollowedAnimal::unfollowButton)
-
+    tableview {
+      followedAnimals.onUpdate {
+        items.setAll(it)
       }
-      subHeader = Text("Subheader")
+
+      readonlyColumn("X", FollowedAnimal::x) { prefWidth = 40.0; styleClass.add("centered") }
+      readonlyColumn("Y", FollowedAnimal::y) { prefWidth = 40.0; styleClass.add("centered") }
+      readonlyColumn("Energy", FollowedAnimal::energy) { prefWidth = 70.0; styleClass.add("centered") }
+      readonlyColumn("Genome", FollowedAnimal::genome) { prefWidth = 300.0 }
+      readonlyColumn("Direction", FollowedAnimal::direction) { prefWidth = 80.0; styleClass.add("centered") }
+      readonlyColumn("Age", FollowedAnimal::age) { prefWidth = 70.0; styleClass.add("centered") }
+      readonlyColumn("Children", FollowedAnimal::children) { prefWidth = 80.0; styleClass.add("centered") }
+      if (descendantsEnabled) readonlyColumn("Descendants", FollowedAnimal::descendants)
+      readonlyColumn("Unfollow", FollowedAnimal::unfollowButton) { prefWidth = 80.0; styleClass.add("centered") }
     }
   }
 }

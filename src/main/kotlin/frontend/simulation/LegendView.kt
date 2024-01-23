@@ -6,6 +6,7 @@ import javafx.scene.shape.ArcType
 import javafx.scene.shape.Rectangle
 import javafx.scene.shape.Shape
 import tornadofx.*
+import frontend.components.readonlyColumn
 
 class LegendView : View("Legend") {
 
@@ -22,20 +23,22 @@ class LegendView : View("Legend") {
 
   override val root = tableview(
     listProperty(
-      Rectangle(
-        30.0, 30.0, c(DarwinStyles.LIGHTGREEN),
-      ) to "Field which is preferred",
-      Rectangle(30.0, 30.0, c(DarwinStyles.GREEN)) to "Field with plants",
-      animalArc("#355070") to "Animal sated over 83.3%",
-      animalArc("#30BCED") to "Animal sated 66.6% — 83.3% ",
-      animalArc("#DA627D") to "Animal sated 50% — 66.6%",
-      animalArc("#A53860") to "Animal sated 33.3% — 50%",
-      animalArc("#450920") to "Animal sated 16.6% — 33.3%",
-      animalArc("#190303") to "Almost dead animal",
+      Rectangle(30.0, 30.0, c(DarwinStyles.LIGHTGREEN)) to "Field preferred by plants to grow",
+      Rectangle(30.0, 30.0, c(DarwinStyles.GREEN)) to "Plant",
+      animalArc("#355070") to "Animal over 10 satiety energy",
+      animalArc("#30BCED") to "Animal up to 10 satiety energy",
+      animalArc("#DA627D") to "Animal up to 5 satiety energy",
+      animalArc("#A53860") to "Animal up to 2 satiety energy",
+      animalArc("#450920") to "Animal under satiety energy",
+      animalArc("#190303") to "Animal under 50% satiety energy",
     )
   ) {
-    minWidth = 310.0
-    readonlyColumn("Object", Pair<Shape, String>::first)
-    readonlyColumn("Description", Pair<Shape, String>::second)
+    readonlyColumn("Object", Pair<Shape, String>::first) {
+      prefWidth = 75.0
+      styleClass.add("centered")
+    }
+    readonlyColumn("Description", Pair<Shape, String>::second) {
+      prefWidth = 225.0
+    }
   }
 }

@@ -7,7 +7,7 @@ import frontend.components.ViewModel
 import frontend.components.fontIcon
 import frontend.simulation.FamilyRoot
 import javafx.event.EventHandler
-import javafx.scene.layout.HBox
+import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.text.Text
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,7 +22,7 @@ import java.util.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FollowedAnimalsViewModel(
-  private val energyStep: Int,
+  private val satietyEnergy: Int,
   val followedIds: MutableStateFlow<List<UUID>>,
   private val familyTree: FamilyRoot,
   aliveAnimals: StateFlow<List<Pair<Vector, List<Animal>>>>,
@@ -53,7 +53,7 @@ class FollowedAnimalsViewModel(
     val energy: Text,
     val genome: Text,
     val direction: FontIcon,
-    val age: HBox,
+    val age: VBox,
     val children: Int,
     val descendants: Int?,
     val unfollowButton: FontIcon,
@@ -67,11 +67,11 @@ class FollowedAnimalsViewModel(
       y = vector?.y,
       energy = Text(animal.energy.toString()).apply {
         style {
-          textFill = when (animal.energy) {
+          fill = when (animal.energy) {
             in Int.MIN_VALUE..0 -> Color.BLACK
-            in 0..<energyStep -> Color.RED
-            in energyStep..<energyStep * 2 -> Color.ORANGE
-            in energyStep * 2..<energyStep * 3 -> Color.SPRINGGREEN
+            in 0..<satietyEnergy / 2 -> Color.RED
+            in satietyEnergy / 2..<satietyEnergy -> Color.ORANGE
+            in satietyEnergy..<satietyEnergy * 2 -> Color.SPRINGGREEN
             else -> Color.GREEN
           }
         }
@@ -91,8 +91,8 @@ class FollowedAnimalsViewModel(
           SW -> Material2SharpMZ.SOUTH_WEST
         }
       ),
-      age = HBox().apply {
-        text(animal.age.toString())
+      age = VBox().apply {
+
         fontIcon(
           when {
             animal.isDead -> Material2SharpMZ.WIFI_OFF
@@ -102,6 +102,7 @@ class FollowedAnimalsViewModel(
             else -> Material2SharpMZ.PERSON
           }
         )
+        text(animal.age.toString())
       },
       children = animal.children,
       descendants = descendantsEnabled.ifTake { familyTree.find(animal.id)?.descendants },

@@ -8,13 +8,17 @@ import atlantafx.base.theme.Styles
 import javafx.event.EventHandler
 import javafx.event.EventTarget
 import javafx.scene.Node
+import javafx.scene.control.TableColumn
+import javafx.scene.control.TableView
 import javafx.scene.control.ToolBar
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
+import javafx.util.Callback
 import org.kordamp.ikonli.Ikon
 import org.kordamp.ikonli.javafx.FontIcon
 import org.kordamp.ikonli.material2.Material2OutlinedAL
 import tornadofx.*
+import kotlin.reflect.KProperty1
 
 fun EventTarget.inputGroup(vararg children: Node, op: InputGroup.() -> Unit = {}) =
   opcr(this, InputGroup(*children), op)
@@ -40,3 +44,14 @@ fun Pane.notify(message: String) {
 }
 
 fun EventTarget.toolBar(vararg children: Node, op: ToolBar.() -> Unit = {}) = opcr(this, ToolBar(*children), op)
+
+inline fun <reified S, T> TableView<S>.readonlyColumn(title: String, prop: KProperty1<S, T>, noinline op: TableColumn<S, T>.() -> Unit = {}): TableColumn<S, T> {
+  val column = TableColumn<S, T>(title)
+  column.isEditable = false
+  column.isResizable = false
+  column.isReorderable = false
+  column.isSortable = false
+  column.cellValueFactory = Callback { observable(it.value, prop) }
+  addColumnInternal(column)
+  return column.also(op)
+}
