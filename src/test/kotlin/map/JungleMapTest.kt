@@ -9,38 +9,38 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
-@Suppress("LocalVariableName")
 class JungleMapTest : FunSpec({
 
   test("growPlants") {
-    val config = Config.test.copy(initialPlants = 0)
-    val map = JungleMap(config)
+    val map = JungleMap(Config.test)
     val preferredPositions = setOf(
       Vector(4, 4),
       Vector(5, 4),
       Vector(6, 4),
       Vector(4, 5),
-      Vector(5, 5),
       Vector(6, 5),
       Vector(4, 6),
       Vector(5, 6),
       Vector(6, 6),
-      Vector(0, 0),
       Vector(1, 0),
       Vector(0, 1),
       Vector(1, 1)
     )
 
-    val _plants = map.getPrivateField<MutableStateFlow<Set<Vector>>>("_plants")
-
-    _plants.update {
-      it + Vector(5, 5) + Vector(0, 0)
-    }
+    map.getPrivateField<MutableStateFlow<Set<Vector>>>("_preferredFields").update { preferredPositions }
+    map.getPrivateField<MutableStateFlow<Set<Vector>>>("_plants")
+      .update { setOf(Vector(5, 5), Vector(0, 0)) }
 
     map.growPlants(10)
 
     val plantsPositions = map.plants.value
     plantsPositions.size shouldBe 12
-    (plantsPositions - preferredPositions).size shouldBe 2
+    plantsPositions.intersect(preferredPositions).size shouldBe 8
+    (plantsPositions - preferredPositions).size shouldBe 4
+    map.getPrivateField<MutableStateFlow<Set<Vector>>>("_preferredFields").value shouldBe
+        map.plants.value
+          .flatMap { it.surroundingPositions() }
+          .filter { it.inMap(Config.test.mapWidth, Config.test.mapHeight) }
+          .toSet() - map.plants.value
   }
 })

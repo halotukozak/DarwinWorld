@@ -5,34 +5,54 @@ import backend.map.EquatorMap
 import backend.map.Vector
 import getPrivateField
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class EquatorMapTest : FunSpec({
 
   test("growPlants") {
-    val config = Config.test.copy(mapHeight = 12, mapWidth = 10)
-    val map = EquatorMap(config)
+    val map = EquatorMap(Config.test.copy(mapHeight = 12, mapWidth = 6))
 
-    val equator = map.getPrivateField<IntRange>("equator")
-
-    equator shouldBe (5..6)
+    map.getPrivateField<IntRange>("equator") shouldBe (5..6)
 
     map.growPlants(10)
 
-    equator.flatMap { y ->
-      (0..<config.mapWidth).filter { x ->
+    (5..6).flatMap { y ->
+      (0..<6).filter { x ->
         map.plants.value.contains(Vector(x, y))
       }
     }.size shouldBe 8
 
-    (0..<equator.first).flatMap { y ->
-      (0..<config.mapWidth).filter { x ->
+    (0..4).flatMap { y ->
+      (0..<6).filter { x ->
         map.plants.value.contains(Vector(x, y))
       }
-    }.size + (equator.last + 1..<config.mapHeight).flatMap { y ->
-      (0..<config.mapWidth).filter { x ->
+    }.size + (7..<12).flatMap { y ->
+      (0..<6).filter { x ->
         map.plants.value.contains(Vector(x, y))
       }
     }.size shouldBe 2
+    map.getPrivateField<MutableStateFlow<Set<Vector>>>("_preferredFields").value shouldBe
+        (5..6).flatMap { y -> (0..<6).map { x -> Vector(x, y) } }.toSet() - map.plants.value
+
+    map.growPlants(10)
+
+    (5..6).forEach { y ->
+      (0..<6).forEach { x ->
+        map.plants.value shouldContain Vector(x, y)
+      }
+    }
+
+    (0..4).flatMap { y ->
+      (0..<6).filter { x ->
+        map.plants.value.contains(Vector(x, y))
+      }
+    }.size + (7..<12).flatMap { y ->
+      (0..<6).filter { x ->
+        map.plants.value.contains(Vector(x, y))
+      }
+    }.size shouldBe 8
+    map.getPrivateField<MutableStateFlow<Set<Vector>>>("_preferredFields").value shouldBe emptySet()
   }
 })

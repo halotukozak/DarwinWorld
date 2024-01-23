@@ -52,3 +52,4 @@ fun <T> List<T>.takeRandom(n: Int = 1, random: Random) =
   }
     .distinct()
     .take(n)
+    .toList()
