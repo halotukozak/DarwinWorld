@@ -113,6 +113,9 @@ abstract class View(
     tooltip(ConfigField.description<U>())
     toggleSwitch {
       isSelected = property.value
+      property.onUpdate {
+        isSelected = it
+      }
       selectedProperty().addListener { _, _, newValue ->
         property.update { newValue }
       }
@@ -126,6 +129,9 @@ abstract class View(
     tooltip(ConfigField.description<U>())
     val values = enumEntries<T>()
     combobox(SimpleObjectProperty(values.first()), values) {
+      property.onUpdate {
+        value = it
+      }
       valueProperty().addListener { _ ->
         property.update { value }
       }
