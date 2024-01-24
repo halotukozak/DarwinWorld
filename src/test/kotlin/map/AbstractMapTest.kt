@@ -25,15 +25,15 @@ class AbstractMapTest : FunSpec({
   fun AbstractMapForTesting(config: Config) = object : AbstractMap(config) {
     override suspend fun growPlants(plantsCount: Int) {}
 
-    fun addAnimal(vector: Vector, animal: Animal) = _animals.update {
+    fun addAnimal(vector: Vector, animal: Animal) = _aliveAnimals.update {
       it.mapValues { v, set ->
         if (v == vector) set + animal else set
       }
     }
 
     fun addPlant(vector: Vector) = _plants.update { it + vector }
-    fun animalsAt(x: Int, y: Int) = _animals.value.firstOrNull { it.first == Vector(x, y) }?.second ?: emptyList()
-    fun findAnimal(animal: Animal) = _animals.value.flatMap { it.second }.first { it.id == animal.id }
+    fun animalsAt(x: Int, y: Int) = _aliveAnimals.value.firstOrNull { it.first == Vector(x, y) }?.second ?: emptyList()
+    fun findAnimal(animal: Animal) = _aliveAnimals.value.flatMap { it.second }.first { it.id == animal.id }
   }
 
   fun random_animal(): Animal =
@@ -50,7 +50,7 @@ class AbstractMapTest : FunSpec({
   test("growAnimals") {
     val map = AbstractMapForTesting(Config.test)
 
-    map.animals.value.forEach { (_, set) ->
+    map.aliveAnimals.value.forEach { (_, set) ->
       set.forEach {
         it.age shouldBe 0
         it.energy shouldBe Config.test.initialAnimalEnergy
@@ -58,7 +58,7 @@ class AbstractMapTest : FunSpec({
     }
 
     map.growAnimals()
-    map.animals.value.forEach { (_, set) ->
+    map.aliveAnimals.value.forEach { (_, set) ->
       set.forEach {
         it.age shouldBe 1
         it.energy shouldBe Config.test.initialAnimalEnergy - 1
@@ -66,7 +66,7 @@ class AbstractMapTest : FunSpec({
     }
 
     map.growAnimals()
-    map.animals.value.forEach { (_, set) ->
+    map.aliveAnimals.value.forEach { (_, set) ->
       set.forEach {
         it.age shouldBe 2
         it.energy shouldBe Config.test.initialAnimalEnergy - 2
@@ -191,11 +191,11 @@ class AbstractMapTest : FunSpec({
     map.addAnimal(Vector(1, 1), random_animal().copy(energy = 8))
     map.breedAnimals()
     map.animalsAt(0, 0).size shouldBe 4
-    map.findAnimal(animal1).children.size shouldBe 1
+    map.findAnimal(animal1).children shouldBe 1
     map.findAnimal(animal1).energy shouldBe 50
-    map.findAnimal(animal2).children.size shouldBe 1
+    map.findAnimal(animal2).children shouldBe 1
     map.findAnimal(animal2).energy shouldBe 25
-    map.findAnimal(animal3).children.size shouldBe 0
+    map.findAnimal(animal3).children shouldBe 0
     map.findAnimal(animal3).energy shouldBe 20
     map.animalsAt(1, 1).size shouldBe 2
   }

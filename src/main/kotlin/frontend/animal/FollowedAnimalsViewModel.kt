@@ -5,6 +5,7 @@ import backend.model.Animal
 import backend.model.Direction.*
 import frontend.components.ViewModel
 import frontend.components.fontIcon
+import frontend.simulation.FamilyRoot
 import javafx.event.EventHandler
 import javafx.scene.layout.HBox
 import javafx.scene.paint.Color
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.*
 import org.kordamp.ikonli.javafx.FontIcon
 import org.kordamp.ikonli.material2.Material2SharpAL
 import org.kordamp.ikonli.material2.Material2SharpMZ
+import shared.ifTake
 import shared.truncated
 import tornadofx.*
 import java.util.*
@@ -22,37 +24,30 @@ import java.util.*
 class FollowedAnimalsViewModel(
   private val energyStep: Int,
   val followedIds: MutableStateFlow<List<UUID>>,
+  private val familyTree: FamilyRoot,
   aliveAnimals: StateFlow<List<Pair<Vector, List<Animal>>>>,
+  deadAnimals: StateFlow<List<Animal>>,
+  val descendantsEnabled: Boolean,
 ) : ViewModel() {
 
-
-  val followedAnimals = MutableStateFlow(emptyList<FollowedAnimal>())
-
-  init {
-    combine(aliveAnimals, followedIds) { animals, ids ->
-      followedAnimals.update { oldAnimals ->
-        animals
+  val followedAnimals = combine(aliveAnimals, deadAnimals, followedIds) { aliveAnimals, deadAnimals, ids ->
+    aliveAnimals
+      .asFlow()
+      .flatMapMerge { (position, set) ->
+        set
           .asFlow()
-          .flatMapMerge { (position, set) ->
-            set
-              .asFlow()
-              .filter { it.id in ids }
-              .map { animal -> FollowedAnimal(position, animal) }
-          }.let { newAnimals ->
-            val remainingIds = newAnimals.map { it.id }.toList()
-            oldAnimals
-              .asFlow()
-              .filter { it.id in ids && it.id !in remainingIds }
-              .map { animal -> animal.killed }
-              .toList() + newAnimals.toList()
-          }
-      }
-    }.start()
+          .filter { it.id in ids }
+          .map { FollowedAnimal(position, it) }
+      }.onCompletion {
+        emitAll(deadAnimals
+          .asFlow()
+          .filter { it.id in ids }
+          .map { FollowedAnimal(null, it) }
+        )
+      }.toList()
   }
 
-
   inner class FollowedAnimal(
-    val id: UUID,
     val x: Int?,
     val y: Int?,
     val energy: Text,
@@ -60,6 +55,7 @@ class FollowedAnimalsViewModel(
     val direction: FontIcon,
     val age: HBox,
     val children: Int,
+    val descendants: Int?,
     val unfollowButton: FontIcon,
   ) {
 
@@ -67,7 +63,6 @@ class FollowedAnimalsViewModel(
       vector: Vector?,
       animal: Animal,
     ) : this(
-      id = animal.id,
       x = vector?.x,
       y = vector?.y,
       energy = Text(animal.energy.toString()).apply {
@@ -108,27 +103,11 @@ class FollowedAnimalsViewModel(
           }
         )
       },
-      children = animal.children.size,
+      children = animal.children,
+      descendants = descendantsEnabled.ifTake { familyTree.find(animal.id)?.descendants },
       unfollowButton = FontIcon(Material2SharpAL.DELETE).apply {
         onMouseClicked = EventHandler { followedIds.update { it - animal.id } }
       }
     )
-
-    val killed
-      get() = FollowedAnimal(
-        id,
-        x,
-        y,
-        Text("Dead").apply {
-          style {
-            textFill = Color.BLACK
-          }
-        },
-        genome,
-        direction,
-        age,
-        children,
-        unfollowButton
-      )
   }
 }

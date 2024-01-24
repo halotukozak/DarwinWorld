@@ -8,8 +8,9 @@ data class Animal(
   val genome: Genome,
   val direction: Direction,
   val age: Int = 0,
-  val children: Set<Animal> = setOf(),
+  val children: Int = 0,
   val id: UUID = UUID.randomUUID(),
+  val parents: Pair<UUID, UUID>? = null,
 ) : Comparable<Animal> {
 
   val isDead by lazy { energy <= 0 }
@@ -20,7 +21,7 @@ data class Animal(
   fun eat(energy: Int): Animal = this.copy(energy = this.energy + energy)
 
   private fun decreaseEnergy(energy: Int): Animal = this.copy(energy = this.energy - energy)
-  private fun withChild(child: Animal): Animal = this.copy(children = children + child)
+  private fun withChild(): Animal = this.copy(children = this.children + 1)
 
   fun cover(other: Animal, reproductionEnergyRatio: Double, mutator: GenomeManager): List<Animal> {
     val (energyLoss1, parent1) = (this.energy * reproductionEnergyRatio).toInt().let {
@@ -31,14 +32,14 @@ data class Animal(
     }
 
     val child = Animal(
-      energyLoss1 + energyLoss2,
-      mutator.combine(this.genome, other.genome, energyLoss1.toDouble() / (energyLoss1 + energyLoss2)),
-      Direction.entries.random(),
+      energy = energyLoss1 + energyLoss2,
+      genome = mutator.combine(this.genome, other.genome, energyLoss1.toDouble() / (energyLoss1 + energyLoss2)),
+      direction = Direction.entries.random(), parents = Pair(parent1.id, parent2.id)
     )
 
     return listOf(
-      parent1.withChild(child),
-      parent2.withChild(child),
+      parent1.withChild(),
+      parent2.withChild(),
       child,
     )
   }
@@ -46,6 +47,6 @@ data class Animal(
   override fun compareTo(other: Animal): Int = when {
     this.energy.compareTo(other.energy) != 0 -> this.energy.compareTo(other.energy)
     this.age.compareTo(other.age) != 0 -> this.age.compareTo(other.age)
-    else -> this.children.size.compareTo(other.children.size)
+    else -> this.children.compareTo(other.children)
   }
 }

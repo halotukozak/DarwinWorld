@@ -2,7 +2,6 @@ package frontend.config
 
 import atlantafx.base.theme.Styles
 import backend.config.*
-import backend.config.StatisticsConfig.*
 import frontend.components.View
 import frontend.components.inputGroup
 import frontend.components.notify
@@ -30,7 +29,6 @@ class ConfigView : View("Config editor") {
               fieldset("Map") {
                 input<MapWidth, _>(mapWidth)
                 input<MapHeight, _>(mapHeight)
-
               }
 
               fieldset("Plants") {
@@ -79,6 +77,10 @@ class ConfigView : View("Config editor") {
                 toggleSwitch<DailyAverageAge>(dailyAverageAge)
                 toggleSwitch<Gens>(gens)
                 toggleSwitch<Genomes>(genomes)
+              }
+
+              fieldset("Descendants") {
+                toggleSwitch<Descendants>(descendantsEnabled)
               }
 
               fieldset("Csv Export") {

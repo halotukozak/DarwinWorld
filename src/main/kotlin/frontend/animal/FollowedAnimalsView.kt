@@ -7,6 +7,7 @@ import backend.model.Animal
 import frontend.animal.FollowedAnimalsViewModel.FollowedAnimal
 import frontend.components.View
 import frontend.components.card
+import frontend.simulation.FamilyRoot
 import javafx.scene.text.Text
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,10 +18,13 @@ import java.util.*
 class FollowedAnimalsView(
   energyStep: Int,
   followedIds: MutableStateFlow<List<UUID>>,
-  animals: StateFlow<List<Pair<Vector, List<Animal>>>>,
+  aliveAnimals: StateFlow<List<Pair<Vector, List<Animal>>>>,
+  deadAnimals: StateFlow<List<Animal>>,
+  familyTree: FamilyRoot,
+  descendantsEnabled: Boolean,
 ) : View() {
 
-  override val viewModel = FollowedAnimalsViewModel(energyStep, followedIds, animals)
+  override val viewModel = FollowedAnimalsViewModel(energyStep, followedIds, familyTree, aliveAnimals, deadAnimals, descendantsEnabled)
 
   override val root = with(viewModel) {
     card {
@@ -43,6 +47,7 @@ class FollowedAnimalsView(
         readonlyColumn("Direction", FollowedAnimal::direction)
         readonlyColumn("Age", FollowedAnimal::age)
         readonlyColumn("Children", FollowedAnimal::children)
+        if (descendantsEnabled) readonlyColumn("Descendants", FollowedAnimal::descendants)
         readonlyColumn("Unfollow", FollowedAnimal::unfollowButton)
 
       }
