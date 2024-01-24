@@ -48,6 +48,7 @@ data class Config(
     requireField(initialPlants <= mapWidth * mapHeight) { "Initial plants must be less or equal to map size" }
     requireField(minMutations <= maxMutations) { "Min mutations must be less or equal to max mutations" }
     requireField(maxMutations <= genomeLength) { "Max mutations must be less or equal to genome length" }
+    requireField(maxMutations * (1 + mutationVariant) <= genomeLength) { "Switch mutations take two genes for one mutation" }
     requireField(plantsPerDay <= mapWidth * mapHeight) { "Plants per day must be less or equal to map size" }
     requireField(!csvExportEnabled || validate<Filename>(filename)) { "Filename must be valid when csv export is enabled" }
   }

@@ -16,8 +16,7 @@ class MutableACounter<T : Number>(private val range: Int) : ACounter<T>,
       truncated.lastOrNull()?.let { (d, v) ->
         when (day) {
           d -> truncated.dropLast(1) + (d to v + value)
-          d + 1 -> truncated + (day to value)
-          else -> truncated
+          else -> truncated + (day to value)
         }
       } ?: listOf(day to value)
     }
