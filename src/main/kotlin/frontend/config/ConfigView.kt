@@ -139,9 +139,9 @@ class ConfigView : View("Config editor") {
       tooltip(ConfigField.description<Seed>())
 
       val left = textfield(seed.value.toString()) {
-        seed.onUpdate {
-          text = it?.toString() ?: ""
-        }
+//        seed.onUpdate {
+//          text = it?.toString() ?: ""
+//        }
         textProperty().addListener { _ ->
           decorators.forEach { it.undecorate(this) }
           decorators.clear()

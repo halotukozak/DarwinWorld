@@ -79,9 +79,9 @@ abstract class View(
   ) = field(ConfigField.label<U>()) {
     tooltip(ConfigField.description<U>())
     textfield(property.value.toString()) {
-      property.onUpdate {
-        text = it?.toString() ?: ""
-      }
+//      property.onUpdate {
+//        text = it?.toString() ?: ""
+//      }
       textProperty().addListener { _ ->
         decorators.forEach { it.undecorate(this) }
         decorators.clear()

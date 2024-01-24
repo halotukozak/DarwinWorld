@@ -39,8 +39,8 @@ class JungleMapTest : FunSpec({
     (plantsPositions - preferredPositions).size shouldBe 4
     map.getPrivateField<MutableStateFlow<Set<Vector>>>("_preferredFields").value shouldBe
         map.plants.value
-          .flatMap { it.surroundingPositions() }
-          .filter { it.inMap(Config.test.mapWidth, Config.test.mapHeight) }
+          .flatMap { it.surroundingPositions }
+          .filter { (x, y) -> x in 0..<Config.test.mapWidth && y in 0..<Config.test.mapHeight }
           .toSet() - map.plants.value
   }
 })
