@@ -2,8 +2,6 @@ package frontend.simulation
 
 import backend.Simulation
 import backend.config.Config
-import backend.map.Vector
-import backend.model.Animal
 import backend.model.Direction
 import backend.statistics.StatisticsService
 import frontend.DarwinStyles
@@ -11,11 +9,9 @@ import frontend.animal.FollowedAnimalsView
 import frontend.components.ViewModel
 import frontend.statistics.StatisticsView
 import javafx.scene.paint.Color
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import java.util.*
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
 
   private val statisticsService = StatisticsService(simulationConfig)
@@ -60,8 +56,6 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
 
   private val selectedIds = MutableStateFlow<List<UUID>>(emptyList())
 
-  private var selectedAnimals = MutableStateFlow(emptyList<Pair<Vector?, Animal>>())
-
   val animals = combine(simulation.aliveAnimals, selectedIds) { animals, ids ->
     animals.flatMap { (vector, set) ->
       set.map { animal ->
@@ -75,28 +69,6 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
         )
       }
     }
-  }
-
-  init {
-    combine(simulation.aliveAnimals, selectedIds) { animals, ids ->
-      if (ids.isNotEmpty()) selectedAnimals.update { oldAnimals ->
-        animals
-          .asFlow()
-          .flatMapMerge { (position, set) ->
-            set
-              .asFlow()
-              .filter { it.id in ids }
-              .map { position to it }
-          }.let { newAnimals ->
-            val remainingIds = newAnimals.map { it.second.id }.toList()
-            oldAnimals
-              .asFlow()
-              .filter { it.second.id !in remainingIds }
-              .map { (_, animal) -> null to animal.copy(energy = 0) }
-              .toList() + newAnimals.toList()
-          }
-      }
-    }.start()
   }
 
   private val followedAnimalsView = FollowedAnimalsView(
