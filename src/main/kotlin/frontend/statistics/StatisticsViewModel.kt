@@ -11,7 +11,7 @@ import shared.mapValues
 import kotlin.collections.component1
 import kotlin.collections.component2
 
-class StatisticsViewModel(val statisticsService: StatisticsService, private val maxPlants: Int) : ViewModel() {
+class StatisticsViewModel(val statisticsService: StatisticsService, val maxPlants: Int) : ViewModel() {
   private fun Number.ofAllPlants() = this.toDouble() * 100 / maxPlants
 
   val topGenomes = statisticsService.genomeCollector.map {
@@ -28,6 +28,13 @@ class StatisticsViewModel(val statisticsService: StatisticsService, private val 
   }
   val plantDensityTriplePercent = statisticsService.plantDensityTriple.map {
     Triple(it.first.ofAllPlants(), it.second.ofAllPlants(), it.third.ofAllPlants())
+  }
+
+  val fieldsWithoutPlantsMetrics = statisticsService.plantDensityMetrics.map {
+    it.mapValues { value -> maxPlants - value }
+  }
+  val fieldsWithoutPlantsTriple = statisticsService.plantDensityTriple.map {
+    Triple(maxPlants - it.second, maxPlants - it.first, maxPlants - it.third)
   }
 }
 
