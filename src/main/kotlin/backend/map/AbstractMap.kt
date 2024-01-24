@@ -5,15 +5,12 @@ import backend.config.Config
 import backend.model.Animal
 import backend.model.Direction
 import frontend.simulation.FamilyRoot
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import shared.*
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.component3
-import kotlin.coroutines.coroutineContext
 import kotlin.random.Random
 
 @Suppress("PropertyName")
@@ -69,13 +66,10 @@ abstract class AbstractMap(protected val config: Config) {
   suspend fun rotateAnimals(callback: suspend (List<Animal>) -> Unit = {}) = updateAnimals(Animal::rotate, callback)
 
   suspend fun removeDeadAnimals(callback: suspend (List<Animal>) -> Unit = {}) = _aliveAnimals.update { animals ->
-    val scope = CoroutineScope(coroutineContext)
     animals.mapValuesAsync { set ->
       set.partition(Animal::isDead).let { (dead, alive) ->
-        scope.launch {
-          callback(dead)
-          _deadAnimals.update { it + dead }
-        }
+        callback(dead)
+        _deadAnimals.update { it + dead }
         alive
       }
     }
@@ -124,7 +118,6 @@ abstract class AbstractMap(protected val config: Config) {
   }
 
   suspend fun breedAnimals(callback: (Animal) -> Unit = {}) = _aliveAnimals.update { animals ->
-    val scope = CoroutineScope(coroutineContext)
     animals.mapValuesAsync { set ->
       (set.size >= 2).ifTake {
         val (animal1, animal2) = set.max().let { it to (set - it).max() }
@@ -134,10 +127,8 @@ abstract class AbstractMap(protected val config: Config) {
             config.reproductionEnergyRatio,
             mutator,
           ).also { (parent1, parent2, child) ->
-            scope.launch {
-              familyTree.add(child.id, parent1.id, parent2.id)
-              callback(child)
-            }
+            familyTree.add(child.id, parent1.id, parent2.id)
+            callback(child)
           }
         }
       } ?: set

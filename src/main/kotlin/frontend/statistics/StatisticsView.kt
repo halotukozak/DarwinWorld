@@ -11,6 +11,7 @@ import javafx.scene.chart.NumberAxis
 import javafx.scene.chart.XYChart
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import shared.truncated
 import tornadofx.*
 import kotlin.math.max
 
@@ -141,7 +142,7 @@ class StatisticsView(
                 body = vbox {
                   it.mapIndexed { i, genome ->
                     borderpane {
-                      left = text("${i + 1}. ${genome.genome}")
+                      left = text("${i + 1}. ${genome.genome}".truncated(40))
                       right = hbox {
                         genome.arrow?.let(::fontIcon)
                         text(genome.count.toString()) {

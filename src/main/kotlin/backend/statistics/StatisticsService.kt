@@ -38,11 +38,11 @@ class StatisticsService(simulationConfig: Config) {
   }
 
   val isDeathsMetricsEnabled = simulationConfig.deaths
-  private val _deathMetrics by lazy { MutableCounter<Int>(range) }
-  private val _minDeathMetrics by lazy(::MutableMinimumMetrics)
-  private val _maxDeathMetrics by lazy(::MutableMaximumMetrics)
-  private val _avgDeathMetrics by lazy(::MutableAverageMetrics)
-  val deathMetrics: Counter<Int> by lazy { _deathMetrics }
+  private val _deathMetrics by lazy { MutableACounter<Int>(range) }
+  private val _minDeathMetrics by lazy(::MutableAMinimumMetrics)
+  private val _maxDeathMetrics by lazy(::MutableAMaximumMetrics)
+  private val _avgDeathMetrics by lazy(::MutableAAverageMetrics)
+  val deathMetrics: ACounter<Int> by lazy { _deathMetrics }
   val deathTripleMetrics by lazy {
     combine(_minDeathMetrics, _maxDeathMetrics, _avgDeathMetrics, ::Triple)
   }
@@ -112,12 +112,12 @@ class StatisticsService(simulationConfig: Config) {
     }
   }
 
-  fun registerDeath(animals: Int) {
+  fun registerDeath(day: Day, animals: Int) {
     if (isDeathsMetricsEnabled) {
-      _deathMetrics.register(animals)
-      _minDeathMetrics.register(animals)
-      _maxDeathMetrics.register(animals)
-      _avgDeathMetrics.register(animals)
+      _deathMetrics.register(day, animals)
+      _minDeathMetrics.register(day, animals)
+      _maxDeathMetrics.register(day, animals)
+      _avgDeathMetrics.register(day, animals)
     }
   }
 
@@ -144,7 +144,7 @@ class StatisticsService(simulationConfig: Config) {
       _maxDailyAverageAgeMetrics.register(avg)
       _avgDailyAverageAgeMetrics.register(avg)
     }
-    if (isDailyAverageEnergyMetricsEnabled){
+    if (isDailyAverageEnergyMetricsEnabled) {
       val avg = animals.map(Animal::energy).average()
       _dailyAverageEnergyMetrics.register(avg)
       _minDailyAverageEnergyMetrics.register(avg)

@@ -66,6 +66,7 @@ class SimulationView(simulationConfig: Config) : View() {
             text = "Animals: ${it.flattenValues().size}"
           }
         },
+        separator(Orientation.VERTICAL),
         label {
           simulation.plants.onUpdate {
             text = "Plants: ${it.size}"
