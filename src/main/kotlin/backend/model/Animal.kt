@@ -11,6 +11,7 @@ data class Animal(
   val children: Int = 0,
   val id: UUID = UUID.randomUUID(),
   val parents: Pair<UUID, UUID>? = null,
+  val consumedPlants: Int = 0,
 ) : Comparable<Animal> {
 
   val isDead by lazy { energy <= 0 }
@@ -18,7 +19,7 @@ data class Animal(
   fun rotate(): Animal = this.copy(direction = direction + genome.next())
   fun turnBack(): Animal = this.copy(direction = direction.opposite)
   fun grow(): Animal = this.copy(energy = energy - 1, age = age + 1)
-  fun eat(energy: Int): Animal = this.copy(energy = this.energy + energy)
+  fun eat(energy: Int): Animal = this.copy(energy = this.energy + energy, consumedPlants = this.consumedPlants + 1)
 
   private fun decreaseEnergy(energy: Int): Animal = this.copy(energy = this.energy - energy)
   private fun withChild(): Animal = this.copy(children = this.children + 1)

@@ -7,7 +7,7 @@ import frontend.components.ViewModel
 import frontend.components.fontIcon
 import frontend.simulation.FamilyRoot
 import javafx.event.EventHandler
-import javafx.scene.layout.HBox
+import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.text.Text
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,7 +22,7 @@ import java.util.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FollowedAnimalsViewModel(
-  private val energyStep: Int,
+  private val satietyEnergy: Int,
   val followedIds: MutableStateFlow<List<UUID>>,
   private val familyTree: FamilyRoot,
   aliveAnimals: StateFlow<List<Pair<Vector, List<Animal>>>>,
@@ -33,45 +33,44 @@ class FollowedAnimalsViewModel(
   val followedAnimals = combine(aliveAnimals, deadAnimals, followedIds) { aliveAnimals, deadAnimals, ids ->
     aliveAnimals
       .asFlow()
-      .flatMapMerge { (position, set) ->
+      .flatMapMerge { (_, set) ->
         set
           .asFlow()
           .filter { it.id in ids }
-          .map { FollowedAnimal(position, it) }
+          .map { FollowedAnimal(it) }
       }.onCompletion {
         emitAll(deadAnimals
           .asFlow()
           .filter { it.id in ids }
-          .map { FollowedAnimal(null, it) }
+          .map { FollowedAnimal(it) }
         )
-      }.toList()
+      }.toList().sortedBy { it.id }
   }
 
   inner class FollowedAnimal(
-    val x: Int?,
-    val y: Int?,
+    val id: UUID,
     val energy: Text,
     val genome: Text,
+    val currentGene: Text,
     val direction: FontIcon,
-    val age: HBox,
+    val age: VBox,
     val children: Int,
     val descendants: Int?,
+    val consumedPlants: Int,
     val unfollowButton: FontIcon,
   ) {
 
     constructor(
-      vector: Vector?,
       animal: Animal,
     ) : this(
-      x = vector?.x,
-      y = vector?.y,
+      id = animal.id,
       energy = Text(animal.energy.toString()).apply {
         style {
-          textFill = when (animal.energy) {
+          fill = when (animal.energy) {
             in Int.MIN_VALUE..0 -> Color.BLACK
-            in 0..<energyStep -> Color.RED
-            in energyStep..<energyStep * 2 -> Color.ORANGE
-            in energyStep * 2..<energyStep * 3 -> Color.SPRINGGREEN
+            in 0..<satietyEnergy / 2 -> Color.RED
+            in satietyEnergy / 2..<satietyEnergy -> Color.ORANGE
+            in satietyEnergy..<satietyEnergy * 2 -> Color.SPRINGGREEN
             else -> Color.GREEN
           }
         }
@@ -79,6 +78,7 @@ class FollowedAnimalsViewModel(
       genome = Text(animal.genome.toString().truncated(25)).apply {
         tooltip { text = animal.genome.toString() }
       },
+      currentGene = Text(animal.genome.currentGene().toString()),
       direction = FontIcon(
         when (animal.direction) {
           N -> Material2SharpMZ.NORTH
@@ -91,8 +91,8 @@ class FollowedAnimalsViewModel(
           SW -> Material2SharpMZ.SOUTH_WEST
         }
       ),
-      age = HBox().apply {
-        text(animal.age.toString())
+      age = VBox().apply {
+        alignment = javafx.geometry.Pos.CENTER
         fontIcon(
           when {
             animal.isDead -> Material2SharpMZ.WIFI_OFF
@@ -102,9 +102,11 @@ class FollowedAnimalsViewModel(
             else -> Material2SharpMZ.PERSON
           }
         )
+        text(animal.age.toString())
       },
       children = animal.children,
       descendants = descendantsEnabled.ifTake { familyTree.find(animal.id)?.descendants },
+      consumedPlants = animal.consumedPlants,
       unfollowButton = FontIcon(Material2SharpAL.DELETE).apply {
         onMouseClicked = EventHandler { followedIds.update { it - animal.id } }
       }

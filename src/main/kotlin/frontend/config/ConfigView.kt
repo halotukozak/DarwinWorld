@@ -54,11 +54,9 @@ class ConfigView : View("Config editor") {
 
               borderpane {
                 right {
-                  hbox(10) {
-                    button("Save") {
-                      enableWhen(isValid)
-                      action { saveConfig() }
-                    }
+                  button("Save") {
+                    enableWhen(isValid)
+                    action { saveConfig() }
                   }
                 }
               }
@@ -109,7 +107,7 @@ class ConfigView : View("Config editor") {
 
                 field("Import/Export") {
                   tooltip("You can import/export the current configuration as a json file.")
-                  inputGroup {
+                  hbox(10) {
                     button("Import") {
                       action {
                         importConfig()
@@ -141,9 +139,9 @@ class ConfigView : View("Config editor") {
       tooltip(ConfigField.description<Seed>())
 
       val left = textfield(seed.value.toString()) {
-        seed.onUpdate {
-          text = it?.toString() ?: ""
-        }
+//        seed.onUpdate {
+//          text = it?.toString() ?: ""
+//        }
         textProperty().addListener { _ ->
           decorators.forEach { it.undecorate(this) }
           decorators.clear()

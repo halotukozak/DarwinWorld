@@ -33,6 +33,11 @@ class GenomeTest : FunSpec({
         Genome(listOf(NAC, Frp, Frp, DmNotch, Frp, Frp, NAC, MDM2), 2)
   }
 
+  test("currentGene") {
+    Genome(listOf(Frp, NAC, Frp, DmNotch, Frp, Frp, NAC, MDM2), 5).currentGene() shouldBe Frp
+    Genome(listOf(Frp, NAC, Frp, DmNotch, Frp, Frp, NAC, MDM2), 1).currentGene() shouldBe NAC
+  }
+
   test("random gen") {
     generateSequence {
       Gen.random(Random)

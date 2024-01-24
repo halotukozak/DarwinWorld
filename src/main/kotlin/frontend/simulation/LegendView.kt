@@ -6,6 +6,7 @@ import javafx.scene.shape.ArcType
 import javafx.scene.shape.Rectangle
 import javafx.scene.shape.Shape
 import tornadofx.*
+import frontend.components.readonlyColumn
 
 class LegendView : View("Legend") {
 
@@ -22,20 +23,24 @@ class LegendView : View("Legend") {
 
   override val root = tableview(
     listProperty(
-      Rectangle(
-        30.0, 30.0, c(DarwinStyles.LIGHTGREEN),
-      ) to "Field which is preferred",
-      Rectangle(30.0, 30.0, c(DarwinStyles.GREEN)) to "Field with plants",
-      animalArc("#355070") to "Animal sated over 83.3%",
-      animalArc("#30BCED") to "Animal sated 66.6% — 83.3% ",
-      animalArc("#DA627D") to "Animal sated 50% — 66.6%",
-      animalArc("#A53860") to "Animal sated 33.3% — 50%",
-      animalArc("#450920") to "Animal sated 16.6% — 33.3%",
-      animalArc("#190303") to "Almost dead animal",
+      Rectangle(30.0, 30.0, c(DarwinStyles.LIGHTGREEN)) to "Field preferred by plants to grow",
+      Rectangle(30.0, 30.0, c(DarwinStyles.GREEN)) to "Plant",
+      animalArc(DarwinStyles.YINMN_BLUE) to "Animal with more than 10 times satiety energy",
+      animalArc(DarwinStyles.PROCESS_CYAN) to "Animal with 5-10 times satiety energy",
+      animalArc(DarwinStyles.BLUSH) to "Animal with 2-5 times satiety energy",
+      animalArc(DarwinStyles.RASPBERRY_ROSE) to "Animal with 1-2 times satiety energy",
+      animalArc(DarwinStyles.CHOCOLATE_COSMOS) to "Animal with 0.5-1 times satiety energy",
+      animalArc(DarwinStyles.LICORICE) to "Animal with less than 0.5 times satiety energy",
+      animalArc(DarwinStyles.PROCESS_CYAN).apply { stroke = c(DarwinStyles.BLACK); strokeWidth = 3.0 } to "Followed animal"
     )
   ) {
-    minWidth = 310.0
-    readonlyColumn("Object", Pair<Shape, String>::first)
-    readonlyColumn("Description", Pair<Shape, String>::second)
+    minWidth = 402.0
+    readonlyColumn("Object", Pair<Shape, String>::first) {
+      prefWidth = 75.0
+      styleClass.add("centered")
+    }
+    readonlyColumn("Description", Pair<Shape, String>::second) {
+      prefWidth = 325.0
+    }
   }
 }

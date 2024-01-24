@@ -17,6 +17,8 @@ class Genome(val genes: List<Gen>, private var curr: Int) : Iterator<Gen> {
 
   override fun next(): Gen = genes[(curr++) % genes.size]
 
+  fun currentGene(): Gen = genes[curr % genes.size]
+
   val frequencyMap by lazy { this.genes.groupingBy { it }.eachCount() }
 
 }

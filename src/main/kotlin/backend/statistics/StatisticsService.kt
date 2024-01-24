@@ -1,7 +1,6 @@
 package backend.statistics
 
 import backend.config.Config
-import backend.map.Vector
 import backend.model.Animal
 import backend.model.Gen
 import backend.model.Genome
@@ -39,11 +38,11 @@ class StatisticsService(simulationConfig: Config) {
   }
 
   val isDeathsMetricsEnabled = simulationConfig.deaths
-  private val _deathMetrics by lazy { MutableACounter<Int>(range) }
+  private val _deathMetrics by lazy { MutableCounter<Int>(range) }
   private val _minDeathMetrics by lazy(::MutableMinimumMetrics)
   private val _maxDeathMetrics by lazy(::MutableMaximumMetrics)
   private val _avgDeathMetrics by lazy(::MutableAverageMetrics)
-  val deathMetrics: ACounter<Int> by lazy { _deathMetrics }
+  val deathMetrics: Counter<Int> by lazy { _deathMetrics }
   val deathTripleMetrics by lazy {
     combine(_minDeathMetrics, _maxDeathMetrics, _avgDeathMetrics, ::Triple)
   }
@@ -61,11 +60,11 @@ class StatisticsService(simulationConfig: Config) {
   val isPlantDensityMetricsEnabled = simulationConfig.plantDensity
   private val _plantDensityMetrics by lazy { MutableCounter<Int>(range) }
   private val _minPlantDensityMetrics by lazy(::MutableMinimumMetrics)
-  private val _maxPlantMetrics by lazy(::MutableMaximumMetrics)
-  private val _avgPlantMetrics by lazy(::MutableAverageMetrics)
+  private val _maxPlantDensityMetrics by lazy(::MutableMaximumMetrics)
+  private val _avgPlantDensityMetrics by lazy(::MutableAverageMetrics)
   val plantDensityMetrics: Counter<Int> by lazy { _plantDensityMetrics }
   val plantDensityTriple: Flow<MinMaxAvgTriple> by lazy {
-    combine(_minPlantDensityMetrics, _maxPlantMetrics, _avgPlantMetrics, ::Triple)
+    combine(_minPlantDensityMetrics, _maxPlantDensityMetrics, _avgPlantDensityMetrics, ::Triple)
   }
 
   val isDailyAverageAgeMetricsEnabled = simulationConfig.dailyAverageAge
@@ -94,7 +93,7 @@ class StatisticsService(simulationConfig: Config) {
 
   val presentGens by lazy {
     genCollector.map {
-      it.toList().lastOrNull()?.second?.sortedBy { it.first }?.map { (gen, count) ->
+      it.lastOrNull()?.second?.sortedBy { it.first }?.map { (gen, count) ->
         PieChart.Data(gen.name, count.toDouble())
       }
     }
@@ -113,12 +112,12 @@ class StatisticsService(simulationConfig: Config) {
     }
   }
 
-  fun registerDeath(day: Day, animals: List<Animal>) {
+  fun registerDeath(animals: Int) {
     if (isDeathsMetricsEnabled) {
-      _deathMetrics.register(day, animals.size)
-      _minDeathMetrics.register(animals.size)
-      _maxDeathMetrics.register(animals.size)
-      _avgDeathMetrics.register(animals.size)
+      _deathMetrics.register(animals)
+      _minDeathMetrics.register(animals)
+      _maxDeathMetrics.register(animals)
+      _avgDeathMetrics.register(animals)
     }
   }
 
@@ -126,8 +125,8 @@ class StatisticsService(simulationConfig: Config) {
     if (isPlantDensityMetricsEnabled) {
       _plantDensityMetrics.register(n)
       _minPlantDensityMetrics.register(n)
-      _maxPlantMetrics.register(n)
-      _avgPlantMetrics.register(n)
+      _maxPlantDensityMetrics.register(n)
+      _avgPlantDensityMetrics.register(n)
     }
   }
 
@@ -138,14 +137,14 @@ class StatisticsService(simulationConfig: Config) {
       _maxPopulationMetrics.register(animals.size)
       _avgPopulationMetrics.register(animals.size)
     }
-    if (isDailyAverageEnergyMetricsEnabled) {
+    if (isDailyAverageAgeMetricsEnabled) {
       val avg = animals.map(Animal::age).average()
       _dailyAverageAgeMetrics.register(avg)
       _minDailyAverageAgeMetrics.register(avg)
       _maxDailyAverageAgeMetrics.register(avg)
       _avgDailyAverageAgeMetrics.register(avg)
     }
-    if (isDailyAverageAgeMetricsEnabled){
+    if (isDailyAverageEnergyMetricsEnabled){
       val avg = animals.map(Animal::energy).average()
       _dailyAverageEnergyMetrics.register(avg)
       _minDailyAverageEnergyMetrics.register(avg)
@@ -170,8 +169,8 @@ class StatisticsService(simulationConfig: Config) {
           .sortedByDescending { it.second })
   }
 
-  fun registerEndOfDay(day: Day, plants: Set<Vector>, animals: List<Animal>) {
-    registerPlants(plants.size)
+  fun registerEndOfDay(day: Day, plants: Int, animals: List<Animal>) {
+    registerPlants(plants)
     registerAnimals(animals)
 
     if (isCsvExportEnabled) export(day)

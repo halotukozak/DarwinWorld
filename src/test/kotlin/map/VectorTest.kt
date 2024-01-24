@@ -22,4 +22,17 @@ class VectorTest : FunSpec({
     val y2 = Random.nextInt()
     Vector(x1, y1) - Vector(x2, y2) shouldBe Vector(x1 - x2, y1 - y2)
   }
+
+  test("surroundingPositions") {
+    Vector(0, 0).surroundingPositions shouldBe listOf(
+      Vector(-1, -1),
+      Vector(0, -1),
+      Vector(1, -1),
+      Vector(-1, 0),
+      Vector(1, 0),
+      Vector(-1, 1),
+      Vector(0, 1),
+      Vector(1, 1)
+    )
+  }
 })

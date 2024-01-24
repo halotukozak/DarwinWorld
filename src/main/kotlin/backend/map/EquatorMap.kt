@@ -15,23 +15,21 @@ class EquatorMap(config: Config) : AbstractMap(config) {
   override suspend fun growPlants(plantsCount: Int) = _plants.update { plants ->
     fun IntRange.emptyFields(x: Int) = fields.filter { it.x == x && it.y in this } - plants
 
-    val emptyFieldsOnEquator = (0..<config.mapWidth).flatMap { equator.emptyFields(it) }
-    val plantsOnEquator = minOf(emptyFieldsOnEquator.size, (plantsCount * 0.8).roundToInt())
-
+    val emptyFieldsOnEquator = _preferredFields.value.toList().ifEmpty {
+      (0..<config.mapWidth).flatMap { equator.emptyFields(it) }
+    }
     val emptyFieldsBesideEquator = (0..<config.mapWidth).flatMap { x ->
       (0..<equator.first).emptyFields(x) + (equator.last + 1..<config.mapHeight).emptyFields(x)
     }
 
+    val plantsOnEquator = minOf(emptyFieldsOnEquator.size, (plantsCount * 0.8).roundToInt())
     val plantsBesideEquator = minOf(emptyFieldsBesideEquator.size, plantsCount - plantsOnEquator)
 
-    (plants + emptyFieldsOnEquator.takeRandom(plantsOnEquator, random) + emptyFieldsBesideEquator.takeRandom(
-      plantsBesideEquator,
-      random,
-    )).also {
+    (plants +
+        emptyFieldsOnEquator.takeRandom(plantsOnEquator, random) +
+        emptyFieldsBesideEquator.takeRandom(plantsBesideEquator, random)).also { newPlants ->
       _preferredFields.update {
-        equator
-          .flatMap { y -> (0..<config.mapWidth).map { x -> Vector(x, y) } }
-          .toSet() - _plants.value
+        (0..<config.mapWidth).flatMap { x -> equator.map { y -> Vector(x, y) } }.toSet() - newPlants
       }
     }
   }

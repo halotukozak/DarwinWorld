@@ -108,7 +108,10 @@ class SimulationView(simulationConfig: Config) : View() {
             length = 250.0
             type = ArcType.ROUND
             fill = animal.color
-
+            if (animal.selected) {
+              stroke = c(DarwinStyles.BLACK)
+              strokeWidth = 3.0
+            }
             onMouseClicked = EventHandler { selectAnimal(animal) }
           }
         }

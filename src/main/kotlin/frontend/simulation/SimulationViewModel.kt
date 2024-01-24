@@ -4,6 +4,7 @@ import backend.Simulation
 import backend.config.Config
 import backend.model.Direction
 import backend.statistics.StatisticsService
+import frontend.DarwinStyles
 import frontend.animal.FollowedAnimalsView
 import frontend.components.ViewModel
 import frontend.statistics.StatisticsView
@@ -18,20 +19,6 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
   val mapHeight = 800.0
   val mapWidth = mapHeight * simulationConfig.mapWidth / simulationConfig.mapHeight
   val objectRadius = mapHeight / (2 * simulationConfig.mapHeight)
-
-  val animals = simulation.aliveAnimals.map { animals ->
-    animals.flatMap { (vector, set) ->
-      set.map { animal ->
-        AnimalModel(
-          animal.id,
-          vector.x.toDouble(),
-          vector.y.toDouble(),
-          animal.energy,
-          animal.direction,
-        )
-      }
-    }
-  }
 
   val plants = simulation.plants.map { plants ->
     plants.map { PlantModel(it.x, it.y) }
@@ -61,7 +48,6 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
     allDisabled || day < 5
   }
 
-
   fun openStatisticsWindow() = StatisticsView(
     statisticsService,
     simulationConfig.mapWidth * simulationConfig.mapHeight,
@@ -70,12 +56,23 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
 
   private val selectedIds = MutableStateFlow<List<UUID>>(emptyList())
 
-
-  private val energyStep = simulationConfig.satietyEnergy / 6
-
+  val animals = combine(simulation.aliveAnimals, selectedIds) { animals, ids ->
+    animals.flatMap { (vector, set) ->
+      set.map { animal ->
+        AnimalModel(
+          animal.id,
+          vector.x,
+          vector.y,
+          animal.energy,
+          animal.direction,
+          animal.id in ids,
+        )
+      }
+    }
+  }
 
   private val followedAnimalsView = FollowedAnimalsView(
-    energyStep,
+    simulationConfig.satietyEnergy,
     selectedIds,
     simulation.aliveAnimals,
     simulation.deadAnimals,
@@ -84,7 +81,7 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
   )
 
   fun selectAnimal(animal: AnimalModel) {
-    selectedIds.update { it + animal.id }
+    selectedIds.update { (it + animal.id).sortedBy { it } }
     followedAnimalsView.openWindow(resizable = false)
   }
 
@@ -96,18 +93,19 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
 
   inner class AnimalModel(
     val id: UUID,
-    x: Double,
-    y: Double,
+    x: Int,
+    y: Int,
     energy: Int,
     direction: Direction,
+    val selected: Boolean,
   ) {
     val color: Color = when (energy) {
-      in 0..<energyStep -> Color.web("#190303")
-      in energyStep..<energyStep * 2 -> Color.web("#450920")
-      in energyStep * 2..<energyStep * 3 -> Color.web("#A53860")
-      in energyStep * 3..<energyStep * 4 -> Color.web("#DA627D")
-      in energyStep * 4..<energyStep * 5 -> Color.web("#30BCED")
-      else -> Color.web("#355070")
+      in 0..<simulationConfig.satietyEnergy / 2 -> Color.web(DarwinStyles.LICORICE)
+      in simulationConfig.satietyEnergy / 2..<simulationConfig.satietyEnergy -> Color.web(DarwinStyles.CHOCOLATE_COSMOS)
+      in simulationConfig.satietyEnergy..<simulationConfig.satietyEnergy * 2 -> Color.web(DarwinStyles.RASPBERRY_ROSE)
+      in simulationConfig.satietyEnergy * 2..<simulationConfig.satietyEnergy * 5 -> Color.web(DarwinStyles.BLUSH)
+      in simulationConfig.satietyEnergy * 5..<simulationConfig.satietyEnergy * 10 -> Color.web(DarwinStyles.PROCESS_CYAN)
+      else -> Color.web(DarwinStyles.YINMN_BLUE)
     }
     val angle: Double = direction.ordinal * 45.0
     val x: Double = (x + 0.5) / simulationConfig.mapWidth * mapWidth
