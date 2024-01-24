@@ -45,7 +45,10 @@ class AnimalTest : FunSpec() {
     }
 
     test("eat") {
-      randomAnimal.copy(energy = 10).eat(4).energy shouldBe 14
+      randomAnimal.copy(energy = 10).eat(4).let {
+        it.energy shouldBe 14
+        it.consumedPlants shouldBe 1
+      }
     }
 
     test("cover") {
@@ -65,8 +68,8 @@ class AnimalTest : FunSpec() {
       result[0].energy shouldBe 50
       result[1].energy shouldBe 150
       result[2].energy shouldBe 200
-      result[0].children shouldBe setOf(result[2])
-      result[1].children shouldBe setOf(result[2])
+      result[0].children shouldBe 1
+      result[1].children shouldBe 1
       result[2].genome shouldBe GenomeManager(Config.test).combine(parent1.genome, parent2.genome, 0.25)
     }
   }

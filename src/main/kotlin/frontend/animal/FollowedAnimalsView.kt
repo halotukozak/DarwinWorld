@@ -5,10 +5,7 @@ import backend.model.Animal
 import frontend.animal.FollowedAnimalsViewModel.FollowedAnimal
 import frontend.components.View
 import frontend.components.readonlyColumn
-import kotlinx.coroutines.flow.Flow
-import frontend.components.card
 import frontend.simulation.FamilyRoot
-import javafx.scene.text.Text
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import tornadofx.*
@@ -33,14 +30,17 @@ class FollowedAnimalsView(
         items.setAll(it)
       }
 
-      readonlyColumn("X", FollowedAnimal::x) { prefWidth = 40.0; styleClass.add("centered") }
-      readonlyColumn("Y", FollowedAnimal::y) { prefWidth = 40.0; styleClass.add("centered") }
       readonlyColumn("Energy", FollowedAnimal::energy) { prefWidth = 70.0; styleClass.add("centered") }
       readonlyColumn("Genome", FollowedAnimal::genome) { prefWidth = 300.0 }
+      readonlyColumn("Current Gene", FollowedAnimal::currentGene) {prefWidth = 80.0; styleClass.add("centered")}
       readonlyColumn("Direction", FollowedAnimal::direction) { prefWidth = 80.0; styleClass.add("centered") }
       readonlyColumn("Age", FollowedAnimal::age) { prefWidth = 70.0; styleClass.add("centered") }
       readonlyColumn("Children", FollowedAnimal::children) { prefWidth = 80.0; styleClass.add("centered") }
-      if (descendantsEnabled) readonlyColumn("Descendants", FollowedAnimal::descendants)
+      if (descendantsEnabled)
+        readonlyColumn("Descendants", FollowedAnimal::descendants) {
+        prefWidth = 80.0; styleClass.add("centered")
+      }
+      readonlyColumn("Consumed plants", FollowedAnimal::consumedPlants) { prefWidth = 80.0; styleClass.add("centered") }
       readonlyColumn("Unfollow", FollowedAnimal::unfollowButton) { prefWidth = 80.0; styleClass.add("centered") }
     }
   }

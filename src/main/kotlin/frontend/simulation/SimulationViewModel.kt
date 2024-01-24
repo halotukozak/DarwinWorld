@@ -78,7 +78,7 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
   }
 
   init {
-    combine(simulation.animals, selectedIds) { animals, ids ->
+    combine(simulation.aliveAnimals, selectedIds) { animals, ids ->
       if (ids.isNotEmpty()) selectedAnimals.update { oldAnimals ->
         animals
           .asFlow()
@@ -109,7 +109,7 @@ class SimulationViewModel(val simulationConfig: Config) : ViewModel() {
   )
 
   fun selectAnimal(animal: AnimalModel) {
-    selectedIds.update { it + animal.id }
+    selectedIds.update { (it + animal.id).sortedBy { it } }
     followedAnimalsView.openWindow(resizable = false)
   }
 

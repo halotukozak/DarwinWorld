@@ -33,38 +33,37 @@ class FollowedAnimalsViewModel(
   val followedAnimals = combine(aliveAnimals, deadAnimals, followedIds) { aliveAnimals, deadAnimals, ids ->
     aliveAnimals
       .asFlow()
-      .flatMapMerge { (position, set) ->
+      .flatMapMerge { (_, set) ->
         set
           .asFlow()
           .filter { it.id in ids }
-          .map { FollowedAnimal(position, it) }
+          .map { FollowedAnimal(it) }
       }.onCompletion {
         emitAll(deadAnimals
           .asFlow()
           .filter { it.id in ids }
-          .map { FollowedAnimal(null, it) }
+          .map { FollowedAnimal(it) }
         )
-      }.toList()
+      }.toList().sortedBy { it.id }
   }
 
   inner class FollowedAnimal(
-    val x: Int?,
-    val y: Int?,
+    val id: UUID,
     val energy: Text,
     val genome: Text,
+    val currentGene: Text,
     val direction: FontIcon,
     val age: VBox,
     val children: Int,
     val descendants: Int?,
+    val consumedPlants: Int,
     val unfollowButton: FontIcon,
   ) {
 
     constructor(
-      vector: Vector?,
       animal: Animal,
     ) : this(
-      x = vector?.x,
-      y = vector?.y,
+      id = animal.id,
       energy = Text(animal.energy.toString()).apply {
         style {
           fill = when (animal.energy) {
@@ -79,6 +78,7 @@ class FollowedAnimalsViewModel(
       genome = Text(animal.genome.toString().truncated(25)).apply {
         tooltip { text = animal.genome.toString() }
       },
+      currentGene = Text(animal.genome.currentGene().toString()),
       direction = FontIcon(
         when (animal.direction) {
           N -> Material2SharpMZ.NORTH
@@ -106,6 +106,7 @@ class FollowedAnimalsViewModel(
       },
       children = animal.children,
       descendants = descendantsEnabled.ifTake { familyTree.find(animal.id)?.descendants },
+      consumedPlants = animal.consumedPlants,
       unfollowButton = FontIcon(Material2SharpAL.DELETE).apply {
         onMouseClicked = EventHandler { followedIds.update { it - animal.id } }
       }
