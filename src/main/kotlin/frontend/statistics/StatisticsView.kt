@@ -78,16 +78,11 @@ class StatisticsView(
               }
 
               areachart("Fields without animals", NumberAxis(), NumberAxis()) {
-                xAxis.isAutoRanging = false
-                yAxis.isAutoRanging = false
                 day.onUpdate {
                   (xAxis as NumberAxis).lowerBound = max(0.0, it.toDouble() - range)
                   (xAxis as NumberAxis).upperBound = it.toDouble()
                 }
-                (yAxis as NumberAxis).lowerBound = 0.0
-                (yAxis as NumberAxis).upperBound = maxPlants.toDouble()
-                (xAxis as NumberAxis).tickUnit = 1.0
-                animated = false
+                normalize()
                 series("free fields", fieldsWithoutPlantsMetrics) {
                   tripleLegend("free fields", fieldsWithoutPlantsTriple)
                 }
