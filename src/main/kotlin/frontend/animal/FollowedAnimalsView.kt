@@ -1,11 +1,11 @@
 package frontend.animal
 
+import backend.FamilyRoot
 import backend.map.Vector
 import backend.model.Animal
 import frontend.animal.FollowedAnimalsViewModel.FollowedAnimal
 import frontend.components.View
 import frontend.components.readonlyColumn
-import frontend.simulation.FamilyRoot
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import tornadofx.*

@@ -1,10 +1,10 @@
 package backend.map
 
+import backend.FamilyRoot
 import backend.GenomeManager
 import backend.config.Config
 import backend.model.Animal
 import backend.model.Direction
-import frontend.simulation.FamilyRoot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import shared.*

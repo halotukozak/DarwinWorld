@@ -1,11 +1,11 @@
 package frontend.animal
 
+import backend.FamilyRoot
 import backend.map.Vector
 import backend.model.Animal
 import backend.model.Direction.*
 import frontend.components.ViewModel
 import frontend.components.fontIcon
-import frontend.simulation.FamilyRoot
 import javafx.event.EventHandler
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
