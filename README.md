@@ -30,6 +30,10 @@ etc.
 
 Common utils which extend the functionality of Kotlin's standard library and Flow.
 
+## Short video and screenshots
+
+[![Short video](http://img.youtube.com/vi/UE6oPCqejWk/0.jpg)](http://www.youtube.com/watch?v=UE6oPCqejWk "Short video")
+
 <img width="423" alt="image" src="https://github.com/halotukozak/DarwinWorld/assets/64359735/da71f678-9030-45ce-86e8-7cb39d77bc71">
 <img width="425" alt="image" src="https://github.com/halotukozak/DarwinWorld/assets/64359735/83e629be-b116-4692-bbb2-9b8e4d4f81fb">
 <img width="424" alt="image" src="https://github.com/halotukozak/DarwinWorld/assets/64359735/2a261472-fbbe-4262-857d-abff9e5b19a2">
